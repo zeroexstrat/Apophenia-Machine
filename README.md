@@ -68,7 +68,7 @@ The engine surfaces. You decide.
 
 **Stable IDs** (for code, schemas, registries): lowercase-hyphenated, domain-agnostic.
 **Display names** (for docs, UI, explanations): alchemical.
-**Style reference:** `AESTHETIC.md` and `AESTHETIC-10-HANDOFF.md` in `../Symmetry-Breaking/`.
+**Style reference:** `AESTHETIC.md` in `../Symmetry-Breaking/` (alchemical naming conventions only).
 
 ---
 
@@ -87,7 +87,7 @@ The engine surfaces. You decide.
 ## Related Artifacts
 
 - **φ-note:** `../Symmetry-Breaking/research/symmetry-breaking-intelligence-deepening/phi-note.md`
-- **Aesthetic conventions:** `../Symmetry-Breaking/AESTHETIC.md`, `AESTHETIC-10-HANDOFF.md`
+- **Aesthetic conventions:** `../Symmetry-Breaking/AESTHETIC.md` (alchemical naming)
 - **rx2 + rx3 corpora:** `../ai-projects/memory-sanity/rx2/`, `../ai-projects/memory-sanity/rx3/`
 - **Essay (Anastomosis):** `../Dialogues/aleatoric-substack/mimo-substack-essay-v7.md`
 - **Mimo archive analyses:** `../Dialogues/aleatoric-substack/mimo-substack-analyses.md`

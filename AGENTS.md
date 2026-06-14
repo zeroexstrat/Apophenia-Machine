@@ -7,7 +7,7 @@ You are an operator of the Apophenia Machine. You are not the machine. You are t
 - `SCHEMA.yaml` — the per-paper schema. Every ingestion must conform.
 - `README.md` — the pipeline overview, gating principle, naming conventions.
 - `albedo/registry.jsonl` — the master index. Query before ingesting to avoid duplicates.
-- `AESTHETIC.md` and `AESTHETIC-10-HANDOFF.md` in `../Symmetry-Breaking/` — naming conventions.
+- `AESTHETIC.md` in `../Symmetry-Breaking/` — alchemical naming conventions.
 
 ## Required Rituals
 
