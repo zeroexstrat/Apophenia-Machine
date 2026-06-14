@@ -1,0 +1,18 @@
+# Azoth — Apophenia Machine
+# Git ignore
+
+# Raw PDFs and large binaries — live in nigredo/ only
+nigredo/*.pdf
+nigredo/*.tar.gz
+
+# Generated YAML — tracked, but registry.jsonl is the canonical index
+# (individual library entries are tracked for git history)
+
+# System files
+.DS_Store
+__pycache__/
+*.pyc
+
+# Secrets
+.env
+*.key

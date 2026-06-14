@@ -1,0 +1,189 @@
+# SCHEMA.yaml — The Per-Paper Structured Record
+# Azoth / Apophenia Machine
+# Every paper ingested into Albedo must conform to this schema.
+# Unmarked fields are optional but encouraged.
+
+# ---------------------------------------------------------------------------
+# Required fields
+# ---------------------------------------------------------------------------
+id:
+  type: string
+  required: true
+  description: "Unique stable identifier. Format: {source}_{index}. Example: rx2_013, rx3_007, inbox_003."
+  pattern: "^[a-z0-9]+_[0-9]+$"
+
+source:
+  type: object
+  required: true
+  description: "Bibliographic metadata."
+  fields:
+    title:
+      type: string
+      required: true
+      description: "Full paper title."
+    authors:
+      type: list[string]
+      required: true
+      description: "Full author names in publication order."
+    year:
+      type: integer
+      required: true
+      description: "Publication year. 4 digits."
+    path:
+      type: string
+      required: true
+      description: "Filesystem path to the PDF relative to the nigredo corpus root."
+    arxiv:
+      type: string
+      required: false
+      description: "arXiv ID if available. Format: '2501.xxxxx'."
+    doi:
+      type: string
+      required: false
+      description: "DOI if available."
+    venue:
+      type: string
+      required: false
+      description: "Journal or conference. Example: 'NeurIPS 2025', 'arXiv preprint'."
+
+# ---------------------------------------------------------------------------
+# Claims — the core structural extraction
+# ---------------------------------------------------------------------------
+claims:
+  type: list[object]
+  required: true
+  description: "Structural claims the paper makes. Not summaries. Not opinions. Claims."
+  min_items: 1
+  fields:
+    statement:
+      type: string
+      required: true
+      description: "The claim, stated in one sentence. Precise enough to be wrong."
+    confidence:
+      type: string
+      required: true
+      description: "Confidence tier."
+      enum: [proven, formalizable, demonstrated, hypothesized, speculative]
+    evidence:
+      type: string
+      required: true
+      description: "What supports the claim. Theorem number, equation range, experimental result, citation chain."
+
+# ---------------------------------------------------------------------------
+# Methods — the formal/inferential machinery
+# ---------------------------------------------------------------------------
+methods:
+  type: list[object]
+  required: false
+  description: "Formalisms, mathematical frameworks, inferential techniques."
+  fields:
+    name:
+      type: string
+      required: true
+      description: "Method name. Example: 'characteristic-function matching', 'variational free energy minimization'."
+    description:
+      type: string
+      required: true
+      description: "One-paragraph description of what the method does and how."
+    domain:
+      type: string
+      required: true
+      description: "Domain. Example: 'representation learning', 'quantum field theory', 'cognitive neuroscience'."
+
+# ---------------------------------------------------------------------------
+# Techniques — implementable operations
+# ---------------------------------------------------------------------------
+techniques:
+  type: list[object]
+  required: false
+  description: "Algorithms, architectures, training procedures — things you could code."
+  fields:
+    name:
+      type: string
+      required: true
+      description: "Technique name. Example: 'SIGReg', 'EMA', 'stop-gradient'."
+    description:
+      type: string
+      required: true
+      description: "What it does. Concise."
+    implementation:
+      type: string
+      required: false
+      description: "Implementation detail. LOC count, pseudocode, hardware requirement."
+
+# ---------------------------------------------------------------------------
+# Caveats — the honest constraints
+# ---------------------------------------------------------------------------
+caveats:
+  type: list[string]
+  required: false
+  description: "Known limitations, unvalidated assumptions, scope boundaries. Honest."
+
+# ---------------------------------------------------------------------------
+# Explicit connections — what the paper itself cites or builds on
+# ---------------------------------------------------------------------------
+connections_explicit:
+  type: list[object]
+  required: false
+  description: "Connections the paper explicitly makes to other works. For cross-connection ground truth."
+  fields:
+    target_paper:
+      type: string
+      required: true
+      description: "Title or stable ID of the referenced paper."
+    relationship:
+      type: string
+      required: true
+      description: "Nature of the connection. 'extends', 'contradicts', 'uses', 'is_predecessor_of', 'is_alternative_to'."
+    strength:
+      type: integer
+      required: true
+      description: "1–5. 1 = passing mention, 5 = central dependency."
+      minimum: 1
+      maximum: 5
+
+# ---------------------------------------------------------------------------
+# Tags — the concept index
+# ---------------------------------------------------------------------------
+tags:
+  type: list[string]
+  required: false
+  description: "Concept tags for pruning and cross-connection. Use the φ-note concept vocabulary where applicable."
+  examples:
+    - symmetry_breaking
+    - collapse_prevention
+    - representational_geometry
+    - free_energy_principle
+    - QECC
+    - phi_expansion
+    - attractor_depth
+    - self_representation
+    - compartmentalization
+    - sleep_consolidation
+    - LOCC
+    - anastomosis
+    - sparse_routing
+    - conscious_access
+    - phenomenology
+    - active_inference
+    - JEPA
+    - topological_order
+
+# ---------------------------------------------------------------------------
+# Ingestion metadata (auto-populated)
+# ---------------------------------------------------------------------------
+ingestion:
+  type: object
+  required: false
+  description: "Auto-populated by the ingest pipeline."
+  fields:
+    date:
+      type: string
+      format: "ISO 8601"
+      description: "Ingestion timestamp."
+    agent:
+      type: string
+      description: "Model/provider that performed extraction."
+    schema_version:
+      type: string
+      description: "Version of this schema used for ingestion."
