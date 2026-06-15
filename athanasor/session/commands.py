@@ -509,6 +509,47 @@ def append_findings_to_memory(
         json.dump(payload, f, indent=2, sort_keys=True)
 
 
+def _build_memory_entry(
+    *, skill: str, command: str, findings: list[str], snapshot: dict[str, Any]
+) -> dict[str, Any]:
+    return {
+        "id": str(uuid.uuid4()),
+        "timestamp": dt.datetime.now(dt.timezone.utc).isoformat(),
+        "skill": skill,
+        "command": command,
+        "findings": findings,
+        "worktree": {
+            "branch": snapshot["worktree"].get("branch"),
+            "commit": snapshot["worktree"].get("commit"),
+            "root": str(ROOT),
+        },
+        "pipeline": snapshot["pipeline"],
+        "knowledge_graph": snapshot["knowledge_graph"],
+    }
+
+
+def persist_checkpoint(
+    *, command: str, findings: list[str] | None = None, memory_db: Path | None = None
+) -> Path:
+    """
+    Persist a lightweight session checkpoint to the memory DB only.
+
+    This is intentionally non-committal: it writes structured progress for recovery
+    and crash safety, without mutating tracked project state files.
+    """
+    snapshot = build_snapshot()
+    findings_text = list(findings or [])
+    if not findings_text:
+        findings_text = [f"{command} completed; persisted snapshot."]
+
+    memory_path = memory_db or default_memory_path()
+    entry = _build_memory_entry(
+        skill="checkpoint", command=command, findings=findings_text, snapshot=snapshot
+    )
+    append_findings_to_memory(memory_path, entry)
+    return memory_path
+
+
 def run_incipere(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="/incipere session start skill.")
     parser.add_argument("--refresh-codex", action="store_true", help="Write this snapshot to codex.md")
@@ -602,19 +643,13 @@ def run_concludere(argv: list[str] | None = None) -> int:
         timestamp = dt.datetime.now(dt.timezone.utc)
 
         memory_path = args.memory_db or default_memory_path()
-        entry = {
-            "id": str(uuid.uuid4()),
-            "timestamp": timestamp.isoformat(),
-            "skill": "concludere",
-            "findings": findings,
-            "worktree": {
-                "branch": snapshot["worktree"].get("branch"),
-                "commit": snapshot["worktree"].get("commit"),
-                "root": str(ROOT),
-            },
-            "pipeline": snapshot["pipeline"],
-            "knowledge_graph": snapshot["knowledge_graph"],
-        }
+        entry = _build_memory_entry(
+            skill="concludere",
+            command="concludere",
+            findings=findings,
+            snapshot=snapshot,
+        )
+        entry["timestamp"] = timestamp.isoformat()
 
         append_findings_to_memory(memory_path, entry)
         update_state_from_conclusion(snapshot)

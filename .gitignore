@@ -10,6 +10,10 @@ albedo/
 citrinitas/
 rubedo/
 athanasor/vigil/reports/
+athanasor/lapis/memory.json
+athanasor/lapis/memory.jsonl
+athanasor/lapis/knowledge_graph.json
+athanasor/lapis/knowledge_graph.jsonl
 athanasor/embeddings.json
 athanasor/embeddings.npy
 athanasor/embeddings.store

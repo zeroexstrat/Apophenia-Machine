@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import sys
 from collections import Counter
@@ -20,11 +21,43 @@ from .skills import detect as detect_skill
 from .skills import draft as draft_skill
 from .skills import exhaust as exhaust_skill
 from .skills import ingest as ingest_skill
+from .session.commands import persist_checkpoint
 
 
-def _run_with_command_context(command: str, fn: Callable[[], Any]) -> Any:
+def _is_auto_checkpoint_enabled() -> bool:
+    raw = os.getenv("AZOTH_AUTO_CHECKPOINT", "1").strip().lower()
+    return raw not in {"0", "false", "off", "no"}
+
+
+def _summarize_slice_outputs(command: str, outputs: Any) -> list[str]:
+    findings = [f"{command}: slice completed"]
+    if isinstance(outputs, list):
+        findings.append(f"Produced {len(outputs)} output artifact(s).")
+        for item in outputs[:3]:
+            if not isinstance(item, dict):
+                continue
+            ident = item.get("paper_id") or item.get("cluster_id") or item.get("gap_id") or item.get("file")
+            if ident is None:
+                continue
+            findings.append(f"- {ident}")
+        if len(outputs) > 3:
+            findings.append(f"- ... {len(outputs)-3} more")
+    return findings
+
+
+def _persist_auto_checkpoint(command: str, outputs: Any, *, disable: bool) -> None:
+    if disable or not _is_auto_checkpoint_enabled():
+        return
+    findings = _summarize_slice_outputs(command, outputs)
+    memory_path = persist_checkpoint(command=command, findings=findings)
+    print(f"Auto checkpoint persisted to {memory_path}")
+
+
+def _run_with_command_context(
+    command: str, fn: Callable[[], Any], *, checkpoint: Callable[[Any], None] | None = None
+) -> Any:
     try:
-        return fn()
+        result = fn()
     except click.ClickException:
         raise
     except RuntimeError as exc:
@@ -34,6 +67,9 @@ def _run_with_command_context(command: str, fn: Callable[[], Any]) -> Any:
         raise click.ClickException(f"{command} failed: {message}") from None
     except Exception as exc:  # pragma: no cover
         raise click.ClickException(f"{command} failed unexpectedly: {exc}") from None
+    if checkpoint is not None:
+        checkpoint(result)
+    return result
 
 
 @click.group()
@@ -137,12 +173,14 @@ def _status_lines(payload: dict[str, Any]) -> list[str]:
 @click.option("--domain-override", default=None, help="Force domain label for classification.")
 @click.option("--no-llm", is_flag=True, help="Disable LLM extraction (fallback mode).")
 @click.option("--json", "json_output", is_flag=True, help="Emit machine-readable JSON")
+@click.option("--no-auto-checkpoint", is_flag=True, help="Skip automatic post-slice memory checkpoint.")
 def cmd_ingest(
     paths: tuple[Path, ...],
     reprocess: bool,
     domain_override: str | None,
     no_llm: bool,
     json_output: bool,
+    no_auto_checkpoint: bool,
 ) -> None:
     """Ingest PDFs from one or more paths into Albedo."""
     def _run() -> list[dict[str, Any]]:
@@ -161,7 +199,13 @@ def cmd_ingest(
             )
         return outputs
 
-    outputs = _run_with_command_context("azoth ingest", _run)
+    outputs = _run_with_command_context(
+        "azoth ingest",
+        _run,
+        checkpoint=lambda result: _persist_auto_checkpoint(
+            "azoth ingest", result, disable=no_auto_checkpoint
+        ),
+    )
 
     if json_output:
         click.echo(json.dumps(outputs, indent=2, sort_keys=True))
@@ -178,6 +222,7 @@ def cmd_ingest(
 @click.option("--reprocess", is_flag=True, help="Allow reprocessing exhausted papers.")
 @click.option("--no-llm", is_flag=True, help="Disable LLM exhaustion prompts.")
 @click.option("--json", "json_output", is_flag=True, help="Emit machine-readable JSON")
+@click.option("--no-auto-checkpoint", is_flag=True, help="Skip automatic post-slice memory checkpoint.")
 def cmd_awaken(
     domain: str | None,
     all_scope: bool,
@@ -186,6 +231,7 @@ def cmd_awaken(
     reprocess: bool,
     no_llm: bool,
     json_output: bool,
+    no_auto_checkpoint: bool,
 ) -> None:
     """Activate domain subagents (`/awaken`) for one domain or all domains."""
     if not domain and not all_scope:
@@ -222,7 +268,13 @@ def cmd_awaken(
             )
         return outputs
 
-    outputs = _run_with_command_context("azoth awaken", _run)
+    outputs = _run_with_command_context(
+        "azoth awaken",
+        _run,
+        checkpoint=lambda result: _persist_auto_checkpoint(
+            "azoth awaken", result, disable=no_auto_checkpoint
+        ),
+    )
 
     if json_output:
         click.echo(json.dumps(outputs, indent=2, sort_keys=True))
@@ -243,6 +295,7 @@ def cmd_awaken(
 @click.option("--reprocess", is_flag=True, help="Allow reprocessing exhausted papers.")
 @click.option("--no-llm", is_flag=True, help="Disable LLM exhaustion prompts.")
 @click.option("--json", "json_output", is_flag=True, help="Emit machine-readable JSON")
+@click.option("--no-auto-checkpoint", is_flag=True, help="Skip automatic post-slice memory checkpoint.")
 def cmd_exhaust(
     paper_id: str | None,
     domain: str | None,
@@ -252,6 +305,7 @@ def cmd_exhaust(
     reprocess: bool,
     no_llm: bool,
     json_output: bool,
+    no_auto_checkpoint: bool,
 ) -> None:
     """Generate structured exhaust output for one or many papers."""
     if not paper_id and not domain and not all_scope:
@@ -270,7 +324,13 @@ def cmd_exhaust(
             reprocess=reprocess,
         )
 
-    outputs = _run_with_command_context("azoth exhaust", _run)
+    outputs = _run_with_command_context(
+        "azoth exhaust",
+        _run,
+        checkpoint=lambda result: _persist_auto_checkpoint(
+            "azoth exhaust", result, disable=no_auto_checkpoint
+        ),
+    )
     if json_output:
         click.echo(json.dumps(outputs, indent=2, sort_keys=True))
     else:
@@ -360,6 +420,7 @@ def cmd_config(show: bool, set_kv: tuple[str, str] | None) -> None:
 @click.option("--all", "all_scope", is_flag=True, help="Run all candidate pairs.")
 @click.option("--no-llm", is_flag=True, help="Disable LLM pair assessment.")
 @click.option("--json", "json_output", is_flag=True, help="Emit machine-readable JSON")
+@click.option("--no-auto-checkpoint", is_flag=True, help="Skip automatic post-slice memory checkpoint.")
 def cmd_connect(
     within: str | None,
     cross: tuple[str, str] | None,
@@ -367,6 +428,7 @@ def cmd_connect(
     all_scope: bool,
     no_llm: bool,
     json_output: bool,
+    no_auto_checkpoint: bool,
 ) -> None:
     """Discover connection candidates between paper pairs."""
     if not any([within, cross, paper_id, all_scope]):
@@ -386,7 +448,13 @@ def cmd_connect(
             all_scope=all_scope,
         )
 
-    outputs = _run_with_command_context("azoth connect", _run)
+    outputs = _run_with_command_context(
+        "azoth connect",
+        _run,
+        checkpoint=lambda result: _persist_auto_checkpoint(
+            "azoth connect", result, disable=no_auto_checkpoint
+        ),
+    )
     if json_output:
         click.echo(json.dumps(outputs, indent=2, sort_keys=True))
     else:
@@ -401,6 +469,7 @@ def cmd_connect(
 @click.option("--all", "all_scope", is_flag=True, help="Scan all connection artifacts.")
 @click.option("--no-llm", is_flag=True, help="Disable LLM cluster synthesis.")
 @click.option("--json", "json_output", is_flag=True, help="Emit machine-readable JSON")
+@click.option("--no-auto-checkpoint", is_flag=True, help="Skip automatic post-slice memory checkpoint.")
 def cmd_detect(
     domain: str | None,
     cross: tuple[str, str] | None,
@@ -408,6 +477,7 @@ def cmd_detect(
     all_scope: bool,
     no_llm: bool,
     json_output: bool,
+    no_auto_checkpoint: bool,
 ) -> None:
     """Synthesize gap hypotheses from connection clusters."""
     def _run() -> list[dict[str, Any]]:
@@ -421,7 +491,13 @@ def cmd_detect(
             cluster=cluster,
         )
 
-    outputs = _run_with_command_context("azoth detect", _run)
+    outputs = _run_with_command_context(
+        "azoth detect",
+        _run,
+        checkpoint=lambda result: _persist_auto_checkpoint(
+            "azoth detect", result, disable=no_auto_checkpoint
+        ),
+    )
     if json_output:
         click.echo(json.dumps(outputs, indent=2, sort_keys=True))
     else:
@@ -434,11 +510,13 @@ def cmd_detect(
 @click.option("--top", default=1, type=click.IntRange(min=1), show_default=True, help="Top N pending hypotheses.")
 @click.option("--no-llm", is_flag=True, help="Disable LLM drafting")
 @click.option("--json", "json_output", is_flag=True, help="Emit machine-readable JSON")
+@click.option("--no-auto-checkpoint", is_flag=True, help="Skip automatic post-slice memory checkpoint.")
 def cmd_draft(
     gap_id: str | None,
     top: int,
     no_llm: bool,
     json_output: bool,
+    no_auto_checkpoint: bool,
 ) -> None:
     """Draft rubedo notes from hypothesis files."""
     def _run() -> list[Path]:
@@ -450,7 +528,13 @@ def cmd_draft(
             llm=llm,
         )
 
-    paths = _run_with_command_context("azoth draft", _run)
+    paths = _run_with_command_context(
+        "azoth draft",
+        _run,
+        checkpoint=lambda result: _persist_auto_checkpoint(
+            "azoth draft", [str(path) for path in result], disable=no_auto_checkpoint
+        ),
+    )
 
     if json_output:
         click.echo(json.dumps([str(path) for path in paths], indent=2))

@@ -84,6 +84,9 @@ It moves files to domain folders and writes:
 - registry entry (`status: ingested_only`)
 - embedding records for candidate retrieval
 
+`ingest`, `awaken`, `exhaust`, `connect`, `detect`, and `draft` also persist a light checkpoint entry to
+`athanasor/lapis/memory.jsonl` after successful completion for crash recovery.
+
 ### 3) Awaken and exhaust papers
 
 ```bash
@@ -148,6 +151,7 @@ All commands are under `azoth` (entrypoint from `pyproject.toml`).
   - `--domain-override <domain>`
   - `--no-llm`: fallback extraction path
   - `--json`
+  - `--no-auto-checkpoint`
 
 - `azoth awaken [DOMAIN] --all`
   - `--depth 1..5` (default 3)
@@ -155,9 +159,11 @@ All commands are under `azoth` (entrypoint from `pyproject.toml`).
   - `--reprocess`
   - `--no-llm`
   - `--json`
+  - `--no-auto-checkpoint`
 
 - `azoth exhaust <paper_id>`
   - `--domain`, `--all`, `--depth`, `--count`, `--reprocess`, `--no-llm`, `--json`
+  - `--no-auto-checkpoint`
 
 - `azoth status`
   - `--domain`
@@ -170,6 +176,7 @@ All commands are under `azoth` (entrypoint from `pyproject.toml`).
   - `--paper <paper_id>`
   - `--all`
   - `--no-llm`, `--json`
+  - `--no-auto-checkpoint`
 
 - `azoth detect`
   - `--domain <domain>`
@@ -177,11 +184,16 @@ All commands are under `azoth` (entrypoint from `pyproject.toml`).
   - `--cluster <cluster_id>`
   - `--all`
   - `--no-llm`, `--json`
+  - `--no-auto-checkpoint`
 
 - `azoth draft`
   - `gap_id` positional
   - `--top N`
   - `--no-llm`, `--json`
+  - `--no-auto-checkpoint`
+
+Automatic checkpointing can be disabled globally with:
+`AZOTH_AUTO_CHECKPOINT=0`
 
 - `azoth validate`
   - `--all` or file/directory paths

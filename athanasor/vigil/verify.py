@@ -32,6 +32,10 @@ ALLOWED_UNTRACKED_PREFIXES = (
 ALLOWED_UNTRACKED_EXACT = {
     "athanasor/embeddings.json",
     "athanasor/embeddings.npy",
+    "athanasor/lapis/memory.json",
+    "athanasor/lapis/memory.jsonl",
+    "athanasor/lapis/knowledge_graph.json",
+    "athanasor/lapis/knowledge_graph.jsonl",
 }
 
 # ---------------------------------------------------------------------------

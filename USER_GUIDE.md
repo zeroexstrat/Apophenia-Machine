@@ -40,6 +40,12 @@ azoth status --domain ML --status ingested_only
 azoth connect --within ML
 azoth detect --within ML
 azoth draft --top 1
+```
+
+After each slice command (`ingest`, `awaken`, `exhaust`, `connect`, `detect`, `draft`), Azoth now writes an automatic recovery checkpoint to `athanasor/lapis/memory.jsonl` by default.
+Disable this per command with `--no-auto-checkpoint` or globally with `AZOTH_AUTO_CHECKPOINT=0`.
+
+```bash
 python scripts/validate.py --all
 python3 scripts/concludere.py -f "ingested 1 paper" -f "awakened ML at depth 3"
 ```
@@ -145,6 +151,8 @@ cat findings.txt | python3 scripts/concludere.py --findings-file findings.txt
 ```
 
 Persist findings to `athanasor/lapis/memory.*`, update `state.json`, and perform a clean commit.
+This is still the manual “close” step after multiple commands; it is separate from the automatic checkpoint used
+for crash-safe recovery.
 
 ## Scheduling
 
@@ -186,4 +194,3 @@ For deterministic updates:
 - Large PDFs and scanned image-heavy PDFs remain hard.
 - Opaque LLM confidence outputs still need human review.
 - The system never substitutes for direct reading; it only accelerates candidate surfacing.
-
