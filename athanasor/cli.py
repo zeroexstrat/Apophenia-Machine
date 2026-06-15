@@ -48,9 +48,10 @@ def _load_skill_config(no_llm: bool) -> tuple[Config, LLMClient | None]:
 
     client = LLMClient(cfg)
     if client.client is None:
-        raise click.ClickException(
-            "LLM client unavailable. Install/openai and check azoth.config.yaml or use --no-llm."
+        click.echo(
+            "LLM backend unavailable; continuing with local classification/extraction fallback."
         )
+        return cfg, None
     return cfg, client
 
 

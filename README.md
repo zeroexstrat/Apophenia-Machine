@@ -78,7 +78,8 @@ azoth ingest nigredo/ML/ --domain-override ML --no-llm
 azoth status
 ```
 
-`ingest` runs domain classification via `SEPARATIO` (title/abstract + LLM/heuristic fallback), moves files to domain folders, and writes:
+`ingest` runs domain classification via `SEPARATIO` with LLM-first routing, and automatically falls back to local heuristics when the LLM backend is unavailable.
+It moves files to domain folders and writes:
 - `albedo/library/<paper_id>.yaml`
 - registry entry (`status: ingested_only`)
 - embedding records for candidate retrieval
