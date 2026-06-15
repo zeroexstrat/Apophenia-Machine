@@ -14,6 +14,7 @@ import json
 import re
 from pathlib import Path
 from typing import Any
+import copy
 
 try:
     import yaml
@@ -268,7 +269,7 @@ def validate_object(data: dict[str, Any], fields: dict[str, Any], path: str, err
 
 def validate_document(document: dict[str, Any], schema: dict[str, Any], path: str, fix: bool) -> tuple[bool, list[str], dict[str, Any], bool]:
     errors: list[str] = []
-    doc_copy = json.loads(json.dumps(document))
+    doc_copy = copy.deepcopy(document)
 
     _, changed = validate_object(doc_copy, schema, path, errors, fix)
     return (len(errors) == 0), errors, doc_copy, changed

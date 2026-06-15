@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "azoth"
+version = "0.1.0"
+description = "Azoth — the Apophenia Machine"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "click>=8.1",
+  "jsonlines>=3.1",
+  "numpy>=1.26",
+  "openai>=1.30",
+  "pymupdf>=1.23",
+  "pyyaml>=6.0",
+  "rich>=13.7",
+  "sentence-transformers>=2.7",
+]
+
+[project.scripts]
+azoth = "athanasor.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "."}
+
