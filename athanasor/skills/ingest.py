@@ -12,7 +12,7 @@ from typing import Any
 from ..config import Config, load_config
 from ..domain_classifier import classify
 from ..embeddings import EmbeddingStore
-from ..llm import LLMUnavailableError, LLMClient
+from ..llm import LLMClient
 from ..pdf_parser import parse_pdf
 from ..registry import Registry
 from ..schemas import validate as validate_schema
@@ -191,17 +191,21 @@ def ingest_path(
         if not src_title:
             src_title = file_path.stem.replace("_", " ")
 
+        context_text = "\n".join(
+            line.strip() for line in parsed.get("full_text", "").splitlines()[:18] if line.strip()
+        )
+
         # domain classification
         classification = classify(
             title=src_title,
             abstract=parsed.get("abstract"),
             llm=llm,
             config=config,
+            filename=file_path.name,
+            context_text=context_text,
         )
         domain = domain_override or classification.domain
         domain_conf = float(classification.confidence or 0.0)
-        if domain_conf < 0.6:
-            domain = "unclassified"
         if domain not in {"physics", "ML", "philosophy", "neuroscience", "mathematics", "unclassified"}:
             domain = "unclassified"
 
