@@ -193,6 +193,48 @@ You do not need Hermes Agent to run Azoth. You can run each phase by pasting the
 
 Manual operation is slower but fully functional. Automation via Hermes cron is a convenience, not a requirement.
 
+## Session Skills
+
+Azoth now includes two session lifecycle skills for reliable session handoff:
+
+### `/incipere`
+
+Run this at the start of a work cycle:
+
+```bash
+python3 scripts/incipere.py
+```
+
+It will:
+
+- verify (or initialize) a git worktree,
+- read `athanasor/lapis/state.json`, `albedo/registry.jsonl`, and existing memory/knowledge DB JSON,
+- report:
+  - git/worktree status,
+  - counts by phase,
+  - completed outputs,
+  - recommended next actions.
+
+### `/concludere`
+
+Run this when you want to close the cycle:
+
+```bash
+cat findings.txt | python3 scripts/concludere.py -f "ingested 3 papers" -f "exhausted 2 papers"
+```
+
+Recommended usage:
+- send one or more `-f/--finding` entries (repeatable),
+- or pipe findings via stdin,
+- or provide `--findings-file`.
+
+`/concludere` will:
+
+- persist findings in `athanasor/lapis/memory.*`,
+- update `athanasor/lapis/state.json` and `athanasor/lapis/codex.md`,
+- create a git commit containing session-state files.
+- optionally run `python3 athanasor/vigil/verify.py close` (default).
+
 ---
 
 ## Scheduling

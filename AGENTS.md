@@ -92,6 +92,21 @@ If Vigil fails: do not claim the goal is complete. Fix the drift, record the fai
 
 ---
 
+### Session Commands
+
+- `/incipere` — begin or resume a working session.
+  - Ensures there is an active git worktree (initializes one if missing).
+  - Reads git state, `athanasor/lapis/state.json`, `albedo/registry.jsonl`, and any memory/knowledge JSON(db) available under `athanasor/lapis/`.
+  - Prints what has been completed and recommends practical next actions.
+  - Optional: refresh session state in `athanasor/lapis/codex.md`.
+
+- `/concludere` — close a working session.
+  - Captures findings and appends them to persistent memory (`memory.json`/`memory.jsonl`).
+  - Updates `athanasor/lapis/state.json` and `athanasor/lapis/codex.md`.
+  - Commits session artifacts and (unless disabled) runs `python3 athanasor/vigil/verify.py close`.
+
+Sequence: begin with `/incipere`, finish a cycle with `/concludere`.
+
 ## PHASE 0: SEPARATIO — Domain Classification
 
 ### Trigger
