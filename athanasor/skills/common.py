@@ -6,6 +6,8 @@ import hashlib
 import json
 import re
 import shutil
+import subprocess
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -48,6 +50,20 @@ def write_jsonl(path: Path, payload: dict[str, Any]) -> None:
 def load_yaml(path: Path) -> Any:
     with open(path, "r", encoding="utf-8") as f:
         return yaml.safe_load(f)
+
+
+def run_vigil_check(root: Path, phase: str, skill: str) -> str:
+    """Run a Vigil phase for the current repo using the active Python interpreter."""
+    result = subprocess.run(
+        [sys.executable, str(root / "athanasor" / "vigil" / "verify.py"), phase],
+        cwd=str(root),
+        capture_output=True,
+        text=True,
+    )
+    output = (result.stderr or result.stdout or "").strip()
+    if result.returncode != 0:
+        raise RuntimeError(f"Vigil {phase} failed for {skill}: {output or 'no details'}")
+    return output
 
 
 def move_to_domain(src: Path, domain_root: Path, filename: str | None = None) -> Path:

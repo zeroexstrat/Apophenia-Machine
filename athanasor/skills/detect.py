@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import subprocess
 from collections import defaultdict
 from collections.abc import Iterable
 from pathlib import Path
@@ -16,7 +15,7 @@ from ..config import Config, load_config
 from ..llm import LLMClient
 from ..registry import Registry
 from ..schemas import validate as validate_schema
-from ..skills.common import ensure_dir, now_iso, write_yaml
+from ..skills.common import ensure_dir, now_iso, run_vigil_check, write_yaml
 
 
 DETECT_SCHEMA_PATH = Path(__file__).resolve().parents[2] / "DETECT_SCHEMA.yaml"
@@ -33,16 +32,8 @@ def build_cli_parser() -> argparse.ArgumentParser:
 
 
 def _run_vigil(root: Path, phase: str) -> tuple[int, str]:
-    result = subprocess.run(
-        ["python3", str(root / "athanasor" / "vigil" / "verify.py"), phase],
-        cwd=str(root),
-        capture_output=True,
-        text=True,
-    )
-    if result.returncode != 0:
-        message = (result.stderr or result.stdout or "Vigil check failed with no details.").strip()
-        raise RuntimeError(f"Vigil {phase} failed for detect: {message}")
-    return result.returncode, (result.stdout + result.stderr)
+    output = run_vigil_check(root=root, phase=phase, skill="detect")
+    return 0, output
 
 
 def detect(

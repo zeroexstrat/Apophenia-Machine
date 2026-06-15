@@ -5,7 +5,6 @@ from __future__ import annotations
 import argparse
 import hashlib
 import shutil
-import subprocess
 import re
 from pathlib import Path
 from typing import Any
@@ -17,7 +16,7 @@ from ..llm import LLMUnavailableError, LLMClient
 from ..pdf_parser import parse_pdf
 from ..registry import Registry
 from ..schemas import validate as validate_schema
-from ..skills.common import now_iso, ensure_dir, write_yaml
+from ..skills.common import now_iso, ensure_dir, run_vigil_check, write_yaml
 from . import common
 
 import yaml
@@ -35,16 +34,8 @@ def build_cli_parser() -> argparse.ArgumentParser:
 
 
 def _run_vigil(root: Path, phase: str) -> tuple[int, str]:
-    result = subprocess.run(
-        ["python3", str(root / "athanasor" / "vigil" / "verify.py"), phase],
-        cwd=str(root),
-        capture_output=True,
-        text=True,
-    )
-    if result.returncode != 0:
-        message = (result.stderr or result.stdout or "Vigil check failed with no details.").strip()
-        raise RuntimeError(f"Vigil {phase} failed for ingest: {message}")
-    return result.returncode, (result.stdout + result.stderr)
+    output = run_vigil_check(root=root, phase=phase, skill="ingest")
+    return 0, output
 
 
 def _safe_title(parsed: dict[str, Any]) -> str:

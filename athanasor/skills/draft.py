@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import argparse
 import re
-import subprocess
 from pathlib import Path
 from typing import Any
 
@@ -13,7 +12,7 @@ import yaml
 from ..config import Config, load_config
 from ..llm import LLMClient
 from ..registry import Registry
-from ..skills.common import now_iso, write_yaml
+from ..skills.common import now_iso, run_vigil_check, write_yaml
 
 
 def build_cli_parser() -> argparse.ArgumentParser:
@@ -24,16 +23,8 @@ def build_cli_parser() -> argparse.ArgumentParser:
 
 
 def _run_vigil(root: Path, phase: str) -> tuple[int, str]:
-    result = subprocess.run(
-        ["python3", str(root / "athanasor" / "vigil" / "verify.py"), phase],
-        cwd=str(root),
-        capture_output=True,
-        text=True,
-    )
-    if result.returncode != 0:
-        message = (result.stderr or result.stdout or "Vigil check failed with no details.").strip()
-        raise RuntimeError(f"Vigil {phase} failed for draft: {message}")
-    return result.returncode, (result.stdout + result.stderr)
+    output = run_vigil_check(root=root, phase=phase, skill="draft")
+    return 0, output
 
 
 def run_draft(

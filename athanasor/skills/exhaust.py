@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import argparse
-import subprocess
 from collections import Counter, deque
 from pathlib import Path
 from typing import Any
@@ -15,7 +14,7 @@ from ..embeddings import EmbeddingStore
 from ..llm import LLMClient, LLMUnavailableError
 from ..registry import Registry
 from ..schemas import validate as validate_schema
-from ..skills.common import ensure_dir, now_iso, write_yaml
+from ..skills.common import ensure_dir, now_iso, run_vigil_check, write_yaml
 
 
 EXHAUST_SCHEMA_PATH = Path(__file__).resolve().parents[2] / "EXHAUST_SCHEMA.yaml"
@@ -33,16 +32,8 @@ def build_cli_parser() -> argparse.ArgumentParser:
 
 
 def _run_vigil(root: Path, phase: str) -> tuple[int, str]:
-    result = subprocess.run(
-        ["python3", str(root / "athanasor" / "vigil" / "verify.py"), phase],
-        cwd=str(root),
-        capture_output=True,
-        text=True,
-    )
-    if result.returncode != 0:
-        message = (result.stderr or result.stdout or "Vigil check failed with no details.").strip()
-        raise RuntimeError(f"Vigil {phase} failed for exhaust: {message}")
-    return result.returncode, (result.stdout + result.stderr)
+    output = run_vigil_check(root=root, phase=phase, skill="exhaust")
+    return 0, output
 
 
 def run_exhaust(

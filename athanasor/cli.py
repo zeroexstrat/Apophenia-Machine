@@ -460,8 +460,18 @@ def cmd_draft(
 
 
 def _run_python_module(module_path: Path, argv: list[str]) -> int:
+    if not module_path.exists():
+        raise click.ClickException(f"Module path does not exist: {module_path}")
     cmd = [sys.executable, str(module_path), *argv]
-    result = subprocess.run(cmd, cwd=str(Path(__file__).resolve().parents[1]))
+    try:
+        result = subprocess.run(
+            cmd,
+            cwd=str(Path(__file__).resolve().parents[1]),
+            capture_output=True,
+            text=True,
+        )
+    except OSError as exc:
+        raise click.ClickException(f"Failed to launch '{module_path.name}': {exc}") from None
     if result.returncode != 0:
         output = (result.stdout or "") + (result.stderr or "")
         raise click.ClickException(
@@ -489,7 +499,7 @@ def cmd_validate(paths: tuple[Path, ...], all_scope: bool, schema: Path | None, 
         argv.append("--fix")
     argv.extend(str(path) for path in paths)
     module = (Path(__file__).resolve().parents[1] / "athanasor" / "scripts" / "validate.py")
-    _run_python_module(module, argv[1:])
+    _run_with_command_context("azoth validate", lambda: _run_python_module(module, argv[1:]))
 
 
 @main.command("migrate")
@@ -537,7 +547,7 @@ def cmd_migrate(
 
     argv.extend(str(path) for path in paths)
     module = (Path(__file__).resolve().parents[1] / "athanasor" / "scripts" / "migrate.py")
-    _run_python_module(module, argv[1:])
+    _run_with_command_context("azoth migrate", lambda: _run_python_module(module, argv[1:]))
 
 
 if __name__ == "__main__":
