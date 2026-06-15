@@ -1,219 +1,359 @@
 # Azoth — The Apophenia Machine
 
-> *"Solve et coagula. Dissolve and coagulate."* — Alchemical injunction
+Azoth is an opinionated, locally-runnable research synthesis pipeline. It ingests papers into structured YAML, exhaustively expands each record into derivations and missing angles, discovers structural connections across papers, and detects candidate research gaps. It is an **assistant** for candidate generation: everything leaves the pipeline in a `pending_review` state unless a human approves it.
 
-Azoth is an open-source research synthesis engine. It ingests a personal library of papers and texts, extracts their structural content into a machine-traversable schema, discovers cross-document connections, detects conceptual gaps, and generates falsifiable hypotheses — all gated by human judgment.
-
-It is not an autonomous scientist. It does not publish papers for you. It is a candidate-generation furnace. You are the alchemist.
+This file is the product-facing entrypoint for the project and intended for PR review.
 
 ---
 
-## Quick Start
+## Naming and project semantics
+
+Azoth follows `AESTHETIC.md` conventions:
+
+- **Azoth**: the whole engine.
+- **Apophenia**: structural pattern-finding across fields.
+- **Nigredo** (`nigredo/`): raw intake.
+- **Albedo** (`albedo/`): structured extraction + canonical registry.
+- **Citrinitas** (`citrinitas/`): structural connections.
+- **Rubedo** (`rubedo/`): hypotheses and draft notes.
+- **Athanasor** (`athanasor/`): orchestration, memory, gates, scripts, and state.
+
+Non-alchemical names in machine payloads remain plain English:
+- Directories: `nigredo`, `albedo`, `citrinitas`, `rubedo`, `athanasor`
+- Data fields: `paper_id`, `status`, `source`, `tags`, `confidence`, etc.
+- Commands: `ingest`, `awaken`, `connect`, `detect`, `draft`
+
+---
+
+## What makes this a real system (not prompt-only)
+
+Azoth is validated by schema and gate checks at each stage:
+
+- **Machine schemas** for every artifact:
+  - `SCHEMA.yaml` (ingest/library)
+  - `EXHAUST_SCHEMA.yaml` (exhaustion)
+  - `CONNECT_SCHEMA.yaml` (pair connections)
+  - `DETECT_SCHEMA.yaml` (gaps/hypotheses)
+- **Schema validation command**: `azoth validate` and `scripts/validate.py` enforce structural correctness.
+- **Vigil gate checks**: `python3 athanasor/vigil/verify.py start|verify|close` wraps substantive runs and blocks invalid states.
+- **Registry state machine** in `albedo/registry.jsonl` tracks transitions.
+- **CLI and session wrappers** convert low-level errors into command context so failures are visible in command output.
+
+---
+
+## Installation
 
 ```bash
-git clone https://github.com/your-username/azoth.git
-cd azoth
+# Python 3.10+
+git clone <repo>
+cd apophenia-machine
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -e .
 ```
 
+Optional: install GPU/offline-friendly dependencies used by LLM and embeddings as needed by your environment.
+
+---
+
+## Recommended workflow
+
+### 1) Start a session
+
 ```bash
-# 1) Start with a session check-in
 python3 scripts/incipere.py
+```
 
-# 2) Drop papers and ingest
-cp ~/Downloads/paper.pdf nigredo/
-azoth ingest nigredo/paper.pdf
+`/incipere` reads git state, `albedo/registry.jsonl`, and available memory/knowledge graph files, then prints:
+- what has been completed
+- where counts stand by status/domain
+- practical next actions.
 
-# 3) Exhaust papers in a domain (default depth 3, batch 3)
+### 2) Add and ingest material
+
+```bash
+cp ~/Downloads/paper.pdf nigredo/inbox/
+azoth ingest nigredo/inbox/
+azoth ingest nigredo/ML/ --domain-override ML --no-llm
+azoth status
+```
+
+`ingest` runs domain classification via `SEPARATIO` (title/abstract + LLM/heuristic fallback), moves files to domain folders, and writes:
+- `albedo/library/<paper_id>.yaml`
+- registry entry (`status: ingested_only`)
+- embedding records for candidate retrieval
+
+### 3) Awaken and exhaust papers
+
+```bash
 azoth awaken ML --depth 3 --count 3
+azoth awaken --all --depth 4 --count 2
+azoth awaken physics --reprocess
+azoth exhaust --domain physics --depth 2 --count 5
+```
 
-# 4) Discover cross-domain/domain connections
+`awaken` is the domain-subagent entrypoint.
+
+`exhaust` gives explicit control over paper/pick scope.
+
+Both emit schema-conformant records:
+- `albedo/exhaust/<paper_id>_exhaust.yaml`
+- registry status updates to `status: exhausted`, with `exhausted_at_depth`
+
+### 4) Discover connections
+
+```bash
 azoth connect --within ML
+azoth connect --cross physics ML
+azoth connect --paper <paper_id>
+azoth connect --all
+```
 
-# 5) Detect hypotheses from connected clusters
+Outputs go to:
+- `citrinitas/within_domain/<domain>/<id1>_<id2>.yaml`
+- `citrinitas/cross_domain/<id1>_<id2>.yaml`
+
+### 5) Detect hypotheses and draft notes
+
+```bash
 azoth detect --within ML
-
-# 6) Draft notes from top hypotheses
-azoth draft --top 1
+azoth detect --cross physics ML
+azoth detect --all
+azoth detect --cluster cluster_xxx
+azoth draft --top 3
+azoth draft <cluster_id>
 ```
 
-Use `azoth status` anytime for registry health, and `azoth validate --all` before triage.
-Use the CLI smoke check when you want fast interface regression coverage:
+Outputs:
+- `rubedo/hypotheses/<cluster_id>.yaml`
+- `rubedo/drafts/<slug>.md`
 
-```bash
-python3 scripts/check_cli.py
-```
-
-The pipeline is also mapped to conversational commands when driven by Hermes:
-`/awaken`, `/connect`, `/detect`, and `/draft` map to the same underlying skills.
-
----
-
-## The Four Phases
-
-| Phase | Directory | Alchemy | Function |
-|-------|-----------|---------|----------|
-| **Nigredo** | `nigredo/` | Blackening · dissolution | Raw PDFs and texts. The undifferentiated mass awaiting processing. |
-| **Albedo** | `albedo/` | Whitening · purification | Structured ingestion. Raw matter → YAML schema. Each paper becomes a queryable node. |
-| **Citrinitas** | `citrinitas/` | Yellowing · solar dawn | Cross-connection. Pattern emergence across the library via pairwise comparison. |
-| **Rubedo** | `rubedo/` | Reddening · completion | Gap detection, hypothesis generation, research note drafts. The Stone. |
-
----
-
-## How It Works
-
-```
-Nigredo (inbox) → Albedo (structured YAML per paper)
-                            ↓
-                     Citrinitas (connection candidates, confidence ≥ 3)
-                            ↓
-                     Rubedo (gap detection → hypothesis → draft)
-                            ↓
-                       You (triage: confirm / reject / investigate)
-```
-
-Processing is periodic — weekly by default. Output is a triage report for human review. The engine surfaces candidates. You decide what survives.
-
----
-
-## The Gating Principle
-
-**Every phase produces candidates. No phase produces final knowledge.**
-
-| Phase | Produces | Human Gate |
-|-------|----------|------------|
-| Nigredo → Albedo | Structured YAML per paper | Spot-check schema accuracy |
-| Albedo → Citrinitas | Candidate connections (≥3 confidence) | confirmed · rejected · investigate |
-| Citrinitas → Rubedo | Hypotheses, open questions | worth pursuing · already known · wrong |
-| Rubedo → arxiv → Nigredo | New PDFs in inbox | Keep · discard |
-| Rubedo → drafts | 2-page research notes | develop · shelve · wrong |
-
----
-
-## Directory Layout
-
-```
-azoth/
-├── nigredo/             # Inbox + domain folders
-│   ├── inbox/           # Unclassified PDFs
-│   ├── physics/
-│   ├── ML/
-│   ├── philosophy/
-│   ├── neuroscience/
-│   ├── mathematics/
-│   └── unclassified/
-├── albedo/
-│   ├── library/         # Structured per-paper summaries (YAML)
-│   ├── exhaust/         # Per-paper exhaustion output
-│   └── registry.jsonl   # Master index with processing status + gate state
-├── citrinitas/
-│   ├── within_domain/   # Connections within a single domain
-│   └── cross_domain/    # Connections across domains
-├── rubedo/
-│   ├── hypotheses/      # Gap-detection output (≥3 paper clusters)
-│   └── drafts/           # 2-page research notes
-├── athanasor/
-│   ├── skills/          # Hermes Agent skills
-│   ├── cron/            # Processing schedules
-│   ├── scripts/         # Utility scripts
-│   ├── lapis/           # Durable project state
-│   │   ├── state.json   # Pipeline progress, gate status, session count
-│   │   └── codex.md     # Session handoff (the tablet)
-│   ├── vigil/           # Gate enforcement
-│   │   ├── gates.yaml   # Gate definitions
-│   │   ├── verify.py    # Gate checker (start / verify / close)
-│   │   └── reports/     # Per-run verification output
-│   └── mortems/         # Session postmortems
-├── SCHEMA.yaml          # Per-paper extraction schema
-├── EXHAUST_SCHEMA.yaml  # Per-paper exhaustion schema
-├── EXHAUSTION_GUARDRAILS.md  # Design discussion
-├── USER_GUIDE.md        # Human-readable usage instructions
-├── AGENTS.md            # AI agent operating instructions
-├── HANDOFF.md           # For external agent review
-├── LICENSE              # MIT
-└── README.md            # This file
-```
-
----
-
-## Requirements
-
-- `pdftotext` (from poppler) for PDF extraction
-- `python3` 3.10+ for registry queries and schema validation
-- An active LLM provider (OpenAI API format is the current client path)
-- Optional: [Hermes Agent](https://github.com/NousResearch/hermes-agent) for scheduled, batch operation
-- Optional: [arXiv skill](https://hermes-agent.nousresearch.com/docs/reference/skills-catalog) for gap-filling literature search
-
-Manual operation does not require Hermes — this repo ships a CLI-first path.
-
-Before starting a new cycle, run:
-
-```bash
-python3 scripts/incipere.py
-```
-
-To close a cycle and persist session state:
+### 6) Close a session
 
 ```bash
 python3 scripts/concludere.py --findings-file findings.txt
 ```
 
----
-
-## The Schema (SCHEMA.yaml)
-
-Every ingested paper becomes a structured YAML record with:
-- **Bibliographic metadata** (title, authors, year, path, arXiv ID, DOI)
-- **Claims** — structural statements with confidence tiers (proven / formalizable / demonstrated / hypothesized / speculative)
-- **Methods** — formalisms, mathematical frameworks, inferential techniques
-- **Techniques** — algorithms, architectures, implementable operations
-- **Caveats** — honest constraints and limitations
-- **Explicit connections** — what the paper itself cites, with relationship type and strength
-- **Tags** — concept index for cross-connection pruning
-
-See `SCHEMA.yaml` for the full specification.
+`/concludere` persists findings into persistent memory (`memory.json`/`memory.jsonl`/`knowledge_graph*`), updates `athanasor/lapis/state.json`, appends to `athanasor/lapis/codex.md`, and commits when not disabled.
 
 ---
 
-## Naming
+## CLI reference (current)
 
-Every term is alchemical.
+All commands are under `azoth` (entrypoint from `pyproject.toml`).
 
-| Term | Meaning |
-|------|---------|
-| **Azoth** | The whole — the universal solvent, the Alpha-Omega unity |
-| **Apophenia** | The act — pattern-finding across domains that refuse to connect |
-| **Nigredo** | The black stage — undifferentiated input material |
-| **Albedo** | The white stage — purified, structured knowledge |
-| **Citrinitas** | The yellow stage — solar dawn, pattern emergence |
-| **Rubedo** | The red stage — completion, the Philosopher's Stone |
-| **Athanasor** | The furnace — the housing, the compute infrastructure |
+- `azoth ingest <PATH ...>`
+  - `--reprocess`: re-ingest even if the paper is already in registry
+  - `--domain-override <domain>`
+  - `--no-llm`: fallback extraction path
+  - `--json`
+
+- `azoth awaken [DOMAIN] --all`
+  - `--depth 1..5` (default 3)
+  - `--count N`
+  - `--reprocess`
+  - `--no-llm`
+  - `--json`
+
+- `azoth exhaust <paper_id>`
+  - `--domain`, `--all`, `--depth`, `--count`, `--reprocess`, `--no-llm`, `--json`
+
+- `azoth status`
+  - `--domain`
+  - `--status {pending,ingested_only,exhausted}`
+  - `--json`
+
+- `azoth connect`
+  - `--within <domain>`
+  - `--cross <d1> <d2>`
+  - `--paper <paper_id>`
+  - `--all`
+  - `--no-llm`, `--json`
+
+- `azoth detect`
+  - `--domain <domain>`
+  - `--cross <d1> <d2>`
+  - `--cluster <cluster_id>`
+  - `--all`
+  - `--no-llm`, `--json`
+
+- `azoth draft`
+  - `gap_id` positional
+  - `--top N`
+  - `--no-llm`, `--json`
+
+- `azoth validate`
+  - `--all` or file/directory paths
+  - `--schema <path>`
+  - `--fix`
+
+- `azoth migrate`
+  - `--all` or file paths
+  - version normalization flags
+  - `--dry-run`, `--json`
+
+- `azoth config`
+  - `--show`
+  - `--set KEY VALUE` (dot notation)
+
+Also available:
+- `python3 scripts/check_cli.py`
+- `python3 scripts/check_pipeline_smoke.py`
+- `python3 scripts/check_negative_paths.py`
+- `python3 scripts/hardening_audit.py`
+- legacy wrappers: `scripts/validate.py`, `scripts/migrate.py`
 
 ---
 
-## What Azoth Is Not
+## Directory layout
 
-- Not an autonomous scientist. It does not claim discovery.
-- Not a paper generator. Drafts are proposals for your evaluation.
-- Not a replacement for reading. You must triage every candidate.
-- Not a black box. Every structured record is human-readable YAML.
+```text
+azoth/
+├── nigredo/
+│   ├── inbox/                 # raw intake
+│   ├── ML/
+│   ├── physics/
+│   ├── mathematics/
+│   ├── neuroscience/
+│   ├── philosophy/
+│   └── unclassified/
+├── albedo/
+│   ├── library/               # SCHEMA payloads
+│   ├── exhaust/               # EXHAUST payloads
+│   └── registry.jsonl         # processing state
+├── citrinitas/
+│   ├── within_domain/
+│   ├── cross_domain/
+│   └── reports/
+├── rubedo/
+│   ├── hypotheses/
+│   └── drafts/
+├── athanasor/
+│   ├── cli.py                 # command entrypoint
+│   ├── config.py
+│   ├── domain_classifier.py
+│   ├── embeddings.py
+│   ├── llm.py
+│   ├── pdf_parser.py
+│   ├── registry.py
+│   ├── schemas.py
+│   ├── skills/
+│   ├── session/
+│   ├── scripts/
+│   ├── vigil/
+│   └── lapis/
+├── scripts/
+│   ├── incipere.py
+│   ├── concludere.py
+│   ├── validate.py / migrate.py
+│   └── hardening_audit.py
+└── SCHEMA.yaml, EXHAUST_SCHEMA.yaml, CONNECT_SCHEMA.yaml, DETECT_SCHEMA.yaml
+```
+
+---
+
+## Core helpers and function map
+
+### Core runtime (`athanasor/`)
+
+- `config.py`
+  - `load_config()`: load defaults + `azoth.config.yaml` + env overrides
+  - `save_config()`
+- `llm.py`
+  - `LLMClient.complete(...)`
+  - `LLMClient.complete_with_fallback(...)`
+- `embeddings.py`
+  - `EmbeddingStore.add`, `search`, `search_batch`, `save`, `load`
+- `schemas.py`
+  - `validate(payload, schema, fix=False)`
+- `registry.py`
+  - `Registry.add/update/get/list/list_by_status/list_by_domain`
+- `pdf_parser.py`
+  - `parse_pdf(path)`
+- `domain_classifier.py`
+  - `classify(...)` with LLM + heuristic fallback
+
+### Skill layer (`athanasor/skills/`)
+
+- `ingest.py`
+  - `ingest_path(...)`: file ingestion + classification + schema validation + registry append
+- `exhaust.py`
+  - `run_exhaust(...)`: depth-controlled expansion into EXHAUST schema
+- `connect.py`
+  - `connect(...)`: pairwise similarity pruning + LLM assessment + schema writes
+- `detect.py`
+  - `detect(...)`: cluster synthesis + gap hypothesis generation
+- `draft.py`
+  - `run_draft(...)`: markdown output generation from hypothesis files
+
+### Shared helpers (`athanasor/skills/common.py`)
+
+- `ensure_dir`, `slugify`, `short_id`, `write_yaml`, `write_jsonl`, `load_yaml`, `now_iso`
+- `run_vigil_check` (wraps phase-level gate checks)
+- `move_to_domain` (deterministic ingest moves)
+
+---
+
+## Confidence contract
+
+`SCHEMA.yaml` and `EXHAUST_SCHEMA.yaml` keep their own semantic tiers.
+
+For connection/detection outputs, use shared 1–5 numeric confidence throughout:
+- 1 = very low
+- 2 = low
+- 3 = moderate
+- 4 = high
+- 5 = very high
+
+This is applied to:
+- `connect` fields: `confidence`
+- `detect` fields: `gaps[].confidence`, `gaps[].feasibility`
+
+Cross-domain penalty is numeric in `connect`, then clamped to `1..5`.
+
+---
+
+## Gates and review rules
+
+All outputs default to:
+
+- `pending_review`
+- No automatic confirmation
+- Human triage required
+
+Gates (in `athanasor/vigil/gates.yaml`) used by phase wrappers:
+- Corpus
+- Coniunctio
+- Calcinatio
+- Caput Mortuum
+- Nigredo Redux
+
+`athanasor/vigil/verify.py` runs:
+- `start` before substantial skill execution
+- `verify` after
+- `close` during session wind-down to update persistent state/codex
+
+---
+
+## Inbound/outbound conventions
+
+- Raw text artifacts in `nigredo/` are expected to be PDFs (`.pdf`) or text formats accepted by ingest path handling.
+- JSONL registry and report artifacts are the source of truth for machine automation.
+- Drafts are intentionally lightweight and human-editable.
+
+---
+
+## Useful files for PR review
+
+- `BUILD_PROMPT.md`: original build charter
+- `BUILD_AUDIT.md`: latest audit notes and hardening observations
+- `AGENTS.md`: operating behavior model
+- `AESTHETIC.md`: canonical naming and phase map
+- `USER_GUIDE.md`: user workflow reference
+- `athanasor/vigil/verify.py`: gate runtime
 
 ---
 
 ## License
 
-MIT. See `LICENSE`.
-
----
-
-## Contributing
-
-Azoth is designed to be extended. The four-phase pipeline is modular — you can swap the cross-connection method, add domain-specific pruning rules, or build new output formats for `rubedo/drafts/`. PRs welcome.
-
----
-
-> *"We have to make the impersonal personal — taking structural truths and incarnating them in specific, lived, imperfect texts."* — aleatoric, 2021
-
-Azoth is the impersonal phase. You are the incarnation.
+MIT License (`LICENSE`).
