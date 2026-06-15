@@ -12,9 +12,12 @@ from athanasor.session.commands import run_concludere
 
 
 def main() -> int:
-    return run_concludere(sys.argv[1:])
+    try:
+        return run_concludere(sys.argv[1:])
+    except Exception as exc:
+        print(f"/concludere failed: {exc}")
+        return 1
 
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

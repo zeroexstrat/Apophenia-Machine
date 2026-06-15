@@ -8,7 +8,7 @@ import subprocess
 import sys
 from collections import Counter
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 import click
 
@@ -20,6 +20,20 @@ from .skills import detect as detect_skill
 from .skills import draft as draft_skill
 from .skills import exhaust as exhaust_skill
 from .skills import ingest as ingest_skill
+
+
+def _run_with_command_context(command: str, fn: Callable[[], Any]) -> Any:
+    try:
+        return fn()
+    except click.ClickException:
+        raise
+    except RuntimeError as exc:
+        message = str(exc).strip() or "unknown runtime failure"
+        if message.lower().startswith("vigil"):
+            raise click.ClickException(f"{command} blocked by gate check: {message}") from None
+        raise click.ClickException(f"{command} failed: {message}") from None
+    except Exception as exc:  # pragma: no cover
+        raise click.ClickException(f"{command} failed unexpectedly: {exc}") from None
 
 
 @click.group()
@@ -130,19 +144,23 @@ def cmd_ingest(
     json_output: bool,
 ) -> None:
     """Ingest PDFs from one or more paths into Albedo."""
-    cfg, llm = _load_skill_config(no_llm)
-    outputs: list[dict[str, Any]] = []
+    def _run() -> list[dict[str, Any]]:
+        cfg, llm = _load_skill_config(no_llm)
+        outputs: list[dict[str, Any]] = []
 
-    for path in paths:
-        outputs.extend(
-            ingest_skill.ingest_path(
-                target=path,
-                config=cfg,
-                llm=llm,
-                reprocess=reprocess,
-                domain_override=domain_override,
+        for path in paths:
+            outputs.extend(
+                ingest_skill.ingest_path(
+                    target=path,
+                    config=cfg,
+                    llm=llm,
+                    reprocess=reprocess,
+                    domain_override=domain_override,
+                )
             )
-        )
+        return outputs
+
+    outputs = _run_with_command_context("azoth ingest", _run)
 
     if json_output:
         click.echo(json.dumps(outputs, indent=2, sort_keys=True))
@@ -174,32 +192,36 @@ def cmd_awaken(
     if domain and all_scope:
         raise click.ClickException("Use either a domain or --all, not both.")
 
-    cfg, llm = _load_skill_config(no_llm)
-    outputs: list[dict[str, Any]] = []
+    def _run() -> list[dict[str, Any]]:
+        cfg, llm = _load_skill_config(no_llm)
+        outputs: list[dict[str, Any]] = []
 
-    if all_scope:
-        for target_domain in cfg.domains:
-            outputs.extend(
-                exhaust_skill.run_exhaust(
-                    config=cfg,
-                    llm=llm,
-                    domain=target_domain,
-                    all_scope=True,
-                    depth=depth,
-                    count=count,
-                    reprocess=reprocess,
+        if all_scope:
+            for target_domain in cfg.domains:
+                outputs.extend(
+                    exhaust_skill.run_exhaust(
+                        config=cfg,
+                        llm=llm,
+                        domain=target_domain,
+                        all_scope=True,
+                        depth=depth,
+                        count=count,
+                        reprocess=reprocess,
+                    )
                 )
+        else:
+            outputs = exhaust_skill.run_exhaust(
+                config=cfg,
+                llm=llm,
+                domain=domain,
+                all_scope=False,
+                depth=depth,
+                count=count,
+                reprocess=reprocess,
             )
-    else:
-        outputs = exhaust_skill.run_exhaust(
-            config=cfg,
-            llm=llm,
-            domain=domain,
-            all_scope=False,
-            depth=depth,
-            count=count,
-            reprocess=reprocess,
-        )
+        return outputs
+
+    outputs = _run_with_command_context("azoth awaken", _run)
 
     if json_output:
         click.echo(json.dumps(outputs, indent=2, sort_keys=True))
@@ -234,17 +256,20 @@ def cmd_exhaust(
     if not paper_id and not domain and not all_scope:
         raise click.ClickException("Provide paper_id, --domain, or --all.")
 
-    cfg, llm = _load_skill_config(no_llm)
-    outputs = exhaust_skill.run_exhaust(
-        target=paper_id,
-        config=cfg,
-        llm=llm,
-        depth=depth,
-        domain=domain,
-        all_scope=all_scope,
-        count=count,
-        reprocess=reprocess,
-    )
+    def _run() -> list[dict[str, Any]]:
+        cfg, llm = _load_skill_config(no_llm)
+        return exhaust_skill.run_exhaust(
+            target=paper_id,
+            config=cfg,
+            llm=llm,
+            depth=depth,
+            domain=domain,
+            all_scope=all_scope,
+            count=count,
+            reprocess=reprocess,
+        )
+
+    outputs = _run_with_command_context("azoth exhaust", _run)
     if json_output:
         click.echo(json.dumps(outputs, indent=2, sort_keys=True))
     else:
@@ -349,15 +374,18 @@ def cmd_connect(
     if sum(bool(x) for x in [within, cross, paper_id, all_scope]) != 1:
         raise click.ClickException("Use exactly one mode: --within, --cross, --paper, or --all.")
 
-    cfg, llm = _load_skill_config(no_llm)
-    outputs = connect_skill.connect(
-        config=cfg,
-        llm=llm,
-        within=within,
-        cross=cross,
-        paper_id=paper_id,
-        all_scope=all_scope,
-    )
+    def _run() -> list[dict[str, Any]]:
+        cfg, llm = _load_skill_config(no_llm)
+        return connect_skill.connect(
+            config=cfg,
+            llm=llm,
+            within=within,
+            cross=cross,
+            paper_id=paper_id,
+            all_scope=all_scope,
+        )
+
+    outputs = _run_with_command_context("azoth connect", _run)
     if json_output:
         click.echo(json.dumps(outputs, indent=2, sort_keys=True))
     else:
@@ -381,15 +409,18 @@ def cmd_detect(
     json_output: bool,
 ) -> None:
     """Synthesize gap hypotheses from connection clusters."""
-    cfg, llm = _load_skill_config(no_llm)
-    outputs = detect_skill.detect(
-        config=cfg,
-        llm=llm,
-        domain=domain,
-        cross=cross,
-        all_scope=all_scope,
-        cluster=cluster,
-    )
+    def _run() -> list[dict[str, Any]]:
+        cfg, llm = _load_skill_config(no_llm)
+        return detect_skill.detect(
+            config=cfg,
+            llm=llm,
+            domain=domain,
+            cross=cross,
+            all_scope=all_scope,
+            cluster=cluster,
+        )
+
+    outputs = _run_with_command_context("azoth detect", _run)
     if json_output:
         click.echo(json.dumps(outputs, indent=2, sort_keys=True))
     else:
@@ -409,14 +440,16 @@ def cmd_draft(
     json_output: bool,
 ) -> None:
     """Draft rubedo notes from hypothesis files."""
-    cfg, llm = _load_skill_config(no_llm)
+    def _run() -> list[Path]:
+        cfg, llm = _load_skill_config(no_llm)
+        return draft_skill.run_draft(
+            gap_id=gap_id,
+            top=top,
+            config=cfg,
+            llm=llm,
+        )
 
-    paths = draft_skill.run_draft(
-        gap_id=gap_id,
-        top=top,
-        config=cfg,
-        llm=llm,
-    )
+    paths = _run_with_command_context("azoth draft", _run)
 
     if json_output:
         click.echo(json.dumps([str(path) for path in paths], indent=2))
@@ -429,6 +462,11 @@ def cmd_draft(
 def _run_python_module(module_path: Path, argv: list[str]) -> int:
     cmd = [sys.executable, str(module_path), *argv]
     result = subprocess.run(cmd, cwd=str(Path(__file__).resolve().parents[1]))
+    if result.returncode != 0:
+        output = (result.stdout or "") + (result.stderr or "")
+        raise click.ClickException(
+            f"External module '{module_path.name}' failed with exit code {result.returncode}: {output.strip() or 'no output'}"
+        )
     return result.returncode
 
 
@@ -451,7 +489,7 @@ def cmd_validate(paths: tuple[Path, ...], all_scope: bool, schema: Path | None, 
         argv.append("--fix")
     argv.extend(str(path) for path in paths)
     module = (Path(__file__).resolve().parents[1] / "athanasor" / "scripts" / "validate.py")
-    raise SystemExit(_run_python_module(module, argv[1:]))
+    _run_python_module(module, argv[1:])
 
 
 @main.command("migrate")
@@ -499,7 +537,7 @@ def cmd_migrate(
 
     argv.extend(str(path) for path in paths)
     module = (Path(__file__).resolve().parents[1] / "athanasor" / "scripts" / "migrate.py")
-    raise SystemExit(_run_python_module(module, argv[1:]))
+    _run_python_module(module, argv[1:])
 
 
 if __name__ == "__main__":

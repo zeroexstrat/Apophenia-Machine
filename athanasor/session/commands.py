@@ -400,6 +400,15 @@ def append_to_codex(content: str) -> None:
         f.write(content.rstrip() + "\n")
 
 
+def _handle_session_exception(command: str, exc: Exception) -> int:
+    message = str(exc).strip() or "unknown failure"
+    if message.lower().startswith("vigil"):
+        print(f"{command}: gate check failed -> {message}")
+    else:
+        print(f"{command}: {message}")
+    return 1
+
+
 def create_checkpoint_section(title: str, snapshot: dict[str, Any], findings: list[str] | None = None) -> str:
     ts = snapshot["timestamp"]
     lines = [f"\n## {title} ({ts})"]
@@ -468,24 +477,27 @@ def run_incipere(argv: list[str] | None = None) -> int:
     parser.add_argument("--json", action="store_true", help="Emit machine-readable JSON")
     args = parser.parse_args(argv)
 
-    git_messages = ensure_git_worktree(ROOT)
-    snapshot = build_snapshot()
+    try:
+        git_messages = ensure_git_worktree(ROOT)
+        snapshot = build_snapshot()
 
-    if args.json:
-        rc = render_incipere(snapshot, json_output=True)
-    else:
-        rc = render_incipere(snapshot, json_output=False)
-        if git_messages:
-            for message in git_messages:
-                print(f"\n{message}")
+        if args.json:
+            rc = render_incipere(snapshot, json_output=True)
+        else:
+            rc = render_incipere(snapshot, json_output=False)
+            if git_messages:
+                for message in git_messages:
+                    print(f"\n{message}")
 
-    if args.refresh_codex:
-        snapshot["timestamp"] = dt.datetime.now(dt.timezone.utc).isoformat()
-        section = create_checkpoint_section("Session check-in", snapshot)
-        append_to_codex(section)
-        print(f"\nSession snapshot written to {CODEX_PATH}")
+        if args.refresh_codex:
+            snapshot["timestamp"] = dt.datetime.now(dt.timezone.utc).isoformat()
+            section = create_checkpoint_section("Session check-in", snapshot)
+            append_to_codex(section)
+            print(f"\nSession snapshot written to {CODEX_PATH}")
 
-    return rc
+        return rc
+    except Exception as exc:  # pragma: no cover - session wrapper guard
+        return _handle_session_exception("/incipere", exc)
 
 
 def _collect_concludere_findings(args: argparse.Namespace) -> list[str]:
@@ -544,73 +556,80 @@ def run_concludere(argv: list[str] | None = None) -> int:
     parser.add_argument("--skip-vigil-close", action="store_true", help="Skip running vigil close after commit.")
     args = parser.parse_args(argv)
 
-    ensure_git_worktree(ROOT)
+    try:
+        ensure_git_worktree(ROOT)
 
-    snapshot = build_snapshot()
-    findings = _collect_concludere_findings(args)
-    timestamp = dt.datetime.now(dt.timezone.utc)
+        snapshot = build_snapshot()
+        findings = _collect_concludere_findings(args)
+        timestamp = dt.datetime.now(dt.timezone.utc)
 
-    memory_path = args.memory_db or default_memory_path()
-    entry = {
-        "id": str(uuid.uuid4()),
-        "timestamp": timestamp.isoformat(),
-        "skill": "concludere",
-        "findings": findings,
-        "worktree": {
-            "branch": snapshot["worktree"].get("branch"),
-            "commit": snapshot["worktree"].get("commit"),
-            "root": str(ROOT),
-        },
-        "pipeline": snapshot["pipeline"],
-        "knowledge_graph": snapshot["knowledge_graph"],
-    }
+        memory_path = args.memory_db or default_memory_path()
+        entry = {
+            "id": str(uuid.uuid4()),
+            "timestamp": timestamp.isoformat(),
+            "skill": "concludere",
+            "findings": findings,
+            "worktree": {
+                "branch": snapshot["worktree"].get("branch"),
+                "commit": snapshot["worktree"].get("commit"),
+                "root": str(ROOT),
+            },
+            "pipeline": snapshot["pipeline"],
+            "knowledge_graph": snapshot["knowledge_graph"],
+        }
 
-    append_findings_to_memory(memory_path, entry)
-    update_state_from_conclusion(snapshot)
+        append_findings_to_memory(memory_path, entry)
+        update_state_from_conclusion(snapshot)
 
-    if not args.no_commit:
-        commit_message = (
-            args.message
-            or f"concludere: persist findings at {timestamp.strftime('%Y-%m-%d %H:%M UTC')}"
-        )
-
-        run_cmd(["git", "add", "-A"], cwd=ROOT)
-        if run_cmd(["git", "status", "--short"], cwd=ROOT).stdout.strip():
-            env = os.environ.copy()
-            env.setdefault("GIT_AUTHOR_NAME", "Azoth Session Bot")
-            env.setdefault("GIT_AUTHOR_EMAIL", "azoth-bot@example.com")
-            env.setdefault("GIT_COMMITTER_NAME", env["GIT_AUTHOR_NAME"])
-            env.setdefault("GIT_COMMITTER_EMAIL", env["GIT_AUTHOR_EMAIL"])
-            commit = run_cmd(
-                ["git", "commit", "--no-gpg-sign", "-m", commit_message],
-                cwd=ROOT,
-                env=env,
+        if not args.no_commit:
+            commit_message = (
+                args.message
+                or f"concludere: persist findings at {timestamp.strftime('%Y-%m-%d %H:%M UTC')}"
             )
-            if commit.returncode != 0:
-                print(f"Commit failed: {commit.stderr.strip() or commit.stdout.strip()}")
-                return 1
-        else:
-            print("No changes to commit.")
 
-        run_cmd(["git", "rev-parse", "HEAD"], cwd=ROOT)
-        new_head = run_cmd(["git", "rev-parse", "HEAD"], cwd=ROOT).stdout.strip()
-        if new_head:
-            print(f"Committed: {new_head[:9]}")
+            run_cmd(["git", "add", "-A"], cwd=ROOT)
+            if run_cmd(["git", "status", "--short"], cwd=ROOT).stdout.strip():
+                env = os.environ.copy()
+                env.setdefault("GIT_AUTHOR_NAME", "Azoth Session Bot")
+                env.setdefault("GIT_AUTHOR_EMAIL", "azoth-bot@example.com")
+                env.setdefault("GIT_COMMITTER_NAME", env["GIT_AUTHOR_NAME"])
+                env.setdefault("GIT_COMMITTER_EMAIL", env["GIT_AUTHOR_EMAIL"])
+                commit = run_cmd(
+                    ["git", "commit", "--no-gpg-sign", "-m", commit_message],
+                    cwd=ROOT,
+                    env=env,
+                )
+                if commit.returncode != 0:
+                    print(f"Commit failed: {commit.stderr.strip() or commit.stdout.strip()}")
+                    return 1
+            else:
+                print("No changes to commit.")
 
-        if not args.skip_vigil_close:
-            close_result = run_cmd(
-                [sys.executable, str(ROOT / "athanasor" / "vigil" / "verify.py"), "close"],
-                cwd=ROOT,
-            )
-            if close_result.returncode != 0:
-                print(f"Vigil close reported: {close_result.stderr.strip() or close_result.stdout.strip()}")
+            run_cmd(["git", "rev-parse", "HEAD"], cwd=ROOT)
+            new_head = run_cmd(["git", "rev-parse", "HEAD"], cwd=ROOT).stdout.strip()
+            if new_head:
+                print(f"Committed: {new_head[:9]}")
 
-    section = create_checkpoint_section("Session conclusion", snapshot, findings)
-    append_to_codex(section)
-    print(f"Findings saved to {memory_path}")
-    print(f"Codex updated: {CODEX_PATH}")
-    print(f"Persistent state updated: {STATE_PATH}")
-    return 0
+            if not args.skip_vigil_close:
+                close_result = run_cmd(
+                    [sys.executable, str(ROOT / "athanasor" / "vigil" / "verify.py"), "close"],
+                    cwd=ROOT,
+                )
+                if close_result.returncode != 0:
+                    print(
+                        f"/concludere: Vigil close gate check failed: "
+                        f"{close_result.stderr.strip() or close_result.stdout.strip() or 'no details'}"
+                    )
+                    return 1
+
+        section = create_checkpoint_section("Session conclusion", snapshot, findings)
+        append_to_codex(section)
+        print(f"Findings saved to {memory_path}")
+        print(f"Codex updated: {CODEX_PATH}")
+        print(f"Persistent state updated: {STATE_PATH}")
+        return 0
+    except Exception as exc:  # pragma: no cover - session wrapper guard
+        return _handle_session_exception("/concludere", exc)
 
 
 if __name__ == "__main__":

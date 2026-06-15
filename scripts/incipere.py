@@ -12,9 +12,12 @@ from athanasor.session.commands import run_incipere
 
 
 def main() -> int:
-    return run_incipere(sys.argv[1:])
+    try:
+        return run_incipere(sys.argv[1:])
+    except Exception as exc:
+        print(f"/incipere failed: {exc}")
+        return 1
 
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
