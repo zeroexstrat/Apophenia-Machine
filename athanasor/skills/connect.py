@@ -131,6 +131,20 @@ def connect(
         candidate["agent_notes"] = candidate.get("agent_notes", "") or (
             "Generated during connect pass."
         )
+        candidate.setdefault("paper_a_id", a_id)
+        candidate.setdefault("paper_b_id", b_id)
+        candidate.setdefault("pair_scope", pair_scope)
+        candidate.setdefault("pair_domains", {
+            "paper_a_domain": a_entry.get("domain"),
+            "paper_b_domain": b_entry.get("domain"),
+        })
+        candidate.setdefault("status", "pending_review")
+
+        ok, errors, fixed, _ = validate_schema(candidate, schema, path=str(a_id), fix=True)
+        if not ok:
+            candidate["_schema_errors"] = errors
+            continue
+        candidate = fixed
 
         if candidate.get("novelty") == "speculative" and candidate["confidence"] < 4:
             analyzed.add(key)

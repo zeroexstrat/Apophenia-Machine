@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -83,6 +84,12 @@ def _run_cmd(workdir: Path, args: list[str], env: dict[str, str]) -> list[Any]:
         capture_output=True,
         text=True,
     )
+    if proc.stderr.strip() and not _stderr_is_allowed(proc.stderr):
+        raise RuntimeError(
+            "Command emitted stderr.\n"
+            f"command: {' '.join(['python -m athanasor.cli', *args])}\n"
+            f"stderr: {proc.stderr.strip()}"
+        )
     if proc.returncode != 0:
         raise RuntimeError(
             "Command failed.\n"
@@ -96,6 +103,44 @@ def _run_cmd(workdir: Path, args: list[str], env: dict[str, str]) -> list[Any]:
         return json.loads((proc.stdout or "").strip() or "[]")
     except json.JSONDecodeError as exc:
         raise RuntimeError(f"Expected JSON output, got:\n{proc.stdout}") from exc
+
+
+def _stderr_is_allowed(raw_stderr: str) -> bool:
+    allowed_patterns = [
+        r"^Warning: You are sending unauthenticated requests to the HF Hub\.",
+        r"^\s*BertModel LOAD REPORT",
+        r"^Key\s+\|\s+Status",
+        r"^[- ]+UNEXPECTED:",
+        r"^Notes:",
+        r"^\s*\d+%\|",
+        r"FutureWarning:",
+    ]
+
+    for line in raw_stderr.splitlines():
+        line = re.sub(r"\x1b\[[0-9;]*m", "", line).strip()
+        if not line:
+            continue
+        if not any(re.search(pattern, line) for pattern in allowed_patterns):
+            return False
+    return True
+
+
+def _read_jsonl(path: Path) -> list[dict[str, Any]]:
+    if not path.exists():
+        return []
+    out: list[dict[str, Any]] = []
+    with open(path, "r", encoding="utf-8") as f:
+        for raw in f:
+            raw = raw.strip()
+            if not raw:
+                continue
+            try:
+                payload = json.loads(raw)
+            except json.JSONDecodeError:
+                continue
+            if isinstance(payload, dict):
+                out.append(payload)
+    return out
 
 
 def _validate(path: Path, schema: Path) -> None:
@@ -196,6 +241,11 @@ def _assert_expected_hypotheses(outputs: list[dict[str, Any]]) -> None:
 def run_smoke(project_root: Path) -> None:
     env = os.environ.copy()
     env["AZOTH_PROJECT_ROOT"] = str(project_root)
+    env.setdefault("HF_HUB_DISABLE_PROGRESS_BARS", "1")
+    env.setdefault("HF_HUB_VERBOSITY", "error")
+    env.setdefault("HF_HUB_DISABLE_TELEMETRY", "1")
+    env.setdefault("TRANSFORMERS_VERBOSITY", "error")
+    env.setdefault("PYTHONWARNINGS", "ignore")
     shared_text = (
         "This paper presents a minimal synthetic test fixture.\\n"
         "We present a simple pairwise relationship for deterministic extraction.\\n"
@@ -219,6 +269,13 @@ def run_smoke(project_root: Path) -> None:
     paper_ids = [str(entry["paper_id"]) for entry in ingest_outputs if isinstance(entry, dict)]
     if len(paper_ids) != 3:
         raise RuntimeError("Could not extract paper IDs from ingest output.")
+    entries = _read_jsonl(project_root / "albedo" / "registry.jsonl")
+    if len(entries) != 3:
+        raise RuntimeError(f"Expected 3 registry entries after ingest, got {len(entries)}")
+    if any(str(entry.get("status")) != "ingested_only" for entry in entries):
+        raise RuntimeError("Found unexpected registry status during post-ingest phase.")
+    if {entry.get("paper_id") for entry in entries} != set(paper_ids):
+        raise RuntimeError("Registry does not contain expected ingested paper IDs.")
 
     exhaust_outputs = _run_cmd(
         project_root,
@@ -227,6 +284,20 @@ def run_smoke(project_root: Path) -> None:
     )
     if len(exhaust_outputs) != 3:
         raise RuntimeError(f"Expected 3 exhaustion outputs, got {len(exhaust_outputs)}")
+    entries = _read_jsonl(project_root / "albedo" / "registry.jsonl")
+    if any(str(entry.get("status")) != "exhausted" for entry in entries):
+        raise RuntimeError("Found non-exhausted status after awaken phase.")
+    for entry in entries:
+        library_path = entry.get("paths", {}).get("library")
+        exhaust_path = entry.get("paths", {}).get("exhaust")
+        if not library_path:
+            raise RuntimeError(f"Registry entry missing library path: {entry.get('paper_id')}")
+        if not exhaust_path:
+            raise RuntimeError(f"Registry entry missing exhaust path: {entry.get('paper_id')}")
+        if not (project_root / library_path).exists():
+            raise RuntimeError(f"Missing library artifact: {library_path}")
+        if not (project_root / exhaust_path).exists():
+            raise RuntimeError(f"Missing exhaust artifact: {exhaust_path}")
 
     connect_outputs = _run_cmd(
         project_root,
@@ -268,6 +339,14 @@ def run_smoke(project_root: Path) -> None:
         draft_file = project_root / str(draft_path)
         if not draft_file.exists():
             raise RuntimeError(f"Missing draft file: {draft_path}")
+
+    for entry in _read_jsonl(project_root / "albedo" / "registry.jsonl"):
+        if not entry.get("connected"):
+            raise RuntimeError("Expected all entries marked connected after connect.")
+        if not entry.get("detected"):
+            raise RuntimeError("Expected all entries marked detected after detect.")
+        if not entry.get("drafted"):
+            raise RuntimeError("Expected all entries marked drafted after draft.")
 
     print("Pipeline smoke check passed.")
 

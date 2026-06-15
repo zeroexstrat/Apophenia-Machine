@@ -297,7 +297,13 @@ def _synthesize_cluster(
         return None
 
     if llm is None:
-        return _fallback_detect(cluster_id, paper_records, connections, exhaustion_records)
+        return _fallback_detect(
+            cluster_id,
+            paper_records,
+            connections,
+            exhaustion_records,
+            schema,
+        )
 
     prompt = (
         "You are analyzing a cluster of papers.\n\n"
@@ -317,7 +323,13 @@ def _synthesize_cluster(
         max_tokens=4096,
     )
     if not isinstance(result, dict):
-        return _fallback_detect(cluster_id, paper_records, connections, exhaustion_records)
+        return _fallback_detect(
+            cluster_id,
+            paper_records,
+            connections,
+            exhaustion_records,
+            schema,
+        )
     result["cluster_id"] = cluster_id
     result["scope"] = domain or ("-".join(cross) if cross else "mixed")
     result["paper_ids"] = sorted({str(record.get("id") or (record.get("source") or {}).get("title", "")) for record in paper_records if isinstance(record, dict)})
@@ -338,9 +350,23 @@ def _synthesize_cluster(
 
     ok, errors, fixed, _ = validate_schema(result, schema, path="/", fix=True)
     if not ok:
-        fixed.setdefault("_schema_errors", errors)
-        if not fixed.get("gaps"):
-            return None
+        fallback = _fallback_detect(
+            cluster_id,
+            paper_records,
+            connections,
+            exhaustion_records,
+            schema,
+        )
+        fallback["_schema_errors"] = errors
+        return fallback
+    if not fixed.get("gaps"):
+        return _fallback_detect(
+            cluster_id,
+            paper_records,
+            connections,
+            exhaustion_records,
+            schema,
+        )
     return fixed
 
 
@@ -364,9 +390,10 @@ def _fallback_detect(
     paper_records: list[dict[str, Any] | None],
     connections: list[dict[str, Any]],
     exhaustion_records: list[dict[str, Any] | None],
+    schema: dict[str, Any],
 ) -> dict[str, Any]:
     paper_ids = [str(record.get("id") or (record.get("source") or {}).get("title", "")) for record in paper_records if record]
-    return {
+    payload = {
         "schema_version": 1,
         "cluster_id": cluster_id,
         "paper_ids": paper_ids,
@@ -394,6 +421,10 @@ def _fallback_detect(
             "detection_prompt_version": "fallback",
         },
     }
+    ok, errors, fixed, _ = validate_schema(payload, schema, path="/", fix=True)
+    if not ok:
+        raise ValueError("Fallback detect payload failed schema validation: " + "; ".join(errors))
+    return fixed
 
 
 def _mark_detected(registry: Registry, paper_ids: list[str]) -> None:

@@ -1,0 +1,41 @@
+name: hardening
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+
+jobs:
+  hardening:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e .
+
+      - name: Check CLI
+        run: python3 scripts/check_cli.py
+
+      - name: Run pipeline smoke
+        run: |
+          python3 scripts/check_pipeline_smoke.py
+
+      - name: Run hardening audit
+        run: |
+          python3 scripts/hardening_audit.py --project-root .
+
+      - name: Run negative-path checks
+        run: |
+          python3 scripts/check_negative_paths.py

@@ -123,6 +123,8 @@ class Registry:
         updated: dict[str, Any] | None = None
         for idx, entry in enumerate(entries):
             if entry.get("paper_id") == paper_id:
+                if "status" in fields:
+                    _assert_status_transition(entry.get("status"), fields["status"])
                 entry.update(fields)
                 entry = self._normalize(entry)
                 entries[idx] = entry
@@ -180,3 +182,26 @@ class Registry:
         entry.setdefault("paths", {})
         entry.setdefault("processing_notes", [])
         return entry
+
+
+def _assert_status_transition(old_status: Any, new_status: Any) -> None:
+    if not old_status:
+        return
+    old_value = str(old_status)
+    new_value = str(new_status)
+    if old_value == new_value:
+        return
+    if old_value not in VALID_STATUSES or new_value not in VALID_STATUSES:
+        raise ValueError(f"Invalid status transition '{old_value}' -> '{new_value}'.")
+    if _status_rank(new_value) < _status_rank(old_value):
+        raise ValueError(
+            f"Invalid status regression '{old_value}' -> '{new_value}'."
+        )
+
+
+def _status_rank(value: str) -> int:
+    if value == "pending":
+        return 0
+    if value == "ingested_only":
+        return 1
+    return 2
