@@ -1,15 +1,15 @@
 # SCHEMA.yaml — The Per-Paper Structured Record
 # Azoth / Apophenia Machine
 # Every paper ingested into Albedo must conform to this schema.
-# Unmarked fields are optional but encouraged.
+# Fields marked 'required: true' must be populated. All others are optional but encouraged.
 
-# ---------------------------------------------------------------------------
+# ===========================================================================
 # Required fields
-# ---------------------------------------------------------------------------
+# ===========================================================================
 id:
   type: string
   required: true
-  description: "Unique stable identifier. Format: {source}_{index}. Example: rx2_013, rx3_007, inbox_003."
+  description: "Unique stable identifier. Format: {corpus}_{index}. Example: rx2_013, arxiv_042, inbox_003."
   pattern: "^[a-z0-9]+_[0-9]+$"
 
 source:
@@ -32,7 +32,7 @@ source:
     path:
       type: string
       required: true
-      description: "Filesystem path to the PDF relative to the nigredo corpus root."
+      description: "Filesystem path to the PDF relative to the corpus root."
     arxiv:
       type: string
       required: false
@@ -46,32 +46,32 @@ source:
       required: false
       description: "Journal or conference. Example: 'NeurIPS 2025', 'arXiv preprint'."
 
-# ---------------------------------------------------------------------------
+# ===========================================================================
 # Claims — the core structural extraction
-# ---------------------------------------------------------------------------
+# ===========================================================================
 claims:
   type: list[object]
   required: true
-  description: "Structural claims the paper makes. Not summaries. Not opinions. Claims."
+  description: "Structural claims the paper makes. Not summaries. Not opinions. Claims — statements precise enough to be wrong."
   min_items: 1
   fields:
     statement:
       type: string
       required: true
-      description: "The claim, stated in one sentence. Precise enough to be wrong."
+      description: "The claim, stated in one sentence. What does the paper assert as true?"
     confidence:
       type: string
       required: true
-      description: "Confidence tier."
+      description: "How strongly does the paper support this claim?"
       enum: [proven, formalizable, demonstrated, hypothesized, speculative]
     evidence:
       type: string
       required: true
-      description: "What supports the claim. Theorem number, equation range, experimental result, citation chain."
+      description: "What supports the claim. Theorem number, equation range, experimental result, citation chain. Be specific."
 
-# ---------------------------------------------------------------------------
+# ===========================================================================
 # Methods — the formal/inferential machinery
-# ---------------------------------------------------------------------------
+# ===========================================================================
 methods:
   type: list[object]
   required: false
@@ -80,110 +80,108 @@ methods:
     name:
       type: string
       required: true
-      description: "Method name. Example: 'characteristic-function matching', 'variational free energy minimization'."
+      description: "Method name. Example: 'characteristic-function matching', 'variational free energy minimization', 'contrastive learning'."
     description:
       type: string
       required: true
-      description: "One-paragraph description of what the method does and how."
+      description: "One paragraph describing what the method does and how it works."
     domain:
       type: string
       required: true
-      description: "Domain. Example: 'representation learning', 'quantum field theory', 'cognitive neuroscience'."
+      description: "Domain where this method is applied. Example: 'representation learning', 'quantum field theory', 'cognitive neuroscience', 'game theory'."
 
-# ---------------------------------------------------------------------------
+# ===========================================================================
 # Techniques — implementable operations
-# ---------------------------------------------------------------------------
+# ===========================================================================
 techniques:
   type: list[object]
   required: false
-  description: "Algorithms, architectures, training procedures — things you could code."
+  description: "Algorithms, architectures, training procedures — things you could implement."
   fields:
     name:
       type: string
       required: true
-      description: "Technique name. Example: 'SIGReg', 'EMA', 'stop-gradient'."
+      description: "Technique name. Example: 'SIGReg', 'EMA', 'stop-gradient', 'Mixture of Experts'."
     description:
       type: string
       required: true
-      description: "What it does. Concise."
+      description: "What the technique does. Concise. Enough to understand the mechanism."
     implementation:
       type: string
       required: false
-      description: "Implementation detail. LOC count, pseudocode, hardware requirement."
+      description: "Implementation detail. Pseudocode, LOC count, hardware requirements, known bottlenecks."
 
-# ---------------------------------------------------------------------------
+# ===========================================================================
 # Caveats — the honest constraints
-# ---------------------------------------------------------------------------
+# ===========================================================================
 caveats:
   type: list[string]
   required: false
-  description: "Known limitations, unvalidated assumptions, scope boundaries. Honest."
+  description: "Known limitations, unvalidated assumptions, scope boundaries, methodological weaknesses. Be honest. The reader's trust depends on this field."
 
-# ---------------------------------------------------------------------------
+# ===========================================================================
 # Explicit connections — what the paper itself cites or builds on
-# ---------------------------------------------------------------------------
+# ===========================================================================
 connections_explicit:
   type: list[object]
   required: false
-  description: "Connections the paper explicitly makes to other works. For cross-connection ground truth."
+  description: "Connections the paper explicitly makes to other works. Used as ground truth for cross-connection novelty checking."
   fields:
     target_paper:
       type: string
       required: true
-      description: "Title or stable ID of the referenced paper."
+      description: "Title of the referenced paper."
     relationship:
       type: string
       required: true
-      description: "Nature of the connection. 'extends', 'contradicts', 'uses', 'is_predecessor_of', 'is_alternative_to'."
+      description: "Nature of the connection."
+      enum: [extends, contradicts, uses, is_predecessor_of, is_alternative_to, cites_as_background]
     strength:
       type: integer
       required: true
-      description: "1–5. 1 = passing mention, 5 = central dependency."
+      description: "1 = passing mention. 5 = central dependency."
       minimum: 1
       maximum: 5
 
-# ---------------------------------------------------------------------------
+# ===========================================================================
 # Tags — the concept index
-# ---------------------------------------------------------------------------
+# ===========================================================================
 tags:
   type: list[string]
   required: false
-  description: "Concept tags for pruning and cross-connection. Use the φ-note concept vocabulary where applicable."
+  description: "Concept tags for pruning and cross-connection. Tags are the primary mechanism for reducing the N² pair space to tractable size. Choose tags that accurately characterize the paper's domain and methods. Papers with zero shared tags are automatically excluded from pairwise comparison."
   examples:
     - symmetry_breaking
     - collapse_prevention
-    - representational_geometry
-    - free_energy_principle
-    - QECC
-    - phi_expansion
-    - attractor_depth
-    - self_representation
-    - compartmentalization
-    - sleep_consolidation
-    - LOCC
-    - anastomosis
-    - sparse_routing
-    - conscious_access
-    - phenomenology
+    - representation_learning
     - active_inference
-    - JEPA
-    - topological_order
+    - quantum_field_theory
+    - cognitive_neuroscience
+    - game_theory
+    - phenomenology
+    - sparse_computation
+    - world_model
+    - sleep_consolidation
 
-# ---------------------------------------------------------------------------
-# Ingestion metadata (auto-populated)
-# ---------------------------------------------------------------------------
+# ===========================================================================
+# Ingestion metadata (auto-populated by the ingest pipeline)
+# ===========================================================================
 ingestion:
   type: object
   required: false
-  description: "Auto-populated by the ingest pipeline."
+  description: "Auto-populated by the ingest pipeline. Do not fill manually."
   fields:
     date:
       type: string
       format: "ISO 8601"
-      description: "Ingestion timestamp."
+      description: "Timestamp of ingestion."
     agent:
       type: string
       description: "Model/provider that performed extraction."
     schema_version:
       type: string
       description: "Version of this schema used for ingestion."
+    status:
+      type: string
+      enum: [ingested, extraction_failed, duplicate, skipped_large]
+      description: "Processing outcome."

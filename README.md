@@ -2,9 +2,22 @@
 
 > *"Solve et coagula. Dissolve and coagulate."* — Alchemical injunction
 
-**Azoth** is a research synthesis engine. It ingests a curated library of papers and texts, extracts their structural content into a machine-traversable schema, discovers cross-document connections, detects conceptual gaps, and generates falsifiable hypotheses — all gated by human judgment.
+Azoth is an open-source research synthesis engine. It ingests a personal library of papers and texts, extracts their structural content into a machine-traversable schema, discovers cross-document connections, detects conceptual gaps, and generates falsifiable hypotheses — all gated by human judgment.
 
-It is not an autonomous scientist. It is a candidate-generation furnace. You are the alchemist.
+It is not an autonomous scientist. It does not publish papers for you. It is a candidate-generation furnace. You are the alchemist.
+
+---
+
+## Quick Start
+
+```bash
+git clone https://github.com/your-username/azoth.git
+cd azoth
+```
+
+Drop PDFs into `nigredo/`. Run the ingestion phase. Review the output. Gate everything.
+
+Azoth is designed to run as a periodic batch pipeline on Hermes Agent (via cron), but can be operated manually as well.
 
 ---
 
@@ -12,34 +25,26 @@ It is not an autonomous scientist. It is a candidate-generation furnace. You are
 
 | Phase | Directory | Alchemy | Function |
 |-------|-----------|---------|----------|
-| **Nigredo** | `nigredo/` | Blackening · dissolution | Inbox of raw PDFs and texts. The undifferentiated mass. |
+| **Nigredo** | `nigredo/` | Blackening · dissolution | Raw PDFs and texts. The undifferentiated mass awaiting processing. |
 | **Albedo** | `albedo/` | Whitening · purification | Structured ingestion. Raw matter → YAML schema. Each paper becomes a queryable node. |
-| **Citrinitas** | `citrinitas/` | Yellowing · solar dawn | Cross-connection. Pattern emergence across the library. Candidates at confidence ≥ 3. |
-| **Rubedo** | `rubedo/` | Reddening · completion | Gap detection. Clusters of ≥ 3 connected papers → hypotheses → research drafts. The Stone. |
+| **Citrinitas** | `citrinitas/` | Yellowing · solar dawn | Cross-connection. Pattern emergence across the library via pairwise comparison. |
+| **Rubedo** | `rubedo/` | Reddening · completion | Gap detection, hypothesis generation, research note drafts. The Stone. |
 
 ---
 
-## Directory Layout
+## How It Works
 
 ```
-apophenia-machine/
-├── nigredo/             # Inbox — raw PDFs awaiting ingestion
-├── albedo/
-│   ├── library/         # Structured per-paper summaries (YAML)
-│   └── registry.jsonl   # Master index of all ingested papers
-├── citrinitas/          # Candidate connections between papers
-├── rubedo/
-│   ├── hypotheses/      # Gap-detection output (≥3 paper clusters)
-│   └── drafts/           # 2-page research notes from promoted hypotheses
-├── athanasor/
-│   ├── skills/          # Hermes skills (ingest, connect, detect, draft)
-│   ├── cron/            # Processing schedules
-│   └── scripts/         # Utility scripts
-├── SCHEMA.yaml          # The per-paper schema definition
-├── AGENTS.md            # Agent instruction
-├── README.md            # This file
-└── .gitignore
+Nigredo (inbox) → Albedo (structured YAML per paper)
+                            ↓
+                     Citrinitas (connection candidates, confidence ≥ 3)
+                            ↓
+                     Rubedo (gap detection → hypothesis → draft)
+                            ↓
+                       You (triage: confirm / reject / investigate)
 ```
+
+Processing is periodic — weekly by default. Output is a triage report for human review. The engine surfaces candidates. You decide what survives.
 
 ---
 
@@ -47,53 +52,105 @@ apophenia-machine/
 
 **Every phase produces candidates. No phase produces final knowledge.**
 
-| Phase | Produces | Gate |
-|-------|----------|------|
+| Phase | Produces | Human Gate |
+|-------|----------|------------|
 | Nigredo → Albedo | Structured YAML per paper | Spot-check schema accuracy |
 | Albedo → Citrinitas | Candidate connections (≥3 confidence) | confirmed · rejected · investigate |
-| Citrinitas → Rubedo | Hypotheses · open questions | worth pursuing · already known · wrong |
-| Rubedo → (arxiv) | New PDFs in nigredo/ | Keep · discard |
-| Rubedo → drafts/ | 2-page research notes | develop · shelve · wrong |
-
-The engine surfaces. You decide.
+| Citrinitas → Rubedo | Hypotheses, open questions | worth pursuing · already known · wrong |
+| Rubedo → arxiv → Nigredo | New PDFs in inbox | Keep · discard |
+| Rubedo → drafts | 2-page research notes | develop · shelve · wrong |
 
 ---
 
-## Naming Conventions
+## Directory Layout
 
-**Phases:** Alchemical — Nigredo, Albedo, Citrinitas, Rubedo.
-**The whole:** Azoth — the universal solvent, the Alpha-Omega unity. Dissolves all boundaries without destroying what it touches.
-**The housing:** Athanasor — the alchemical furnace. The compute substrate. The scheduling infrastructure.
-**The act:** Apophenia — pattern-finding across domains that refuse to connect. The method, automated.
-
-**Stable IDs** (for code, schemas, registries): lowercase-hyphenated, domain-agnostic.
-**Display names** (for docs, UI, explanations): alchemical.
-**Style reference:** `AESTHETIC.md` in `../Symmetry-Breaking/` (alchemical naming conventions only).
-
----
-
-## Integration
-
-| System | Role |
-|--------|------|
-| Hermes cron | Weekly processing: ingest → connect → detect |
-| Arxiv skill | Gap-filling literature search |
-| Sentinel (WP3) | Output artifact drift tracking |
-| φ-note (WP1) | Concept definitions for tagging |
-| Memory Layer | Durable recall of past connections/hypotheses |
-
----
-
-## Related Artifacts
-
-- **φ-note:** `../Symmetry-Breaking/research/symmetry-breaking-intelligence-deepening/phi-note.md`
-- **Aesthetic conventions:** `../Symmetry-Breaking/AESTHETIC.md` (alchemical naming)
-- **rx2 + rx3 corpora:** `../ai-projects/memory-sanity/rx2/`, `../ai-projects/memory-sanity/rx3/`
-- **Essay (Anastomosis):** `../Dialogues/aleatoric-substack/mimo-substack-essay-v7.md`
-- **Mimo archive analyses:** `../Dialogues/aleatoric-substack/mimo-substack-analyses.md`
+```
+azoth/
+├── nigredo/             # Inbox — raw PDFs awaiting ingestion
+├── albedo/
+│   ├── library/         # Structured per-paper summaries (YAML)
+│   └── registry.jsonl   # Master index of all ingested papers
+├── citrinitas/          # Candidate connections between papers
+├── rubedo/
+│   ├── hypotheses/      # Gap-detection output (≥3 paper clusters)
+│   └── drafts/           # 2-page research notes
+├── athanasor/
+│   ├── skills/          # Hermes Agent skills
+│   ├── cron/            # Processing schedules
+│   └── scripts/         # Utility scripts
+├── SCHEMA.yaml          # The per-paper schema definition
+├── USER_GUIDE.md        # Human-readable usage instructions
+├── AGENTS.md            # AI agent operating instructions
+├── LICENSE              # MIT License
+└── README.md            # This file
+```
 
 ---
 
-> *"The archive was not one thing. It was a person in motion — dissolving, raging, reading, building, receiving — and the motion itself is the content."* — Rafa, *Anastomosis*
+## Requirements
 
-Azoth is that motion, automated.
+- [Hermes Agent](https://github.com/NousResearch/hermes-agent) (for cron-scheduled operation)
+- `pdftotext` (from poppler) for PDF extraction
+- `python3` 3.10+ for registry queries and schema validation
+- An active LLM provider configured in Hermes (any provider; the pipeline is provider-agnostic)
+- Optional: [arxiv skill](https://hermes-agent.nousresearch.com/docs/reference/skills-catalog) for gap-filling literature search
+
+Manual operation does not require Hermes — you can run each phase by prompting your preferred LLM with the schema and instructions.
+
+---
+
+## The Schema (SCHEMA.yaml)
+
+Every ingested paper becomes a structured YAML record with:
+- **Bibliographic metadata** (title, authors, year, path, arXiv ID, DOI)
+- **Claims** — structural statements with confidence tiers (proven / formalizable / demonstrated / hypothesized / speculative)
+- **Methods** — formalisms, mathematical frameworks, inferential techniques
+- **Techniques** — algorithms, architectures, implementable operations
+- **Caveats** — honest constraints and limitations
+- **Explicit connections** — what the paper itself cites, with relationship type and strength
+- **Tags** — concept index for cross-connection pruning
+
+See `SCHEMA.yaml` for the full specification.
+
+---
+
+## Naming
+
+Every term is alchemical.
+
+| Term | Meaning |
+|------|---------|
+| **Azoth** | The whole — the universal solvent, the Alpha-Omega unity |
+| **Apophenia** | The act — pattern-finding across domains that refuse to connect |
+| **Nigredo** | The black stage — undifferentiated input material |
+| **Albedo** | The white stage — purified, structured knowledge |
+| **Citrinitas** | The yellow stage — solar dawn, pattern emergence |
+| **Rubedo** | The red stage — completion, the Philosopher's Stone |
+| **Athanasor** | The furnace — the housing, the compute infrastructure |
+
+---
+
+## What Azoth Is Not
+
+- Not an autonomous scientist. It does not claim discovery.
+- Not a paper generator. Drafts are proposals for your evaluation.
+- Not a replacement for reading. You must triage every candidate.
+- Not a black box. Every structured record is human-readable YAML.
+
+---
+
+## License
+
+MIT. See `LICENSE`.
+
+---
+
+## Contributing
+
+Azoth is designed to be extended. The four-phase pipeline is modular — you can swap the cross-connection method, add domain-specific pruning rules, or build new output formats for `rubedo/drafts/`. PRs welcome.
+
+---
+
+> *"We have to make the impersonal personal — taking structural truths and incarnating them in specific, lived, imperfect texts."* — aleatoric, 2021
+
+Azoth is the impersonal phase. You are the incarnation.
