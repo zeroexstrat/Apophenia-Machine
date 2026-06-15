@@ -359,7 +359,7 @@ def _analyze_pair(
             "evidence_a": "shared top-level tags in registry",
             "evidence_b": "shared top-level tags in registry",
             "confidence": 3,
-            "novelty": "speculative",
+            "novelty": "non-obvious",
             "significance": "Potentially similar conceptual framing.",
             "status": "pending_review",
         }

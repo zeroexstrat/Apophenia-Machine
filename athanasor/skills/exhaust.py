@@ -253,7 +253,7 @@ def _process_one(
         )
         generated = _generate_batch(context, llm, batch_size)
         if not generated:
-            terminal_reason = "low_signal"
+            terminal_reason = "completed"
             break
 
         added_this_batch = False
@@ -292,9 +292,9 @@ def _process_one(
                 conf = str(payload.get("confidence", "")).strip().lower()
                 recent_speculative.append(1 if conf == "speculative" else 0)
 
-        if not added_this_batch:
-            terminal_reason = "low_signal"
-            break
+            if not added_this_batch:
+                terminal_reason = "completed"
+                break
 
         if _non_redundant_count(all_items) >= max_items:
             terminal_reason = "hard_cap"

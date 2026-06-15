@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import shutil
 import subprocess
+import re
 from pathlib import Path
 from typing import Any
 
@@ -15,7 +17,7 @@ from ..llm import LLMUnavailableError, LLMClient
 from ..pdf_parser import parse_pdf
 from ..registry import Registry
 from ..schemas import validate as validate_schema
-from ..skills.common import now_iso, ensure_dir, short_id, slugify, write_yaml
+from ..skills.common import now_iso, ensure_dir, write_yaml
 from . import common
 
 import yaml
@@ -56,6 +58,17 @@ def _safe_title(parsed: dict[str, Any]) -> str:
 def _load_schema_template() -> dict[str, Any]:
     with open(INGEST_SCHEMA_PATH, "r", encoding="utf-8") as f:
         return yaml.safe_load(f) or {}
+
+
+def _normalize_paper_id(value: str) -> str:
+    normalized = re.sub(r"[^a-z0-9]+", "", value.lower())
+    return normalized[:35] if normalized else "paper"
+
+
+def _paper_id_suffix(value: str) -> str:
+    digest = hashlib.sha1(value.encode("utf-8")).hexdigest()[:10]
+    numeric = int(digest, 16) % 1_000_000_000
+    return f"{numeric:09d}"
 
 
 def _fallback_extraction(parsed: dict[str, Any], path: Path, title: str, authors: list[str], year: int | None) -> dict[str, Any]:
@@ -204,7 +217,7 @@ def ingest_path(
 
         authors = _extract_authors(parsed.get("full_text", ""))
         year = _extract_year(parsed.get("full_text", ""))
-        paper_id = f"{slugify(src_title)}_{short_id(destination_pdf.name)}"
+        paper_id = f"{_normalize_paper_id(src_title)}_{_paper_id_suffix(destination_pdf.name)}"
 
         # If already exists and no reprocess, skip.
         if registry.exists(paper_id) and not reprocess:
@@ -249,7 +262,7 @@ def ingest_path(
             payload["ingestion"] = {}
         payload["ingestion"]["date"] = now_iso()
         payload["ingestion"]["agent"] = "azoth-ingest"
-        payload["ingestion"]["schema_version"] = schema.get("schema_version", 1)
+        payload["ingestion"]["schema_version"] = int(schema.get("schema_version", {}).get("default", 1))
         if parse_errors:
             payload.setdefault("parse_errors", parse_errors)
 
