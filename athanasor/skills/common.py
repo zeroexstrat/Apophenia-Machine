@@ -54,15 +54,26 @@ def load_yaml(path: Path) -> Any:
 
 def run_vigil_check(root: Path, phase: str, skill: str) -> str:
     """Run a Vigil phase for the current repo using the active Python interpreter."""
-    result = subprocess.run(
-        [sys.executable, str(root / "athanasor" / "vigil" / "verify.py"), phase],
-        cwd=str(root),
-        capture_output=True,
-        text=True,
-    )
+    cmd = [sys.executable, str(root / "athanasor" / "vigil" / "verify.py"), phase]
+    try:
+        result = subprocess.run(
+            cmd,
+            cwd=str(root),
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+    except FileNotFoundError as exc:
+        raise RuntimeError(f"Vigil {phase} launch failed for {skill}: {exc}") from exc
+    except OSError as exc:
+        raise RuntimeError(f"Vigil {phase} runtime error for {skill}: {exc}") from exc
+
     output = (result.stderr or result.stdout or "").strip()
     if result.returncode != 0:
-        raise RuntimeError(f"Vigil {phase} failed for {skill}: {output or 'no details'}")
+        command = " ".join(cmd)
+        raise RuntimeError(
+            f"Vigil {phase} failed for {skill} ({command}): {output or 'no details'}"
+        )
     return output
 
 

@@ -43,19 +43,47 @@ MEMORY_CANDIDATES = (
 )
 
 
-def run_cmd(cmd: list[str], *, cwd: Path, check: bool = False, env: dict[str, str] | None = None) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(
-        cmd,
-        cwd=str(cwd),
-        text=True,
-        capture_output=True,
-        env=env,
-        check=check,
-    )
+def run_cmd(
+    cmd: list[str],
+    *,
+    cwd: Path,
+    check: bool = False,
+    env: dict[str, str] | None = None,
+    context: str | None = None,
+) -> subprocess.CompletedProcess[str]:
+    if not cmd:
+        raise RuntimeError(f"{context or 'command'}: empty command invocation")
+
+    context = context or f"{cmd[0]} {' '.join(cmd[1:])}".strip()
+    try:
+        result = subprocess.run(
+            cmd,
+            cwd=str(cwd),
+            text=True,
+            capture_output=True,
+            env=env,
+            check=False,
+        )
+    except FileNotFoundError as exc:
+        raise RuntimeError(f"{context}: command not found ({cmd[0]}): {exc}") from exc
+    except OSError as exc:
+        raise RuntimeError(f"{context}: failed to run command ({cmd[0]}): {exc}") from exc
+
+    if check and result.returncode != 0:
+        output = (result.stderr or result.stdout or "").strip()
+        raise RuntimeError(
+            f"{context}: exit code {result.returncode}" + (f" ({output})" if output else "")
+        )
+
+    return result
 
 
 def is_git_worktree(path: Path) -> bool:
-    result = run_cmd(["git", "rev-parse", "--is-inside-work-tree"], cwd=path)
+    result = run_cmd(
+        ["git", "rev-parse", "--is-inside-work-tree"],
+        cwd=path,
+        context="git rev-parse --is-inside-work-tree",
+    )
     return result.returncode == 0 and result.stdout.strip() == "true"
 
 
@@ -65,12 +93,7 @@ def ensure_git_worktree(path: Path) -> list[str]:
         messages.append(f"Detected git worktree at {path}")
         return messages
 
-    init_result = run_cmd(["git", "init"], cwd=path)
-    if init_result.returncode != 0:
-        raise RuntimeError(
-            "Could not initialize a git worktree at the project root. "
-            "Run this command from the project directory or set WORKTREE_ROOT."
-        )
+    run_cmd(["git", "init"], cwd=path, context="git init", check=True)
 
     messages.append(f"Initialized git worktree at {path} (no remote configured).")
     return messages
@@ -85,10 +108,25 @@ def git_state(path: Path) -> dict[str, Any]:
             "status": None,
         }
 
-    branch_res = run_cmd(["git", "rev-parse", "--abbrev-ref", "HEAD"], cwd=path)
-    commit_res = run_cmd(["git", "rev-parse", "HEAD"], cwd=path)
-    status_res = run_cmd(["git", "status", "--short"], cwd=path)
-    remote_res = run_cmd(["git", "remote"], cwd=path)
+    branch_res = run_cmd(
+        ["git", "rev-parse", "--abbrev-ref", "HEAD"],
+        cwd=path,
+        context="git rev-parse --abbrev-ref HEAD",
+        check=True,
+    )
+    commit_res = run_cmd(
+        ["git", "rev-parse", "HEAD"],
+        cwd=path,
+        context="git rev-parse HEAD",
+        check=True,
+    )
+    status_res = run_cmd(
+        ["git", "status", "--short"],
+        cwd=path,
+        context="git status --short",
+        check=True,
+    )
+    remote_res = run_cmd(["git", "remote"], cwd=path, context="git remote", check=True)
 
     status = status_res.stdout.strip()
     return {
@@ -587,40 +625,43 @@ def run_concludere(argv: list[str] | None = None) -> int:
                 or f"concludere: persist findings at {timestamp.strftime('%Y-%m-%d %H:%M UTC')}"
             )
 
-            run_cmd(["git", "add", "-A"], cwd=ROOT)
-            if run_cmd(["git", "status", "--short"], cwd=ROOT).stdout.strip():
+            run_cmd(["git", "add", "-A"], cwd=ROOT, context="git add -A", check=True)
+            status_res = run_cmd(
+                ["git", "status", "--short"],
+                cwd=ROOT,
+                context="git status --short",
+                check=True,
+            )
+            if status_res.stdout.strip():
                 env = os.environ.copy()
                 env.setdefault("GIT_AUTHOR_NAME", "Azoth Session Bot")
                 env.setdefault("GIT_AUTHOR_EMAIL", "azoth-bot@example.com")
                 env.setdefault("GIT_COMMITTER_NAME", env["GIT_AUTHOR_NAME"])
                 env.setdefault("GIT_COMMITTER_EMAIL", env["GIT_AUTHOR_EMAIL"])
-                commit = run_cmd(
+                run_cmd(
                     ["git", "commit", "--no-gpg-sign", "-m", commit_message],
                     cwd=ROOT,
                     env=env,
+                    context="git commit --no-gpg-sign",
+                    check=True,
                 )
-                if commit.returncode != 0:
-                    print(f"Commit failed: {commit.stderr.strip() or commit.stdout.strip()}")
-                    return 1
+                new_head = run_cmd(
+                    ["git", "rev-parse", "HEAD"],
+                    cwd=ROOT,
+                    context="git rev-parse HEAD",
+                ).stdout.strip()
+                if new_head:
+                    print(f"Committed: {new_head[:9]}")
             else:
                 print("No changes to commit.")
 
-            run_cmd(["git", "rev-parse", "HEAD"], cwd=ROOT)
-            new_head = run_cmd(["git", "rev-parse", "HEAD"], cwd=ROOT).stdout.strip()
-            if new_head:
-                print(f"Committed: {new_head[:9]}")
-
             if not args.skip_vigil_close:
-                close_result = run_cmd(
+                run_cmd(
                     [sys.executable, str(ROOT / "athanasor" / "vigil" / "verify.py"), "close"],
                     cwd=ROOT,
+                    context="athanasor/vigil/verify.py close",
+                    check=True,
                 )
-                if close_result.returncode != 0:
-                    print(
-                        f"/concludere: Vigil close gate check failed: "
-                        f"{close_result.stderr.strip() or close_result.stdout.strip() or 'no details'}"
-                    )
-                    return 1
 
         section = create_checkpoint_section("Session conclusion", snapshot, findings)
         append_to_codex(section)
