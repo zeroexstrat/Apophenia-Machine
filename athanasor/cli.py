@@ -6,13 +6,15 @@ from __future__ import annotations
 import json
 import subprocess
 import sys
+from collections import Counter
 from pathlib import Path
 from typing import Any
 
 import click
 
-from .config import Config, load_config
+from .config import Config, load_config, save_config
 from .llm import LLMClient
+from .registry import VALID_STATUSES, Registry
 from .skills import connect as connect_skill
 from .skills import detect as detect_skill
 from .skills import draft as draft_skill
@@ -52,6 +54,68 @@ def _emit(results: list[dict[str, Any]], json_output: bool) -> None:
         click.echo(f"  - {ident}")
 
 
+def _coerce_config_value(raw: str) -> Any:
+    raw = raw.strip()
+    try:
+        return json.loads(raw)
+    except json.JSONDecodeError:
+        lowered = raw.lower()
+        if lowered in {"true", "false", "null", "none"}:
+            if lowered == "true":
+                return True
+            if lowered == "false":
+                return False
+            return None
+        return raw
+
+
+def _set_nested(payload: dict[str, Any], key: str, value: Any) -> None:
+    target = payload
+    parts = key.split(".")
+    for part in parts[:-1]:
+        current = target.get(part)
+        if not isinstance(current, dict):
+            target[part] = {}
+            current = target[part]
+        target = current
+    target[parts[-1]] = value
+
+
+def _status_snapshot(registry: Registry, domain: str | None, status_filter: str | None) -> dict[str, Any]:
+    entries = registry.list()
+    if domain is not None:
+        entries = [entry for entry in entries if entry.get("domain") == domain]
+    if status_filter is not None:
+        entries = [entry for entry in entries if entry.get("status") == status_filter]
+
+    return {
+        "total": len(entries),
+        "status_counts": Counter(entry.get("status") for entry in entries),
+        "domain_counts": Counter(entry.get("domain") for entry in entries),
+        "entries": entries,
+    }
+
+
+def _status_lines(payload: dict[str, Any]) -> list[str]:
+    lines: list[str] = [f"Registry entries: {payload['total']}"]
+    if payload["status_counts"]:
+        lines.append("By status:")
+        for status, count in sorted(payload["status_counts"].items()):
+            lines.append(f"- {status}: {count}")
+    if payload["domain_counts"]:
+        lines.append("By domain:")
+        for domain, count in sorted(payload["domain_counts"].items()):
+            lines.append(f"- {domain}: {count}")
+
+    if payload["entries"]:
+        lines.append("Entries:")
+        for entry in payload["entries"][:20]:
+            lines.append(
+                f"- {entry.get('paper_id', 'unknown')} | {entry.get('status', 'unknown')} | {entry.get('domain', 'unknown')} | {entry.get('title', 'untitled')}"
+            )
+    return lines
+
+
 @main.command("ingest")
 @click.argument("paths", nargs=-1, type=click.Path(exists=True, path_type=Path), required=True)
 @click.option("--reprocess", is_flag=True, help="Reprocess files already in registry.")
@@ -84,6 +148,66 @@ def cmd_ingest(
         click.echo(json.dumps(outputs, indent=2, sort_keys=True))
     else:
         click.echo(f"Ingested {len(outputs)} paper(s).")
+        _emit(outputs, json_output=False)
+
+
+@main.command("awaken")
+@click.argument("domain", required=False)
+@click.option("--all", "all_scope", is_flag=True, help="Exhaust all domains.")
+@click.option("--depth", default=3, type=click.IntRange(1, 5), show_default=True)
+@click.option("--count", default=3, help="Max papers per domain in --all or --domain mode.")
+@click.option("--reprocess", is_flag=True, help="Allow reprocessing exhausted papers.")
+@click.option("--no-llm", is_flag=True, help="Disable LLM exhaustion prompts.")
+@click.option("--json", "json_output", is_flag=True, help="Emit machine-readable JSON")
+def cmd_awaken(
+    domain: str | None,
+    all_scope: bool,
+    depth: int,
+    count: int,
+    reprocess: bool,
+    no_llm: bool,
+    json_output: bool,
+) -> None:
+    """Activate domain subagents (`/awaken`) for one domain or all domains."""
+    if not domain and not all_scope:
+        raise click.ClickException("Provide domain or --all.")
+    if domain and all_scope:
+        raise click.ClickException("Use either a domain or --all, not both.")
+
+    cfg, llm = _load_skill_config(no_llm)
+    outputs: list[dict[str, Any]] = []
+
+    if all_scope:
+        for target_domain in cfg.domains:
+            outputs.extend(
+                exhaust_skill.run_exhaust(
+                    config=cfg,
+                    llm=llm,
+                    domain=target_domain,
+                    all_scope=True,
+                    depth=depth,
+                    count=count,
+                    reprocess=reprocess,
+                )
+            )
+    else:
+        outputs = exhaust_skill.run_exhaust(
+            config=cfg,
+            llm=llm,
+            domain=domain,
+            all_scope=False,
+            depth=depth,
+            count=count,
+            reprocess=reprocess,
+        )
+
+    if json_output:
+        click.echo(json.dumps(outputs, indent=2, sort_keys=True))
+    else:
+        if all_scope:
+            click.echo(f"Awakened all domains. Exhausted {len(outputs)} paper(s).")
+        else:
+            click.echo(f"Awakened {domain}. Exhausted {len(outputs)} paper(s).")
         _emit(outputs, json_output=False)
 
 
@@ -126,6 +250,81 @@ def cmd_exhaust(
     else:
         click.echo(f"Exhausted {len(outputs)} paper(s).")
         _emit(outputs, json_output=False)
+
+
+@main.command("status")
+@click.option("--domain", default=None, help="Filter by domain.")
+@click.option(
+    "--status",
+    "status_filter",
+    type=click.Choice(sorted(VALID_STATUSES), case_sensitive=False),
+    default=None,
+    help="Filter by registry status.",
+)
+@click.option("--json", "json_output", is_flag=True, help="Emit machine-readable JSON")
+def cmd_status(domain: str | None, status_filter: str | None, json_output: bool) -> None:
+    """Show registry progress and filtered entries."""
+    cfg = load_config()
+    registry = Registry(Path(cfg.project_root) / "albedo" / "registry.jsonl")
+    payload = _status_snapshot(registry, domain, status_filter)
+
+    if json_output:
+        payload["status_counts"] = dict(payload["status_counts"])
+        payload["domain_counts"] = dict(payload["domain_counts"])
+        click.echo(json.dumps(payload, indent=2, sort_keys=True))
+    else:
+        for line in _status_lines(payload):
+            click.echo(line)
+
+
+@main.command("config")
+@click.option("--show", is_flag=True, help="Show current resolved config.")
+@click.option(
+    "--set",
+    "set_kv",
+    nargs=2,
+    type=str,
+    metavar="KEY VALUE",
+    help="Set config value via dot notation, e.g. `--set llm.model gpt-4`.",
+)
+def cmd_config(show: bool, set_kv: tuple[str, str] | None) -> None:
+    """Inspect or update `azoth.config.yaml`."""
+    cfg = load_config()
+    config_path = Path(cfg.project_root) / "azoth.config.yaml"
+
+    if show and set_kv:
+        raise click.ClickException("Choose either --show or --set.")
+    if not show and not set_kv:
+        show = True
+
+    payload = {
+        "llm": dict(cfg.llm),
+        "embeddings": dict(cfg.embeddings),
+        "paths": dict(cfg.paths),
+        "domains": list(cfg.domains),
+        "exhaustion": dict(cfg.exhaustion),
+    }
+
+    if set_kv is not None:
+        key, raw_value = set_kv
+        payload_value = _coerce_config_value(raw_value)
+        _set_nested(payload, key, payload_value)
+
+        normalized = Config(
+            llm=payload["llm"],
+            paths=payload["paths"],
+            domains=list(payload["domains"]),
+            embeddings=payload["embeddings"],
+            exhaustion=payload["exhaustion"],
+            project_root=str(cfg.project_root),
+        )
+        save_config(normalized, path=config_path)
+        click.echo(f"Updated {config_path}: {key} = {payload_value}")
+        if show:
+            show = False
+
+    if show:
+        click.echo(json.dumps(payload, indent=2, sort_keys=True))
 
 
 @main.command("connect")
