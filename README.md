@@ -369,4 +369,4 @@ Gates (in `athanasor/vigil/gates.yaml`) used by phase wrappers:
 
 ## License
 
-MIT License (`LICENSE`).
+GNU Affero General Public License v3.0 (`LICENSE`).
