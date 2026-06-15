@@ -62,7 +62,7 @@ claims:
     confidence:
       type: string
       required: true
-      description: "How strongly does the paper support this claim?"
+      description: "How strongly does the paper support this claim? Confidence tier, not a float."
       enum: [proven, formalizable, demonstrated, hypothesized, speculative]
     evidence:
       type: string
