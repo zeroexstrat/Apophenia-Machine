@@ -1,0 +1,93 @@
+#!/usr/bin/env python3
+"""Small machine checks for stable CLI surface."""
+
+from __future__ import annotations
+
+import json
+import subprocess
+import sys
+from pathlib import Path
+
+
+ROOT = Path(__file__).resolve().parents[1]
+PYTHON = sys.executable
+
+
+def _run(argv: list[str], *, expect_json: bool = False) -> tuple[int, str, str]:
+    proc = subprocess.run(
+        [PYTHON, "-m", "athanasor.cli", *argv],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+    )
+    output = proc.stdout + proc.stderr
+    if expect_json:
+        try:
+            json.loads(proc.stdout.strip() or "{}")
+        except json.JSONDecodeError as exc:
+            return 2, output, str(exc)
+    return proc.returncode, proc.stdout, proc.stderr
+
+
+def _assert(condition: bool, label: str, failures: list[str]) -> None:
+    if condition:
+        print(f"[ok] {label}")
+    else:
+        failures.append(label)
+        print(f"[fail] {label}")
+
+
+def main() -> int:
+    failures: list[str] = []
+    print("Running Azoth CLI smoke checks...")
+
+    rc, out, err = _run(["--help"])
+    _assert(rc == 0, "azoth --help exits 0", failures)
+    help_text = out + err
+    for token in [
+        "ingest",
+        "awaken",
+        "exhaust",
+        "status",
+        "connect",
+        "detect",
+        "draft",
+        "validate",
+        "migrate",
+        "config",
+    ]:
+        _assert(token in help_text, f"command listed in --help: {token}", failures)
+
+    for command in ["awaken", "status", "connect", "detect", "draft", "config", "migrate"]:
+        rc, sub_out, _ = _run([command, "--help"])
+        _assert(rc == 0, f"{command} --help works", failures)
+        _assert(len(sub_out.strip()) > 0, f"{command} --help has output", failures)
+
+    rc, status_out, _ = _run(["status", "--json"])
+    _assert(rc == 0, "status --json runs", failures)
+    if rc == 0:
+        payload = json.loads(status_out or "{}")
+        _assert(isinstance(payload, dict), "status --json returns JSON object", failures)
+        _assert("status_counts" in payload, "status payload contains status_counts", failures)
+        _assert("domain_counts" in payload, "status payload contains domain_counts", failures)
+
+    rc, config_out, _ = _run(["config", "--show"])
+    _assert(rc == 0, "config --show runs", failures)
+    if rc == 0 and config_out.strip():
+        payload = json.loads(config_out)
+        _assert("llm" in payload, "config payload contains llm", failures)
+        _assert("paths" in payload, "config payload contains paths", failures)
+
+    if failures:
+        print("\nFailed checks:")
+        for item in failures:
+            print(f" - {item}")
+        return 1
+
+    print("\nAll CLI smoke checks passed.")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
+

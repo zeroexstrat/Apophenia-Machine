@@ -13,11 +13,41 @@ It is not an autonomous scientist. It does not publish papers for you. It is a c
 ```bash
 git clone https://github.com/your-username/azoth.git
 cd azoth
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -e .
 ```
 
-Drop PDFs into `nigredo/`. Run the ingestion phase. Review the output. Gate everything.
+```bash
+# 1) Start with a session check-in
+python3 scripts/incipere.py
 
-Azoth is designed to run as a periodic batch pipeline on Hermes Agent (via cron), but can be operated manually as well.
+# 2) Drop papers and ingest
+cp ~/Downloads/paper.pdf nigredo/
+azoth ingest nigredo/paper.pdf
+
+# 3) Exhaust papers in a domain (default depth 3, batch 3)
+azoth awaken ML --depth 3 --count 3
+
+# 4) Discover cross-domain/domain connections
+azoth connect --within ML
+
+# 5) Detect hypotheses from connected clusters
+azoth detect --within ML
+
+# 6) Draft notes from top hypotheses
+azoth draft --top 1
+```
+
+Use `azoth status` anytime for registry health, and `azoth validate --all` before triage.
+Use the CLI smoke check when you want fast interface regression coverage:
+
+```bash
+python3 scripts/check_cli.py
+```
+
+The pipeline is also mapped to conversational commands when driven by Hermes:
+`/awaken`, `/connect`, `/detect`, and `/draft` map to the same underlying skills.
 
 ---
 
@@ -110,13 +140,25 @@ azoth/
 
 ## Requirements
 
-- [Hermes Agent](https://github.com/NousResearch/hermes-agent) (for cron-scheduled operation)
 - `pdftotext` (from poppler) for PDF extraction
 - `python3` 3.10+ for registry queries and schema validation
-- An active LLM provider configured in Hermes (any provider; the pipeline is provider-agnostic)
-- Optional: [arxiv skill](https://hermes-agent.nousresearch.com/docs/reference/skills-catalog) for gap-filling literature search
+- An active LLM provider (OpenAI API format is the current client path)
+- Optional: [Hermes Agent](https://github.com/NousResearch/hermes-agent) for scheduled, batch operation
+- Optional: [arXiv skill](https://hermes-agent.nousresearch.com/docs/reference/skills-catalog) for gap-filling literature search
 
-Manual operation does not require Hermes — you can run each phase by prompting your preferred LLM with the schema and instructions.
+Manual operation does not require Hermes — this repo ships a CLI-first path.
+
+Before starting a new cycle, run:
+
+```bash
+python3 scripts/incipere.py
+```
+
+To close a cycle and persist session state:
+
+```bash
+python3 scripts/concludere.py --findings-file findings.txt
+```
 
 ---
 
