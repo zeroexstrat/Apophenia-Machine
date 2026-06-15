@@ -30,6 +30,9 @@ def _run_vigil(root: Path, phase: str) -> tuple[int, str]:
         capture_output=True,
         text=True,
     )
+    if result.returncode != 0:
+        message = (result.stderr or result.stdout or "Vigil check failed with no details.").strip()
+        raise RuntimeError(f"Vigil {phase} failed for draft: {message}")
     return result.returncode, (result.stdout + result.stderr)
 
 

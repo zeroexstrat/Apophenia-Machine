@@ -42,7 +42,8 @@ def _run_vigil(root: Path, phase: str) -> tuple[int, str]:
         text=True,
     )
     if result.returncode != 0:
-        return result.returncode, result.stderr or result.stdout
+        message = (result.stderr or result.stdout or "Vigil check failed with no details.").strip()
+        raise RuntimeError(f"Vigil {phase} failed for connect: {message}")
     return result.returncode, result.stdout
 
 
