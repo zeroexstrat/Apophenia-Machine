@@ -90,6 +90,22 @@ def _index_connection_papers(root: Path) -> set[str]:
     return out
 
 
+def _iter_connection_report_paths(root: Path) -> list[Path]:
+    report_dir = root / "citrinitas" / "reports"
+    if not report_dir.exists():
+        return []
+    return sorted(report_dir.glob("connect_report_*.yaml"))
+
+
+def _iter_connection_paths(root: Path) -> list[Path]:
+    paths: list[Path] = []
+    for folder in (root / "citrinitas" / "within_domain", root / "citrinitas" / "cross_domain"):
+        if not folder.exists():
+            continue
+        paths.extend(sorted(folder.rglob("*.y*ml")))
+    return paths
+
+
 def _index_hypothesis_papers(root: Path) -> dict[str, int]:
     out: dict[str, int] = {}
     for path in (root / "rubedo" / "hypotheses").glob("*.yaml"):
@@ -174,6 +190,70 @@ def _validate_registry_state(root: Path) -> tuple[list[str], list[str]]:
     return errors, warnings
 
 
+def _validate_connection_reports(root: Path) -> tuple[list[str], list[str]]:
+    errors: list[str] = []
+    warnings: list[str] = []
+
+    report_paths = _iter_connection_report_paths(root)
+    connection_files = _iter_connection_paths(root)
+    if connection_files and not report_paths:
+        warnings.append("No connect synthesis report found despite saved connection files.")
+        return errors, warnings
+
+    if not report_paths:
+        return errors, warnings
+
+    for path in report_paths:
+        payload = yaml.safe_load(path.read_text(encoding="utf-8"))
+        if not isinstance(payload, dict):
+            warnings.append(f"{path.relative_to(root)}: report is not a YAML mapping.")
+            continue
+
+        scope = payload.get("scope")
+        if not isinstance(scope, str) or not scope.strip():
+            warnings.append(f"{path.relative_to(root)}: missing/invalid scope.")
+
+        generated_at = payload.get("generated_at")
+        if not isinstance(generated_at, str) or not generated_at.strip():
+            warnings.append(f"{path.relative_to(root)}: missing generated_at.")
+
+        pairs = payload.get("pairs")
+        if not isinstance(pairs, dict):
+            warnings.append(f"{path.relative_to(root)}: missing pairs block.")
+            continue
+
+        for field in [
+            "candidate_pairs",
+            "analyzed_pairs",
+            "pairs_with_no_connection",
+            "skipped_similarity",
+            "below_confidence_threshold",
+            "validation_failed",
+            "speculative_filtered",
+        ]:
+            raw = pairs.get(field)
+            if not isinstance(raw, int) or raw < 0:
+                warnings.append(f"{path.relative_to(root)}: invalid pairs.{field} = {raw!r}.")
+
+        connections = payload.get("connections")
+        if not isinstance(connections, dict):
+            warnings.append(f"{path.relative_to(root)}: missing connections summary.")
+
+    for path in connection_files:
+        payload = yaml.safe_load(path.read_text(encoding="utf-8"))
+        if not isinstance(payload, dict):
+            warnings.append(f"{path.relative_to(root)}: connection artifact is not a YAML mapping.")
+            continue
+        confidence = payload.get("confidence")
+        if not isinstance(confidence, int) or confidence < 3:
+            warnings.append(
+                f"{path.relative_to(root)}: expected persisted connection confidence >=3 "
+                f"(found: {confidence!r})."
+            )
+
+    return errors, warnings
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Run hardening checks and return non-zero on failures.")
     parser.add_argument(
@@ -192,15 +272,16 @@ def main() -> int:
     root = args.project_root.resolve()
     schema_errors, schema_warnings = _validate_artifacts(root, strict=args.strict)
     registry_errors, registry_warnings = _validate_registry_state(root)
+    report_errors, report_warnings = _validate_connection_reports(root)
 
-    if schema_warnings or registry_warnings:
+    if schema_warnings or registry_warnings or report_warnings:
         print("Warnings:")
-        for item in schema_warnings + registry_warnings:
+        for item in schema_warnings + registry_warnings + report_warnings:
             print(f"  - {item}")
 
-    if schema_errors or registry_errors:
+    if schema_errors or registry_errors or report_errors:
         print("Errors:")
-        for item in schema_errors + registry_errors:
+        for item in schema_errors + registry_errors + report_errors:
             print(f"  - {item}")
         return 1
 

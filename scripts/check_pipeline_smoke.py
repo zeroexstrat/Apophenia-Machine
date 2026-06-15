@@ -227,6 +227,18 @@ def _assert_expected_connections(outputs: list[dict[str, Any]], confidence_min: 
         _int_in_range(item.get("confidence_raw"), min_value=confidence_min)
 
 
+def _assert_connection_report(project_root: Path) -> None:
+    report_dir = project_root / "citrinitas" / "reports"
+    if not report_dir.exists():
+        raise RuntimeError("No connection reports directory was generated.")
+    reports = sorted(report_dir.glob("connect_report_*.yaml"))
+    if not reports:
+        raise RuntimeError("No connection synthesis report generated.")
+
+    if not reports[-1].exists():
+        raise RuntimeError("Latest connection synthesis report missing on disk.")
+
+
 def _assert_expected_hypotheses(outputs: list[dict[str, Any]]) -> None:
     if not outputs:
         raise RuntimeError("No hypotheses were produced.")
@@ -304,7 +316,8 @@ def run_smoke(project_root: Path) -> None:
         ["connect", "--within", "unclassified", "--no-llm", "--json"],
         env=env,
     )
-    _assert_expected_connections(connect_outputs)
+    _assert_expected_connections(connect_outputs, confidence_min=3)
+    _assert_connection_report(project_root)
 
     detect_outputs = _run_cmd(
         project_root,

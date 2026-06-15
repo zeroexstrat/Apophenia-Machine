@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 import subprocess
+from collections import Counter
 from itertools import combinations
 from pathlib import Path
 from typing import Any
@@ -17,7 +18,7 @@ from ..embeddings import EmbeddingStore
 from ..llm import LLMClient
 from ..registry import Registry
 from ..schemas import validate as validate_schema
-from ..skills.common import ensure_dir, now_iso, write_yaml
+from ..skills.common import ensure_dir, now_iso, slugify, write_yaml
 
 
 CONNECT_SCHEMA_PATH = Path(__file__).resolve().parents[2] / "CONNECT_SCHEMA.yaml"
@@ -61,6 +62,17 @@ def connect(
     registry = Registry(root / "albedo" / "registry.jsonl")
     store = EmbeddingStore(root / cfg.embeddings["store_path"], model_name=cfg.embeddings.get("model", "all-MiniLM-L6-v2"))
     schema = _load_schema()
+    persistence_threshold = 3
+    report_stats: dict[str, Any] = Counter(
+        candidate_pairs=0,
+        analyzed_pairs=0,
+        pairs_with_no_connection=0,
+        below_confidence=0,
+        speculative_filtered=0,
+        validation_failed=0,
+        skipped_similarity=0,
+        skipped_missing_records=0,
+    )
 
     if paper_id:
         candidates = [registry.get(paper_id)] if registry.get(paper_id) else []
@@ -77,6 +89,8 @@ def connect(
 
     analyzed = _load_analyzed(root / "albedo" / "connections_analyzed.jsonl")
     output: list[dict[str, Any]] = []
+    connection_types: Counter[str] = Counter()
+    library_records: dict[str, dict[str, Any]] = {}
 
     for a_id, b_id, pair_scope, pair_domain in pairs:
         a_id, b_id = sorted([str(a_id), str(b_id)])
@@ -87,25 +101,43 @@ def connect(
         a_entry = registry.get(a_id)
         b_entry = registry.get(b_id)
         if not isinstance(a_entry, dict) or not isinstance(b_entry, dict):
+            analyzed.add(key)
+            _append_analyzed(root / "albedo" / "connections_analyzed.jsonl", a_id, b_id)
             continue
 
         sim = _pair_similarity(a_id, b_id, store)
         if sim < cfg.embeddings.get("similarity_threshold", 0.82):
             analyzed.add(key)
+            report_stats["skipped_similarity"] += 1
+            _append_analyzed(root / "albedo" / "connections_analyzed.jsonl", a_id, b_id)
             continue
 
-        record_a = _load_library_record(root, a_entry.get("paths", {}).get("library"), a_id)
-        record_b = _load_library_record(root, b_entry.get("paths", {}).get("library"), b_id)
+        report_stats["candidate_pairs"] += 1
+        record_a = library_records.get(a_id)
+        if record_a is None:
+            record_a = _load_library_record(root, a_entry.get("paths", {}).get("library"), a_id) or {}
+            if record_a:
+                library_records[a_id] = record_a
+        record_b = library_records.get(b_id)
+        if record_b is None:
+            record_b = _load_library_record(root, b_entry.get("paths", {}).get("library"), b_id) or {}
+            if record_b:
+                library_records[b_id] = record_b
         if not record_a or not record_b:
             analyzed.add(key)
+            report_stats["skipped_missing_records"] += 1
+            _append_analyzed(root / "albedo" / "connections_analyzed.jsonl", a_id, b_id)
             continue
 
         candidate = _analyze_pair(a_id, b_id, record_a, record_b, pair_scope, llm, schema)
         if not candidate:
             analyzed.add(key)
+            report_stats["pairs_with_no_connection"] += 1
+            _append_analyzed(root / "albedo" / "connections_analyzed.jsonl", a_id, b_id)
             continue
 
         confidence_raw = _coerce_confidence(candidate.get("confidence"), fallback=3)
+        report_stats["analyzed_pairs"] += 1
         confidence = confidence_raw
         # Cross-domain penalty.
         if pair_scope == "cross_domain":
@@ -143,11 +175,22 @@ def connect(
         ok, errors, fixed, _ = validate_schema(candidate, schema, path=str(a_id), fix=True)
         if not ok:
             candidate["_schema_errors"] = errors
+            report_stats["validation_failed"] += 1
+            analyzed.add(key)
+            _append_analyzed(root / "albedo" / "connections_analyzed.jsonl", a_id, b_id)
             continue
         candidate = fixed
 
         if candidate.get("novelty") == "speculative" and candidate["confidence"] < 4:
             analyzed.add(key)
+            report_stats["speculative_filtered"] += 1
+            _append_analyzed(root / "albedo" / "connections_analyzed.jsonl", a_id, b_id)
+            continue
+
+        if candidate["confidence"] < persistence_threshold:
+            analyzed.add(key)
+            report_stats["below_confidence"] += 1
+            _append_analyzed(root / "albedo" / "connections_analyzed.jsonl", a_id, b_id)
             continue
 
         out_path = _write_connection(
@@ -164,11 +207,23 @@ def connect(
             continue
 
         output.append(record)
+        if connection_type := record.get("connection_type"):
+            if isinstance(connection_type, str):
+                connection_types[connection_type] += 1
 
         analyzed.add(key)
         _mark_connected(registry, a_entry, b_entry)
         _append_analyzed(root / "albedo" / "connections_analyzed.jsonl", a_id, b_id)
 
+    _write_connection_report(
+        root / "citrinitas" / "reports",
+        output=output,
+        pairs=pairs,
+        pair_stats=report_stats,
+        output_by_type=connection_types,
+        library_records=library_records,
+        scope=_scope_label(within=within, cross=cross, paper_id=paper_id, all_scope=all_scope),
+    )
     _run_vigil(root, "verify")
     return output
 
@@ -261,16 +316,160 @@ def _append_analyzed(path: Path, a_id: str, b_id: str) -> None:
         f.write(json.dumps({"pair": _pair_key(a_id, b_id), "analyzed_at": now_iso()}) + "\n")
 
 
+def _scope_label(
+    *,
+    within: str | None = None,
+    cross: tuple[str, str] | None = None,
+    paper_id: str | None = None,
+    all_scope: bool = False,
+) -> str:
+    if within:
+        return f"within::{within}"
+    if cross:
+        return f"cross::{cross[0]}::{cross[1]}"
+    if paper_id:
+        return f"paper::{paper_id}"
+    if all_scope:
+        return "all"
+    return "unknown"
+
+
+def _normalize_text(raw: Any) -> str:
+    return str(raw or "").strip().lower()
+
+
+def _paper_title(record: dict[str, Any] | None) -> str:
+    if not record:
+        return ""
+    return _normalize_text((record.get("source") or {}).get("title"))
+
+
+def _connection_targets(record: dict[str, Any] | None) -> set[str]:
+    if not record:
+        return set()
+    targets: set[str] = set()
+    for item in record.get("connections_explicit", []) or []:
+        if not isinstance(item, dict):
+            continue
+        target = item.get("target_paper")
+        if not target:
+            continue
+        targets.add(_normalize_text(target))
+    return targets
+
+
+def _is_connection_visible_from_extraction(
+    record_a: dict[str, Any],
+    record_b: dict[str, Any],
+    a_id: str,
+    b_id: str,
+) -> bool:
+    title_a = _paper_title(record_a)
+    title_b = _paper_title(record_b)
+    targets_a = _connection_targets(record_a)
+    targets_b = _connection_targets(record_b)
+    if title_b and title_b in targets_a:
+        return True
+    if title_a and title_a in targets_b:
+        return True
+    if b_id and b_id in targets_a:
+        return True
+    if a_id and a_id in targets_b:
+        return True
+    return False
+
+
+def _write_connection_report(
+    report_dir: Path,
+    *,
+    output: list[dict[str, Any]],
+    pairs: list[tuple[str, str, str, str]],
+    pair_stats: dict[str, Any],
+    output_by_type: Counter[str],
+    library_records: dict[str, dict[str, Any]],
+    scope: str,
+) -> Path:
+    ensure_dir(report_dir)
+    path = report_dir / f"connect_report_{slugify(scope)}_{now_iso().replace(':', '-').replace('+', 'p')}.yaml"
+
+    confidence_counts: Counter[int] = Counter()
+    for item in output:
+        confidence = _coerce_confidence(item.get("confidence"), fallback=0)
+        if confidence >= 1:
+            confidence_counts[confidence] += 1
+
+    top_by_score = sorted(
+        output,
+        key=lambda item: float(item.get("score", 0.0)),
+        reverse=True,
+    )[:5]
+    top_payload = [
+        {
+            "paper_a_id": item.get("paper_a_id"),
+            "paper_b_id": item.get("paper_b_id"),
+            "score": item.get("score"),
+            "confidence": _coerce_confidence(item.get("confidence"), fallback=0),
+            "connection_type": item.get("connection_type"),
+            "novelty": item.get("novelty"),
+            "description": item.get("description"),
+        }
+        for item in top_by_score
+    ]
+
+    extraction_visible = 0
+    for item in output:
+        if not isinstance(item.get("paper_a_id"), str) or not isinstance(item.get("paper_b_id"), str):
+            continue
+        a_id = item.get("paper_a_id", "")
+        b_id = item.get("paper_b_id", "")
+        if _is_connection_visible_from_extraction(
+            library_records.get(a_id, {}),
+            library_records.get(b_id, {}),
+            a_id,
+            b_id,
+        ):
+            extraction_visible += 1
+
+    payload: dict[str, Any] = {
+        "scope": scope,
+        "generated_at": now_iso(),
+        "pairs": {
+            "total_pairs": len(pairs),
+            "candidate_pairs": pair_stats["candidate_pairs"],
+            "analyzed_pairs": pair_stats["analyzed_pairs"],
+            "pairs_with_no_connection": pair_stats["pairs_with_no_connection"],
+            "skipped_similarity": pair_stats["skipped_similarity"],
+            "skipped_missing_records": pair_stats["skipped_missing_records"],
+            "validation_failed": pair_stats["validation_failed"],
+            "speculative_filtered": pair_stats["speculative_filtered"],
+            "below_confidence_threshold": pair_stats["below_confidence"],
+        },
+        "connections": {
+            "total_found": len(output),
+            "by_confidence": {str(k): v for k, v in sorted(confidence_counts.items())},
+            "by_type": dict(sorted(output_by_type.items())),
+        },
+        "connections_from_exhaustion": {
+            "count": max(0, len(output) - extraction_visible),
+            "example_pairs": [
+                {
+                    "paper_a_id": item.get("paper_a_id"),
+                    "paper_b_id": item.get("paper_b_id"),
+                }
+                for item in top_by_score[:3]
+            ],
+        },
+        "top_5_connections": top_payload,
+    }
+
+    write_yaml(path, payload)
+    return path
+
+
 def _has_shared_tags(a: dict[str, Any], b: dict[str, Any]) -> bool:
     a_tags = set(str(x).lower() for x in a.get("tags", []) if isinstance(x, str))
     b_tags = set(str(x).lower() for x in b.get("tags", []) if isinstance(x, str))
-    if a_tags and b_tags and a_tags.intersection(b_tags):
-        return True
-    a_id = a.get("paper_id")
-    b_id = b.get("paper_id")
-    if not a_id or not b_id:
-        return False
-    return a_id[:2] == b_id[:2]
+    return bool(a_tags and b_tags and a_tags.intersection(b_tags))
 
 
 def _paper_embedding(store: EmbeddingStore, paper_id: str) -> np.ndarray:
