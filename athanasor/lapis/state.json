@@ -1,0 +1,48 @@
+{
+  "project": "Azoth / Apophenia Machine",
+  "version": "0.1.0",
+  "last_updated": "2026-06-14T00:00:00Z",
+  "pipeline": {
+    "nigredo": {
+      "total_papers_inbox": 0,
+      "domains": ["physics", "ML", "philosophy", "neuroscience", "mathematics", "unclassified"],
+      "last_separatio": null
+    },
+    "albedo": {
+      "total_ingested": 0,
+      "total_exhausted": 0,
+      "by_domain": {},
+      "last_ingestion": null,
+      "last_exhaustion": null
+    },
+    "citrinitas": {
+      "total_connections_within": 0,
+      "total_connections_cross": 0,
+      "last_connection_pass": null
+    },
+    "rubedo": {
+      "total_hypotheses": 0,
+      "total_drafts": 0,
+      "last_gap_detection": null,
+      "last_draft_generation": null
+    }
+  },
+  "triage": {
+    "confirmed": 0,
+    "rejected": 0,
+    "investigating": 0,
+    "last_triage": null
+  },
+  "gates": {
+    "corpus": "unchecked",
+    "coniunctio": "unchecked",
+    "calcinatio": "unchecked",
+    "caput_mortuum": "unchecked",
+    "nigredo_redux": "unchecked",
+    "last_vigil": null
+  },
+  "sessions": {
+    "total": 0,
+    "last_mortem": null
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "mode": "start",
+  "timestamp": "2026-06-15T01:37:25.270244+00:00",
+  "passed": false,
+  "gates": {
+    "git_drift": {
+      "status": "fail",
+      "detail": "Uncommitted changes:\n?? BUILD_PROMPT.md\n?? athanasor/"
+    },
+    "registry": {
+      "status": "pass",
+      "detail": "No registry yet \u2014 no entries to verify."
+    },
+    "exhaustion_ceiling": {
+      "status": "pass",
+      "detail": "Exhaustion tracking active via registry.jsonl cursor."
+    },
+    "nigredo_redux": {
+      "status": "pass",
+      "detail": "Nigredo Redux gate: no candidates to track."
+    }
+  }
+}

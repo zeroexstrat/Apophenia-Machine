@@ -1,0 +1,79 @@
+# Vigil — Gate Definitions
+# Azoth / Apophenia Machine
+# Five gates govern the pipeline. Each gate has a description, a trigger,
+# and a failure response. The Vigil runs all gates before substantive work.
+
+gates:
+
+  corpus:
+    name: Corpus
+    alchemy: "The body — the requirement that claims be embodied in evidence."
+    description: >
+      Every claim in a connection or hypothesis must be backed by an artifact:
+      a paper, an equation, an experimental result, a theorem, a citation.
+      Agent prose is never authoritative.
+    trigger:
+      - A connection candidate is promoted to 'confirmed' without a paper-level citation.
+      - A hypothesis claims a gap without pointing to specific missing evidence.
+      - A derivation at confidence 'derived' does not name the specific claim it follows from.
+    failure: "Claim '{claim}' marked '{status}' has no artifact backing. Revert to 'pending_review' or add evidence."
+    severity: hard
+
+  coniunctio:
+    name: Coniunctio
+    alchemy: "The marriage — the requirement that cross-domain connections be genuine unions, not coincidences."
+    description: >
+      A connection claiming novelty must pass the citation check: neither paper
+      in the pair cites the other. If Paper A explicitly cites Paper B, the
+      connection is not novel — it is an explication of an existing relationship.
+      The connection may still be useful, but it must not be marked as novel.
+    trigger:
+      - A connection candidate marked 'novel: true' where either paper cites the other.
+      - A connection candidate with confidence ≥ 3 that shares no tags and no domain.
+      - A cross-domain connection that is merely two papers using the same vocabulary word in different senses.
+    failure: "Connection {id1}↔{id2} marked novel but papers cite each other. Downgrade novelty or reject."
+    severity: hard
+
+  calcinatio:
+    name: Calcinatio
+    alchemy: "Burning — the requirement that derivations be honest about their confidence."
+    description: >
+      A derivation marked 'derived' must follow strictly from a paper's claim or method.
+      A derivation marked 'likely' must be probable given the paper's framework.
+      A derivation marked 'speculative' may be interesting but is not grounded.
+      The speculative ceiling (5 consecutive speculative items) triggers exhaustion
+      termination. A derivation that inflates its confidence is calcinated — burned away.
+    trigger:
+      - A derivation marked 'derived' that cannot be traced to a specific claim or method.
+      - A derivation marked 'likely' with no justification.
+      - The speculative ceiling is reached and the subagent continues producing.
+    failure: "Derivation '{statement}' marked '{confidence}' but cannot be traced to paper claims. Downgrade or reject."
+    severity: soft_on_downgrade, hard_on_fabrication
+
+  caput_mortuum:
+    name: Caput Mortuum
+    alchemy: "The dead head — the requirement that exhausted matter not be reprocessed."
+    description: >
+      A paper exhausted to a given depth must not be re-processed without explicit
+      --reprocess. The registry tracks exhaustion depth per paper. A new awakening
+      resumes from the next unexhausted paper. This prevents token waste on papers
+      that have already yielded what they can at the configured depth.
+    trigger:
+      - A subagent processes a paper with status 'exhausted_depth{N}' at depth ≤ N.
+      - A subagent processes a paper with status 'exhausted_depth5' at any depth.
+    failure: "Paper {id} already exhausted to depth {depth}. Use --reprocess to override."
+    severity: hard
+
+  nigredo_redux:
+    name: Nigredo Redux
+    alchemy: "Return to black — the requirement that rejected candidates not resurface."
+    description: >
+      Candidates that fail human triage must have their rejection recorded with a
+      reason. A candidate that would fail the same gate for the same reason must not
+      be re-surfaced in future passes. Triage is cumulative — the engine remembers
+      what was rejected and why.
+    trigger:
+      - A connection candidate is re-surfaced after being previously rejected without new evidence.
+      - A hypothesis is re-generated for a gap that was previously rejected as 'already known'.
+    failure: "Candidate {id} previously rejected: '{reason}'. Will not re-surface unless --reprocess is set or new evidence is added."
+    severity: hard
