@@ -66,22 +66,43 @@ Processing is periodic — weekly by default. Output is a triage report for huma
 
 ```
 azoth/
-├── nigredo/             # Inbox — raw PDFs awaiting ingestion
+├── nigredo/             # Inbox + domain folders
+│   ├── inbox/           # Unclassified PDFs
+│   ├── physics/
+│   ├── ML/
+│   ├── philosophy/
+│   ├── neuroscience/
+│   ├── mathematics/
+│   └── unclassified/
 ├── albedo/
 │   ├── library/         # Structured per-paper summaries (YAML)
-│   └── registry.jsonl   # Master index of all ingested papers
-├── citrinitas/          # Candidate connections between papers
+│   ├── exhaust/         # Per-paper exhaustion output
+│   └── registry.jsonl   # Master index with processing status + gate state
+├── citrinitas/
+│   ├── within_domain/   # Connections within a single domain
+│   └── cross_domain/    # Connections across domains
 ├── rubedo/
 │   ├── hypotheses/      # Gap-detection output (≥3 paper clusters)
 │   └── drafts/           # 2-page research notes
 ├── athanasor/
 │   ├── skills/          # Hermes Agent skills
 │   ├── cron/            # Processing schedules
-│   └── scripts/         # Utility scripts
-├── SCHEMA.yaml          # The per-paper schema definition
+│   ├── scripts/         # Utility scripts
+│   ├── lapis/           # Durable project state
+│   │   ├── state.json   # Pipeline progress, gate status, session count
+│   │   └── codex.md     # Session handoff (the tablet)
+│   ├── vigil/           # Gate enforcement
+│   │   ├── gates.yaml   # Gate definitions
+│   │   ├── verify.py    # Gate checker (start / verify / close)
+│   │   └── reports/     # Per-run verification output
+│   └── mortems/         # Session postmortems
+├── SCHEMA.yaml          # Per-paper extraction schema
+├── EXHAUST_SCHEMA.yaml  # Per-paper exhaustion schema
+├── EXHAUSTION_GUARDRAILS.md  # Design discussion
 ├── USER_GUIDE.md        # Human-readable usage instructions
 ├── AGENTS.md            # AI agent operating instructions
-├── LICENSE              # MIT License
+├── HANDOFF.md           # For external agent review
+├── LICENSE              # MIT
 └── README.md            # This file
 ```
 

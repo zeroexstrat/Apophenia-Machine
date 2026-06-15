@@ -30,6 +30,49 @@ Each domain subagent maintains a cursor — which paper it last processed. The n
 - `README.md` — pipeline overview, gating principle, naming conventions
 - `USER_GUIDE.md` — human-facing usage instructions
 - `albedo/registry.jsonl` — master index with processing status per paper
+- `athanasor/lapis/state.json` — durable project state
+- `athanasor/lapis/codex.md` — session handoff
+- `athanasor/vigil/gates.yaml` — gate definitions (Corpus, Coniunctio, Calcinatio, Caput Mortuum, Nigredo Redux)
+
+## The Vigil Protocol
+
+Before any substantive work (ingestion batch, awakening, cross-connection pass), run the Vigil:
+
+```
+python3 athanasor/vigil/verify.py start
+```
+
+This checks:
+- Git worktree: uncommitted changes? (drift)
+- Registry: any candidate marked 'confirmed' without human triage?
+- Exhaustion: any paper re-processed without --reprocess?
+- Nigredo Redux: any rejected candidate re-surfacing?
+
+After work completes:
+
+```
+python3 athanasor/vigil/verify.py verify
+```
+
+Before ending the session:
+
+```
+python3 athanasor/vigil/verify.py close
+```
+
+This updates `lapis/state.json` and `lapis/codex.md`. The Vigil report is saved to `athanasor/vigil/reports/`. Postmortems are saved to `athanasor/mortems/`.
+
+### Gate Summary
+
+| Gate | Alchemy | What It Checks | Severity |
+|------|---------|---------------|----------|
+| **Corpus** | The body | Claims backed by artifacts (papers, equations, experiments) | Hard |
+| **Coniunctio** | The marriage | Cross-domain connections are genuine; novelty passes citation check | Hard |
+| **Calcinatio** | Burning | Derivations honest about confidence; speculative ceiling respected | Soft on downgrade, hard on fabrication |
+| **Caput Mortuum** | Dead head | Exhausted papers not re-processed without --reprocess | Hard |
+| **Nigredo Redux** | Return to black | Rejected candidates not re-surfaced without new evidence | Hard |
+
+If Vigil fails: do not claim the goal is complete. Fix the drift, record the failed gate as an open gap, or state exactly what remains unverified.
 
 ---
 

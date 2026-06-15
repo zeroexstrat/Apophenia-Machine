@@ -1,0 +1,23 @@
+{
+  "mode": "start",
+  "timestamp": "2026-06-15T01:37:35.913661+00:00",
+  "passed": true,
+  "gates": {
+    "git_drift": {
+      "status": "pass",
+      "detail": "Worktree clean."
+    },
+    "registry": {
+      "status": "pass",
+      "detail": "No registry yet \u2014 no entries to verify."
+    },
+    "exhaustion_ceiling": {
+      "status": "pass",
+      "detail": "Exhaustion tracking active via registry.jsonl cursor."
+    },
+    "nigredo_redux": {
+      "status": "pass",
+      "detail": "Nigredo Redux gate: no candidates to track."
+    }
+  }
+}
