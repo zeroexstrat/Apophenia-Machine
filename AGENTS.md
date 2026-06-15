@@ -27,6 +27,8 @@ Each domain subagent maintains a cursor — which paper it last processed. The n
 
 - `SCHEMA.yaml` — per-paper extraction schema
 - `EXHAUST_SCHEMA.yaml` — per-paper exhaustion schema
+- `CONNECT_SCHEMA.yaml` — per-connection output schema (Citrinitas)
+- `DETECT_SCHEMA.yaml` — per-cluster gap report schema (Rubedo)
 - `README.md` — pipeline overview, gating principle, naming conventions
 - `USER_GUIDE.md` — human-facing usage instructions
 - `albedo/registry.jsonl` — master index with processing status per paper
@@ -73,6 +75,20 @@ This updates `lapis/state.json` and `lapis/codex.md`. The Vigil report is saved 
 | **Nigredo Redux** | Return to black | Rejected candidates not re-surfaced without new evidence | Hard |
 
 If Vigil fails: do not claim the goal is complete. Fix the drift, record the failed gate as an open gap, or state exactly what remains unverified.
+
+### Confidence Contract
+
+- `SCHEMA.yaml` claims keep the five-tier evidence confidence:
+  `proven`, `formalizable`, `demonstrated`, `hypothesized`, `speculative`.
+- `EXHAUST_SCHEMA.yaml` derivation confidence stays:
+  `derived`, `likely`, `speculative`.
+- All connection and gap-detection prompt outputs use one shared numeric scale:
+  `1` (very low), `2` (low), `3` (moderate), `4` (high), `5` (very high)
+  for:
+  - `connect` confidence
+  - `detect` confidence
+  - `detect` feasibility
+- For UI/reporting only, treat `4–5` as high, `3` as moderate, `1–2` as low.
 
 ---
 

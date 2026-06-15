@@ -20,6 +20,8 @@ Existing files you MUST read before building:
 - `AGENTS.md` — current agent operating instructions (you will rewrite this)
 - `SCHEMA.yaml` — per-paper extraction schema
 - `EXHAUST_SCHEMA.yaml` — per-paper exhaustion schema
+- `CONNECT_SCHEMA.yaml` — per-connection output schema (Citrinitas)
+- `DETECT_SCHEMA.yaml` — per-cluster gap report schema (Rubedo)
 - `EXHAUSTION_GUARDRAILS.md` — design rationale for self-termination
 - `LICENSE` — MIT
 
@@ -27,7 +29,7 @@ Directory structure already exists:
 ```
 apophenia-machine/
 ├── nigredo/inbox/, physics/, ML/, philosophy/, neuroscience/, mathematics/, unclassified/
-├── albedo/library/, exhaust/, registry/
+├── albedo/library/, exhaust/, registry.jsonl
 ├── citrinitas/within_domain/, cross_domain/
 ├── rubedo/hypotheses/, drafts/
 └── athanasor/skills/, cron/, scripts/
@@ -59,6 +61,28 @@ These principles override any implementation decision you face:
 
 5. **Transparent failure.** Every component reports what it did, what it
    failed to do, and why. No silent failures. No hallucinated completions.
+
+### 1.1 Shared Confidence Contract (Non-Negotiable)
+
+Use a single numeric confidence scale for all non-evidence outputs (connection,
+detect, and ranking metadata), while preserving phase-local scales where they
+carry stronger meaning (`SCHEMA.yaml` and `EXHAUST_SCHEMA.yaml`).
+
+- **Scale:** integer `1`–`5`.
+- **Meaning:** `1 = very low`, `2 = low`, `3 = moderate`, `4 = high`, `5 = very high`.
+- **Scope:** all `connect` and `detect` confidence fields, plus derived fields
+  used for ranking and sorting.
+- **Rules:**
+  - `connect.confidence` must use `1|2|3|4|5`.
+  - `detect.confidence` must use `1|2|3|4|5`.
+  - `detect.feasibility` must use `1|2|3|4|5`.
+  - `confidence < 3` is low-signal and can be deprioritized/screened.
+  - Cross-domain penalties are numeric (`-1`) and then clamped.
+
+For UI/reporting only:
+- `1–2`: low
+- `3`: moderate
+- `4–5`: high
 
 ---
 
@@ -135,8 +159,8 @@ domains:
 
 exhaustion:
   depth_multipliers: {1: 2, 2: 4, 3: 6, 4: 8, 5: 12}
-  batch_size: 5
-  redundancy_stop_threshold: 3     # In a batch of 5, if ≥3 are redundant → stop
+  batch_size: 3
+  redundancy_stop_threshold: 3
   speculative_stop_count: 5        # 5 consecutive speculative items → stop
 ```
 
@@ -203,7 +227,7 @@ Build a `parse_pdf(path)` function that:
 
 ### 2.6 Registry (`registry.py`)
 
-The registry is `albedo/registry/registry.jsonl` — one JSON object per line.
+The registry is `albedo/registry.jsonl` — one JSON object per line.
 
 Build `Registry` class with:
 - `add(entry)`: Append a new entry
@@ -227,11 +251,13 @@ Registry entry schema:
   "ingested": "ISO timestamp",
   "exhausted_at_depth": "int|null (highest depth completed)",
   "connected": "bool",
+  "detected": "bool",
+  "drafted": "bool",
   "triaged": "bool",
-  "status": "string (ingested|exhausted|connected|detected|drafted|triaged)",
+  "status": "string (pending|ingested_only|exhausted)",
   "paths": {
     "library": "albedo/library/<paper_id>.yaml",
-    "exhaust": "albedo/exhaust/<paper_id>.yaml",
+    "exhaust": "albedo/exhaust/<paper_id>_exhaust.yaml",
     "pdf": "nigredo/<domain>/<filename>.pdf"
   },
   "tags": ["string"],
@@ -242,12 +268,14 @@ Registry entry schema:
 ### 2.7 Schema Validation (`schemas.py` + `scripts/validate.py`)
 
 Build a validator that checks YAML files against SCHEMA.yaml and
-EXHAUST_SCHEMA.yaml definitions. The validator should:
+`EXHAUST_SCHEMA.yaml`, `CONNECT_SCHEMA.yaml`, `DETECT_SCHEMA.yaml` definitions.
+The validator should:
 
 - Load the schema definition and the candidate YAML file
 - Check all required fields are present
 - Check field types (string, int, float, list, enum)
-- Check value ranges (e.g., confidence: 0-1, depth: 1-5)
+- Check value ranges / enums (e.g., confidence tiers for claims and
+  derivations, depth: 1-5)
 - Check list item structure (e.g., each claim has required sub-fields)
 - Report errors with JSON-pointer-style paths (e.g., `/claims/2/confidence`)
 - Support `--fix` mode for simple repairs (add missing optional fields with
@@ -256,7 +284,9 @@ EXHAUST_SCHEMA.yaml definitions. The validator should:
 Make `scripts/validate.py` a standalone CLI:
 ```
 python scripts/validate.py albedo/library/some_paper.yaml
-python scripts/validate.py --all  # Validate all files in albedo/
+python scripts/validate.py citrinitas/within_domain/physics/a_b.yaml
+python scripts/validate.py rubedo/hypotheses/cluster_xxx.yaml
+python scripts/validate.py --all  # Validate all known artifact outputs
 python scripts/validate.py --all --fix  # Validate and repair
 ```
 
@@ -266,7 +296,11 @@ Also create `scripts/migrate.py` for future schema version upgrades:
 - Log all changes
 
 Embed a `schema_version` field at the top of every generated YAML file.
-Current version: `1`.
+Current versions:
+- `SCHEMA.yaml`: `1`
+- `EXHAUST_SCHEMA.yaml`: `2`
+- `CONNECT_SCHEMA.yaml`: `1`
+- `DETECT_SCHEMA.yaml`: `1`
 
 ---
 
@@ -277,6 +311,8 @@ Current version: `1`.
 ### Behavior
 
 1. **Input:** Path to a PDF file (or directory of PDFs).
+
+   Before processing, run `python3 athanasor/vigil/verify.py start`.
 
 2. **Parse:** Extract text using `pdf_parser.py`.
 
@@ -317,8 +353,8 @@ Current version: `1`.
        identify from the methodology.
      - Tags are 1-3 word descriptors for searchability.
      - If a field cannot be determined, use null. Do not fabricate.
-     - Assign a confidence score (0.0-1.0) to each claim reflecting how
-       directly the paper states it vs. how much you are inferring.
+     - Assign a confidence tier to each claim from SCHEMA.yaml:
+       `proven | formalizable | demonstrated | hypothesized | speculative`.
      ```
    - Parse the response into a Python dict.
    - Validate against `SCHEMA.yaml` using the schema validator.
@@ -333,7 +369,8 @@ Current version: `1`.
      - For each method: embed the method text, store with ID `<paper_id>_method_<n>`
      - For each technique: embed the technique text, store with ID `<paper_id>_technique_<n>`
    - Save the embedding store.
-   - Add entry to registry with status `ingested`.
+   - Add entry to registry with status `ingested_only`.
+   - Run `python3 athanasor/vigil/verify.py verify`.
 
 6. **Report:**
    ```
@@ -350,7 +387,7 @@ Current version: `1`.
 ```
 python -m athanasor.cli ingest path/to/paper.pdf
 python -m athanasor.cli ingest path/to/directory/  # Batch ingest
-python -m athanasor.cli ingest --reingest <paper_id>  # Overwrite existing
+python -m athanasor.cli ingest --reprocess path/to/paper.pdf  # Re-ingest explicit paper
 ```
 
 ---
@@ -362,9 +399,12 @@ python -m athanasor.cli ingest --reingest <paper_id>  # Overwrite existing
 ### Behavior
 
 1. **Input:** Paper ID + depth level (1-5).
+   - Before processing, run `python3 athanasor/vigil/verify.py start`.
 
 2. **Load:** Read the paper's structured YAML from `albedo/library/` and the
    raw PDF text from its `nigredo` path.
+   - If status is `exhausted` and requested `depth` <= `exhausted_at_depth`, require
+     `--reprocess` (Caput Mortuum).
 
 3. **Determine Exhaustion Scope:**
    - Use the depth multiplier from config: `max_items = page_count × depth_multiplier[depth]`
@@ -412,37 +452,39 @@ python -m athanasor.cli ingest --reingest <paper_id>  # Overwrite existing
 
    Send the paper content to the LLM with a domain-specific system prompt
    instructing it to produce exhaustion items matching EXHAUST_SCHEMA.yaml.
-   Each item must include:
-   - `type`: derivation | exercise | missing_angle | open_question |
-     experiment | implication | counterargument | extension
-   - `content`: the item itself (specific, substantive — not vague)
-   - `source_claim`: which original claim this derives from (reference by
-     claim index or text)
-   - `confidence`: high | medium | low — how grounded is this item in the
-     source material?
-   - `domain_specific_type`: the domain-specific category (e.g., "ablation
-     study" for ML, "control experiment" for neuroscience)
+   Use bucketed sections (not a flat item list):
+   - `derivations`: `statement`, `follows_from`, `confidence` (`derived|
+     likely|speculative`), optional `item_type`, optional `source_claim`
+   - `exercises`: `problem`, `solution`, optional `difficulty`,
+     optional `source_claim`
+   - `missing_angles`: `angle`, `where_it_lands`, optional `why_missed`,
+     optional `item_type`, optional `source_claim`
+   - `open_questions`: `question`, `closable`, optional `how_to_close`,
+     optional `source_claim`
+   - `unstated_assumptions`, `experiments`, `necessary_connections` when
+     applicable, each with fields defined in `EXHAUST_SCHEMA.yaml`
 
 5. **Generate in Batches with Self-Termination:**
 
-   Generate items in batches of 5 (configurable via `exhaustion.batch_size`).
+   Generate items in configurable batches of `exhaustion.batch_size`.
 
    After each batch, apply ALL THREE termination criteria:
 
    **Criterion 1 — Redundancy Check:**
-   - For each new item, compute embedding of its `content` field
+   - For each new item, compute embedding from its primary text field
+     (`statement`, `problem`, `angle`, or `question`).
    - Search the embedding store for all items with the same `paper_id` prefix
    - If cosine similarity > `redundancy_threshold` (0.85) with any previously
      generated item, mark the new item as `redundant: true`
-   - After processing the batch: if ≥ `redundancy_stop_threshold` (3) of the
-     5 new items are redundant, STOP. Report: "Terminated: redundancy
-     threshold reached. {N} of 5 items redundant with existing output."
+   - After processing the batch: if ≥ `redundancy_stop_threshold` of the batch
+     are redundant, STOP. Report: "Terminated: redundancy threshold reached.
+     {N} of batch_size items redundant with existing output."
 
    **Criterion 2 — Speculative Ceiling:**
-   - Track consecutive `low`-confidence items
-   - If the last `speculative_stop_count` (5) consecutive items all have
-     confidence `low`, STOP. Report: "Terminated: speculative ceiling.
-     Last 5 items all low-confidence."
+   - Track consecutive `speculative` items
+   - If the last `speculative_stop_count` (5) consecutive items are
+     confidence `speculative`, STOP. Report: "Terminated: speculative ceiling.
+     Last 5 items all speculative."
 
    **Criterion 3 — Hard Cap:**
    - If total non-redundant items ≥ `max_items`, STOP. Report: "Terminated:
@@ -450,25 +492,26 @@ python -m athanasor.cli ingest --reingest <paper_id>  # Overwrite existing
 
    When any criterion triggers, additionally report:
    - Total items generated (excluding redundant)
-   - Distribution by type and confidence
+   - Distribution by bucket and confidence
    - Whether items appeared to still be high-quality at termination (i.e.,
      did redundancy/speculation trigger, or did the hard cap catch
      well-grounded items?)
    - Whether deeper exhaustion (higher depth level) is recommended
 
 6. **Write Output:**
-   - Save exhaustion YAML to `albedo/exhaust/<paper_id>.yaml`
+   - Save exhaustion YAML to `albedo/exhaust/<paper_id>_exhaust.yaml`
    - Embed all exhaustion items in the embedding store:
      ID: `<paper_id>_exhaust_<n>`
    - Update registry: `exhausted_at_depth` = max(current, this depth)
-   - Update status to `exhausted` if not already higher
+   - Update status to `exhausted`
+   - Run `python3 athanasor/vigil/verify.py verify`.
 
 7. **Report:**
    ```
    Exhausted: <paper_id> at depth <N>
    Items generated: <N>
-   By type: {derivation: N, experiment: N, ...}
-   By confidence: {high: N, medium: N, low: N}
+   By bucket: {derivations: N, exercises: N, ...}
+   By confidence: {derived: N, likely: N, speculative: N}
    Termination: <criterion> | completed naturally
    Redundant items filtered: <N>
    Deeper exhaustion available: yes/no
@@ -494,15 +537,19 @@ python -m athanasor.cli exhaust --all --depth 1         # Skim everything
    - A specific paper ID (find connections for this paper)
    - A domain pair (e.g., `--within physics` or `--cross ML philosophy`)
    - `--all` (full connection pass)
+   - Before batch execution (`--within`, `--cross`, or `--all`), run
+     `python3 athanasor/vigil/verify.py start`.
 
 2. **Candidate Generation (Embedding-Based):**
-   - For within-domain: compare all paper pairs in the domain using their
+   - For within-domain: compare paper pairs in the same domain that share
+     at least one tag using their
      embedded claims, methods, and techniques. Compute aggregate similarity
      (mean of top-3 claim-claim similarities, top-2 method-method similarities).
-   - For cross-domain: same comparison across domain boundaries.
+   - For cross-domain: same comparison, but only pairs sharing at least one tag.
    - Filter candidates: only pairs with aggregate similarity >
      `similarity_threshold` (0.82) AND that haven't been previously analyzed.
-   - Store previously analyzed pairs in `albedo/registry/connections_analyzed.jsonl`
+   - For cross-domain pairs, apply a -1 confidence penalty during scoring.
+   - Store previously analyzed pairs in `albedo/connections_analyzed.jsonl`
      to avoid re-analysis.
 
 3. **Connection Analysis (LLM-Mediated):**
@@ -521,15 +568,20 @@ python -m athanasor.cli exhaust --all --depth 1         # Skim everything
      Methods: {B.methods}
      Techniques: {B.techniques}
 
-     Identify ALL substantive connections. For each connection, respond with:
+     Identify ALL substantive connections. For each connection, return a JSON object
+     with the exact fields in `CONNECT_SCHEMA.yaml`:
      {
+       "pair_scope": "within_domain | cross_domain",
+       "paper_a_id": "paper_a_id",
+       "paper_b_id": "paper_b_id",
        "connection_type": "methodological_overlap|contradictory_claims|
          complementary_techniques|shared_assumptions|missing_citation|
          generalization|analogous_structure|extension",
        "description": "Precise description of the connection",
        "evidence_a": "Specific claim/method/technique from Paper A",
        "evidence_b": "Specific claim/method/technique from Paper B",
-       "confidence": "high|medium|low",
+       "confidence_raw": 1,
+       "confidence": 1,
        "novelty": "obvious|non-obvious|speculative",
        "significance": "Why this connection matters (2-3 sentences)"
      }
@@ -547,21 +599,26 @@ python -m athanasor.cli exhaust --all --depth 1         # Skim everything
 
 4. **Validate and Score:**
    - Parse LLM response
+   - Validate each connection against `CONNECT_SCHEMA.yaml`; retry once if
+     schema violations occur.
    - Filter out any connection with novelty `speculative` unless it also has
-     confidence `high` (speculative + low/medium = discard)
-   - Score remaining connections: high confidence = 3, medium = 2, low = 1.
-     Multiply by novelty weight: non-obvious = 2, obvious = 1.
+     confidence >= 4 (speculative + 1/2/3 = discard)
+   - Apply cross-domain penalty by subtracting 1 from confidence.
+   - Score remaining connections: confidence × novelty weight.
+     Novelty weights: non-obvious = 2, obvious = 1, speculative = 0.5.
    - Rank connections by score.
 
 5. **Write Output:**
    - For within-domain connections: save to
-     `citrinitas/within_domain/<domain>/<A_id>__<B_id>.yaml`
+     `citrinitas/within_domain/<domain>/<A_id>_<B_id>.yaml`
    - For cross-domain connections: save to
-     `citrinitas/cross_domain/<A_domain>_<B_domain>/<A_id>__<B_id>.yaml`
-   - Each connection file includes: both paper IDs, connection type,
-     description, evidence, confidence, novelty, significance, score
+     `citrinitas/cross_domain/<A_id>_<B_id>.yaml`
+   - Each connection file must include: both paper IDs, connection type,
+     evidence, description, confidence, novelty, significance, score, status
+     (set to `pending_review`), and optionally `confidence_raw` before penalty.
    - Update registry: mark both papers as `connected: true`
-   - Add pair to `connections_analyzed.jsonl`
+   - Add pair to `albedo/connections_analyzed.jsonl`
+   - Run `python3 athanasor/vigil/verify.py verify`.
 
 6. **Report:**
    ```
@@ -596,6 +653,7 @@ python -m athanasor.cli connect --all
    - A specific domain (find gaps within this domain)
    - A specific cross-domain pair
    - `--all` (scan all connection clusters)
+   - Before cluster passes, run `python3 athanasor/vigil/verify.py start`.
 
 2. **Cluster Identification:**
    - Build a graph from connection files: papers are nodes, connections are
@@ -621,29 +679,40 @@ python -m athanasor.cli connect --all
      Exhaustion notes:
      {Key open questions and missing angles from exhaustion records}
 
-     Identify gaps in these categories:
-     1. UNEXPLORED_QUESTION: A question raised by the cluster that no
+     Identify up to 8 highest-value gaps in these categories:
+     1. unexplored_question: A question raised by the cluster that no
         paper addresses
-     2. UNAPPLIED_METHOD: A method from one paper that could solve a
+     2. unapplied_method: A method from one paper that could solve a
         problem in another but hasn't been tried
-     3. UNRESOLVED_CONTRADICTION: Claims in the cluster that are in
+     3. unresolved_contradiction: Claims in the cluster that are in
         tension and no paper reconciles
-     4. MISSING_EXPERIMENT: An experiment that would test a connection
+     4. missing_experiment: An experiment that would test a connection
         or resolve a gap
-     5. THEORETICAL_OPPORTUNITY: A generalization, unification, or
+     5. theoretical_opportunity: A generalization, unification, or
         extension that the cluster's results suggest but no one has
         formalized
 
-     For each gap, respond with:
+     Return JSON matching this contract:
      {
-       "gap_type": "<category above>",
-       "description": "Precise description (3-5 sentences)",
-       "supporting_papers": ["paper_ids"],
-       "supporting_evidence": "What in these papers makes you identify this gap",
-       "significance": "Why filling this gap matters",
-       "feasibility": "high|medium|low — how tractable is this?",
-       "suggested_approach": "Brief sketch of how to address it",
-       "confidence": "high|medium|low"
+       "cluster_id": "<cluster_id>",
+       "paper_ids": ["<paper_id>", ...],
+       "scope": "<short domain/trajectory label>",
+       "novelty": true,
+       "summary": "Short cluster-level synthesis",
+       "status": "pending_review",
+       "gaps": [
+         {
+           "gap_type": "<category above>",
+           "description": "Precise description (3-5 sentences)",
+           "novelty": true|false,
+           "supporting_papers": ["paper_ids"],
+           "supporting_evidence": "What in these papers makes you identify this gap",
+           "significance": "Why filling this gap matters",
+           "feasibility": 1,
+           "suggested_approach": "Brief sketch of how to address it",
+           "confidence": 1
+         }
+       ]
      }
 
      Rules:
@@ -654,17 +723,19 @@ python -m athanasor.cli connect --all
      ```
 
 4. **Filter and Rank:**
-   - Remove gaps with confidence `low` (surface but don't prioritize)
+   - Remove gaps with confidence `<= 2` (low-signal)
    - Rank remaining by: significance (qualitative) × feasibility weight
-     (high=3, medium=2, low=1)
+     (1–5 numeric feasibility)
    - Group gaps by the papers they reference
 
 5. **Write Output:**
    - Save gap report to `rubedo/hypotheses/<cluster_id>.yaml` where
      cluster_id is derived from the paper IDs in the cluster (e.g.,
      `cluster_<first_paper_id>_<N>.yaml`)
-   - Each report includes: cluster composition, gaps found, ranking, metadata
-   - Update registry status for papers in the cluster to `detected`
+   - Each report includes: cluster composition, `novelty`, gaps found, ranking,
+     metadata, and status `pending_review`
+   - Mark these papers `detected: true` in registry
+   - Run `python3 athanasor/vigil/verify.py verify`.
 
 6. **Report:**
    ```
@@ -695,6 +766,7 @@ python -m athanasor.cli detect --all
 ### Behavior
 
 1. **Input:** A gap cluster file from `rubedo/hypotheses/` (or a gap ID).
+   - Before drafting, run `python3 athanasor/vigil/verify.py start`.
 
 2. **Load:** The gap report, all referenced paper records, and their
    exhaustion and connection records.
@@ -748,8 +820,9 @@ python -m athanasor.cli detect --all
 4. **Write Output:**
    - Save as Markdown to `rubedo/drafts/<descriptive_slug>.md`
    - Include YAML frontmatter with: gap_id, papers referenced, date,
-     status: "candidate — requires human review"
-   - Update registry for referenced papers: `status: drafted`
+     status: "pending_review"
+   - Mark referenced papers `drafted: true` in registry
+   - Run `python3 athanasor/vigil/verify.py verify`.
 
 5. **Report:**
    ```
@@ -757,7 +830,7 @@ python -m athanasor.cli detect --all
    Based on gap: <gap_id>
    Papers referenced: <N>
    Location: rubedo/drafts/<filename>.md
-   Status: candidate — requires human review
+   Status: pending_review
    ```
 
 ### CLI
@@ -816,7 +889,9 @@ For each phase, document:
 
 When presenting candidates to the human:
 1. Show a summary table: item type, content (truncated), confidence, source
-2. Group by confidence: high first, then medium, then low
+2. Group by confidence in the confidence vocabulary of the source artifact
+   (`proven/formalizable/demonstrated/hypothesized/speculative`,
+   `derived/likely/speculative`, or shared `1|2|3|4|5` for connect/detect).
 3. For each item, the human can: accept, reject, modify, flag for later
 4. Accepted items get marked `triaged: true` in the registry
 5. Rejected items are logged but not deleted (they may inform future passes)
@@ -858,7 +933,7 @@ When a self-termination criterion fires, the agent must report:
 Build a Click-based CLI with these commands:
 
 ```
-azoth ingest <path> [--reingest] [--domain-override <domain>]
+azoth ingest <path> [--reprocess] [--domain-override <domain>]
 azoth exhaust <paper_id> --depth <1-5>
 azoth exhaust --domain <domain> --depth <1-5> [--count <N>]
 azoth exhaust --all --depth <1-5>
@@ -875,7 +950,10 @@ The CLI should use `rich` for formatted output:
 - Progress bars for batch operations
 - Tables for status reports
 - Syntax-highlighted YAML for record display
-- Color-coded confidence levels (green=high, yellow=medium, red=low)
+- Color-code confidence according to each phase’s scale:
+  - ingestion: green/proven/formalizable, yellow/demonstrated, orange/hypothesized, red/speculative
+  - exhaustion: green/derived, yellow/likely, red/speculative
+  - connect/detect: shared scale (4-5 green, 3 amber, 1-2 red)
 
 Each command should:
 - Load config

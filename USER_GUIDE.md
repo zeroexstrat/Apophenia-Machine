@@ -85,7 +85,22 @@ Write the record to albedo/library/{id}.yaml.
 Append a one-line JSON entry to albedo/registry.jsonl.
 ```
 
-**Schema validation:** No automatic validation is included in v1. Spot-check records manually. Future versions will include a schema validator in `athanasor/scripts/`.
+**Schema validation:** Use `python scripts/validate.py` to validate all schema-bound artifacts before triage:
+
+```bash
+python scripts/validate.py --all
+python scripts/validate.py albedo/library/<id>.yaml albedo/exhaust/<id>_exhaust.yaml \
+  citrinitas/within_domain/<domain>/<id1>_<id2>.yaml rubedo/hypotheses/<cluster>.yaml
+```
+
+The validator enforces:
+- `SCHEMA.yaml` for ingestion outputs
+- `EXHAUST_SCHEMA.yaml` for exhaustion outputs
+- `CONNECT_SCHEMA.yaml` for connection outputs
+- `DETECT_SCHEMA.yaml` for hypotheses
+
+`--fix` mode can repair obvious type/coercion issues and insert schema defaults for
+missing optional fields.
 
 ### Citrinitas — Cross-Connection
 
@@ -115,7 +130,8 @@ Paper B (id: {id_b}):
   Domain: {domain}
 
 Do these papers share a structural claim, a method, a formal mechanism, or a domain?
-If YES: describe the connection in one sentence. Rate confidence 1–5. 
+If YES: describe the connection in one sentence. Return JSON for each connection using
+the fields in `CONNECT_SCHEMA.yaml`; rate confidence 1–5.
 If NO: respond "NO_CONNECTION".
 ```
 

@@ -1,6 +1,6 @@
 # EXHAUST_SCHEMA.yaml — Per-Paper Exhaustion Record
 # Azoth / Apophenia Machine
-# Version: 1 (updated 2026-06-14 — added item_type and source_claim sub-fields)
+# Version: 2 (updated 2026-06-14 — added source_claim to all optional buckets)
 #
 # After a paper is ingested to Albedo, a domain subagent can be awakened
 # to exhaust it: derive corollaries, solve implied exercises, identify
@@ -42,7 +42,7 @@ exhaustion:
     schema_version:
       type: integer
       required: false
-      default: 1
+      default: 2
     agent:
       type: string
       required: false
@@ -90,6 +90,10 @@ exhaustion:
         required: false
         enum: [corollary, implication, extension, counterargument, boundary_condition]
         description: "Optional sub-classification."
+      source_claim:
+        type: string
+        required: false
+        description: "Which claim, method, or section this derivation is rooted in."
 
 # ===========================================================================
 # Exercises — problems implied but not solved
@@ -136,6 +140,10 @@ exhaustion:
         type: string
         required: false
         enum: [alternative_framing, neglected_perspective, counterargument, adjacent_field]
+      source_claim:
+        type: string
+        required: false
+        description: "Which claim, method, or section this missing angle was anchored to."
 
 # ===========================================================================
 # Open questions — what the paper leaves open
@@ -157,6 +165,7 @@ exhaustion:
       source_claim:
         type: string
         required: false
+        description: "Which claim, method, or section this question extends."
 
 # ===========================================================================
 # Unstated assumptions — hidden load-bearing walls
@@ -172,6 +181,10 @@ exhaustion:
         type: string
         required: false
         description: "Which claim or argument depends on this assumption."
+      source_claim:
+        type: string
+        required: false
+        description: "Which claim, method, or section this assumption affects."
 
 # ===========================================================================
 # Experiments — what should be tested
@@ -195,6 +208,7 @@ exhaustion:
       source_claim:
         type: string
         required: false
+        description: "Which claim, method, or section motivates this experiment."
 
 # ===========================================================================
 # Necessary connections — what the paper should engage with
@@ -212,3 +226,7 @@ exhaustion:
       impact:
         type: string
         required: true
+      source_claim:
+        type: string
+        required: false
+        description: "Which claim, method, or section motivates this connection."

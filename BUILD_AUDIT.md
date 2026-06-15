@@ -2,7 +2,10 @@
 
 **Date:** 2026-06-14
 **Auditors:** Hermes (Kimi K2.6), Codex (GPT-5.5), Mimo (spec author)
-**Status:** Resolved. Spec updated. Implementation deferred until schema conflicts fixed.
+**Status:** Resolved in documentation/spec and partially implemented.
+Validation tooling now exists for schema enforcement; full pipeline code
+integration (ingest/exhaust/connect/detect emitters and migrate utility)
+is still pending.
 
 ---
 
@@ -21,18 +24,24 @@
 
 ---
 
-### 2. Claim Confidence Schema (HIGH)
+### 2. Claim Confidence + Shared Inference Scale (HIGH)
 
 | Source | Convention |
 |--------|-----------|
-| BUILD_PROMPT.md §§3-4 | `0.0-1.0` float (ingest), `high/medium/low` (exhaust) |
-| SCHEMA.yaml | `proven / formalizable / demonstrated / hypothesized / speculative` (enum) |
+| BUILD_PROMPT.md (earlier draft) | `0.0-1.0` float, `high/medium/low` in detect outputs |
+| SCHEMA.yaml | `proven / formalizable / demonstrated / hypothesized / speculative` |
+| EXHAUST_SCHEMA.yaml | `derived / likely / speculative` |
 
-**Resolution:** Keep SCHEMA.yaml's enum. Rationale: `0.78` confidence does not tell you *why* — is it 0.78 because the claim is implied but not stated? Because the evidence is weak? Because the claim is from a preprint? The enum tiers encode the *kind* of confidence, not just its magnitude. This matters for the Vigil's Calcinatio gate, which gates on `derived` vs. `speculative`, not on `0.82` vs. `0.47`.
+**Resolution:** Keep SCHEMA.yaml and EXHAUST_SCHEMA.yaml enums where they encode
+artifact-type semantics. Add one explicit shared inference scale for all
+non-schema prompt outputs (`connect` + `detect`):
+- `confidence`: integer `1|2|3|4|5`
+- `feasibility`: integer `1|2|3|4|5`
 
-For exhaustion items, BUILD_PROMPT uses `high/medium/low`. EXHAUST_SCHEMA.yaml uses `derived/likely/speculative`. These map cleanly: `derived = high`, `likely = medium`, `speculative = low`. Keep the EXHAUST_SCHEMA.yaml terms — they are more specific about *how* the item relates to the source material.
+This avoids mixed text enums while preserving domain-specific semantics for
+claims/derivations.
 
-**Action:** BUILD_PROMPT.md §§3-4 corrected to use SCHEMA.yaml enum for claims and EXHAUST_SCHEMA.yaml enum for exhaustion items.
+**Action:** BUILD_PROMPT.md §§1.1, 5.3, 6.3 now defines and enforces the shared `1..5` inference scale for detect and connect outputs; confidence filtering now uses this scale directly.
 
 ---
 
@@ -45,7 +54,7 @@ For exhaustion items, BUILD_PROMPT uses `high/medium/low`. EXHAUST_SCHEMA.yaml u
 
 **Resolution:** Keep EXHAUST_SCHEMA.yaml's bucket structure. Rationale: the buckets encode domain-sensitive exhaustion strategies. When a user queries "what derivations did this paper produce?", they should not have to filter a flat list by `type == "derivation"`. The bucket structure does this at the file level.
 
-**Enhancement:** Add BUILD_PROMPT's `type` field as an optional sub-field within each bucket item, allowing items to carry an additional type tag beyond their bucket placement (e.g., a derivation that is also a counterargument). Add `source_claim` as a required sub-field across all bucket item types.
+**Enhancement:** Add BUILD_PROMPT's `type` field as an optional sub-field within each bucket item, allowing items to carry an additional type tag beyond their bucket placement (e.g., a derivation that is also a counterargument). Add `source_claim` as an optional sub-field across all bucket item types.
 
 **Action:** BUILD_PROMPT.md §4.4 restructured to match EXHAUST_SCHEMA.yaml. EXHAUST_SCHEMA.yaml updated to include `item_type` and `source_claim` sub-fields.
 
@@ -55,14 +64,20 @@ For exhaustion items, BUILD_PROMPT uses `high/medium/low`. EXHAUST_SCHEMA.yaml u
 
 | Source | Convention |
 |--------|-----------|
-| BUILD_PROMPT.md §2.6 | Linear status: `ingested → exhausted → connected → detected → drafted → triaged` |
-| AGENTS.md | Depth-graded cursor: `pending → ingested_only → exhausted_depth3 → exhausted_depth5` plus Boolean flags |
+| BUILD_PROMPT.md §2.6 | `pending → ingested_only → exhausted` |
+| AGENTS.md | `pending → ingested_only → exhausted` |
 
-**Resolution:** Keep the depth-graded cursor model from AGENTS.md. Rationale: exhaustion is not a binary state. A paper exhausted to depth 3 can be re-awakened at depth 5. A linear `exhausted` status loses this information, breaking the Caput Mortuum gate ("a paper exhausted to depth N must not be reprocessed at depth ≤ N").
+**Resolution:** Use linear registry status matching AGENTS/README:
+`pending`, `ingested_only`, `exhausted`.
+Track depth separately with `exhausted_at_depth`; require `--reprocess`
+for rework at `depth <= exhausted_at_depth`.
 
-**Enhancement:** Add Boolean flags from BUILD_PROMPT's model: `connected: bool`, `detected: bool`, `drafted: bool`, `triaged: bool`. These are phase-completion markers that coexist with the depth-graded status. A paper can be `exhausted_depth3` AND `connected: true` AND `detected: true`. The status field is the *exhaustion* state. The Booleans are the *pipeline* state.
+**Enhancement:** Keep boolean phase flags for non-exclusive phase state:
+`connected`, `detected`, `drafted`, `triaged`. A paper can remain
+`exhausted` while any subset of these are true depending on pipeline
+progress.
 
-**Action:** BUILD_PROMPT.md §2.6 registry schema updated. AGENTS.md status field clarified.
+**Action:** BUILD_PROMPT.md §2.6 registry schema updated. AGENTS.md status alignment preserved.
 
 ---
 
@@ -118,13 +133,32 @@ For exhaustion items, BUILD_PROMPT uses `high/medium/low`. EXHAUST_SCHEMA.yaml u
 
 **Action:** BUILD_PROMPT.md updated with Vigil section per skill. AGENTS.md Vigil protocol unchanged.
 
+### 8. Connect/Detect Validation Was Prompt-Only (MEDIUM)
+
+| Source | Convention |
+|--------|------------|
+| BUILD_PROMPT.md | Connect/detect prompts existed, but schema-level enforcement was missing |
+| AGENTS.md / USER_GUIDE.md | "Manual / future" language for validation |
+| `CONNECT_SCHEMA.yaml`, `DETECT_SCHEMA.yaml` | Explicit contracts were added but not yet enforced |
+
+**Resolution:** Add an executable validator that enforces both contracts and wire
+it into the operating instructions. `CONNECT_SCHEMA.yaml` and `DETECT_SCHEMA.yaml`
+now have to-pass/repairable checks for every generated connection and hypothesis file.
+
+**Actions:** `athanasor/scripts/validate.py` implemented and `scripts/validate.py`
+added as entrypoint, with `CONNECT_SCHEMA.yaml` + `DETECT_SCHEMA.yaml` enforcement.
+`USER_GUIDE.md` and `AGENTS.md` now reference the validation step directly.
+
+**Remaining gap:** This is validation, not migration; `migrate.py` from the build spec
+is still pending.
+
 ---
 
 ## Implementation Order (Updated)
 
 | Priority | What | Blocked By |
 |----------|------|-----------|
-| 1 | Fix BUILD_PROMPT.md to resolve all 7 conflicts | — |
+| 1 | Fix BUILD_PROMPT.md to resolve all 8 conflicts | — |
 | 2 | Update EXHAUST_SCHEMA.yaml to add `item_type` and `source_claim` sub-fields | #1 |
 | 3 | Update SCHEMA.yaml to clarify confidence field: enum, not float | #1 |
 | 4 | Build `pyproject.toml`, `config.py`, `llm.py`, `pdf_parser.py`, `registry.py`, `schemas.py` | #2, #3 |

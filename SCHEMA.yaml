@@ -4,8 +4,14 @@
 # Fields marked 'required: true' must be populated. All others are optional but encouraged.
 
 # ===========================================================================
-# Required fields
+# Base fields
 # ===========================================================================
+schema_version:
+  type: integer
+  required: false
+  default: 1
+  description: "Schema version for this record."
+
 id:
   type: string
   required: true
@@ -179,7 +185,7 @@ ingestion:
       type: string
       description: "Model/provider that performed extraction."
     schema_version:
-      type: string
+      type: integer
       description: "Version of this schema used for ingestion."
     status:
       type: string

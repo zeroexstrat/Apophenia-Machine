@@ -1,0 +1,119 @@
+# DETECT_SCHEMA.yaml — Per-Cluster Gap Report
+# Azoth / Apophenia Machine
+# Version: 1 (explicit machine contract for Rubedo detect outputs)
+
+# Rubedo detects clusters of papers and writes one hypothesis report per cluster to:
+# `rubedo/hypotheses/<cluster_id>.yaml`
+#
+# This schema turns "prompt output" into a validated artifact.
+
+schema_version:
+  type: integer
+  required: false
+  default: 1
+  description: "Schema version for this hypothesis report."
+
+cluster_id:
+  type: string
+  required: true
+  description: "Stable cluster identifier."
+
+paper_ids:
+  type: list[string]
+  required: true
+  description: "Paper IDs included in this cluster."
+
+scope:
+  type: string
+  required: false
+  description: "Domain scope or descriptive label for the cluster."
+
+novelty:
+  type: boolean
+  required: true
+  description: "Whether the cluster-level hypothesis appears novel vs explicit citations."
+
+summary:
+  type: string
+  required: true
+  description: "Short synthesis summary of the cluster."
+
+status:
+  type: string
+  required: true
+  enum: [pending_review, investigate, accepted, rejected]
+  description: "Human triage status."
+
+gaps:
+  type: list[object]
+  required: true
+  min_items: 1
+  description: "Candidate gaps derived from the cluster."
+  fields:
+    gap_type:
+      type: string
+      required: true
+      enum: [unexplored_question, unapplied_method, unresolved_contradiction, missing_experiment, theoretical_opportunity]
+      description: "Gap taxonomy bucket."
+    description:
+      type: string
+      required: true
+      description: "Three to five sentence gap statement."
+    novelty:
+      type: boolean
+      required: true
+      description: "Whether this specific gap appears novel."
+    supporting_papers:
+      type: list[string]
+      required: true
+      description: "Paper IDs that support identifying this gap."
+    supporting_evidence:
+      type: string
+      required: true
+      description: "Concrete evidence from papers or connections that justify the gap."
+    significance:
+      type: string
+      required: true
+      description: "Why this gap matters for the cluster."
+    feasibility:
+      type: integer
+      required: true
+      minimum: 1
+      maximum: 5
+      description: "Feasibility score (1..5) to evaluate this gap."
+    suggested_approach:
+      type: string
+      required: true
+      description: "Specific next-step experimental or modeling approach."
+    confidence:
+      type: integer
+      required: true
+      minimum: 1
+      maximum: 5
+      description: "Confidence that this is a genuine, specific gap."
+    rank:
+      type: integer
+      required: false
+      minimum: 1
+      description: "Optional ranking order emitted by detector."
+    references:
+      type: list[string]
+      required: false
+      description: "Optional evidence references for this gap."
+
+metadata:
+  type: object
+  required: false
+  fields:
+    cluster_size:
+      type: integer
+      required: false
+      description: "Number of nodes in cluster."
+    connection_count:
+      type: integer
+      required: false
+      description: "Number of connection edges used."
+    detection_prompt_version:
+      type: string
+      required: false
+      description: "Prompt/logic version used to generate this report."
