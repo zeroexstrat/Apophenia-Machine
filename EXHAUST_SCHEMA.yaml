@@ -1,0 +1,183 @@
+# EXHAUST_SCHEMA.yaml — Per-Paper Exhaustion Record
+# Azoth / Apophenia Machine
+# After a paper is ingested to Albedo, a domain subagent can be awakened
+# to exhaust it: derive corollaries, solve implied exercises, identify
+# missing angles, close open questions, and propose experiments.
+#
+# Exhaustion is domain-sensitive. A physics textbook is exhausted differently
+# from a philosophy paper. Use the fields relevant to the paper's domain.
+# Fields not applicable to a given domain may be omitted.
+
+# ===========================================================================
+# Header
+# ===========================================================================
+exhaustion:
+  type: object
+  required: true
+  fields:
+    paper_id:
+      type: string
+      required: true
+      description: "Matches the id in albedo/registry.jsonl."
+    paper_title:
+      type: string
+      required: true
+    domain:
+      type: string
+      required: true
+      description: "Primary domain from Separatio classification."
+    paper_type:
+      type: string
+      required: true
+      enum: [paper, textbook, monograph, essay, review, commentary, lecture_notes]
+      description: "Determines exhaustion strategy. Textbooks get exercises solved. Papers get implications derived. Essays get missing angles identified."
+    exhaustion_depth:
+      type: integer
+      required: true
+      minimum: 1
+      maximum: 5
+      description: "User-specified. 1 = surface skim. 3 = thorough. 5 = obsessive (every corollary, every angle, every exercise)."
+    agent:
+      type: string
+      required: false
+      description: "Model/provider that performed exhaustion."
+    date:
+      type: string
+      format: "ISO 8601"
+      required: false
+
+# ===========================================================================
+# Derivations — what follows from the paper's claims
+# ===========================================================================
+  derivations:
+    type: list[object]
+    required: false
+    description: "Corollaries, consequences, logical implications. If Claim A is true, what else must be true? What does the paper imply but not state?"
+    fields:
+      statement:
+        type: string
+        required: true
+        description: "The derived statement."
+      follows_from:
+        type: string
+        required: true
+        description: "Which claim, theorem, or method in the paper this follows from."
+      confidence:
+        type: string
+        required: true
+        enum: [derived, likely, speculative]
+        description: "derived = strict logical consequence. likely = probable but not rigorous. speculative = interesting possibility."
+
+# ===========================================================================
+# Exercises — problems the paper implies but does not solve
+# ===========================================================================
+  exercises:
+    type: list[object]
+    required: false
+    description: "Primarily for textbooks, lecture notes, and technical papers. Exercises the author might assign in a course based on this material."
+    fields:
+      problem:
+        type: string
+        required: true
+        description: "The exercise statement."
+      solution:
+        type: string
+        required: true
+        description: "Worked solution."
+      difficulty:
+        type: string
+        required: false
+        enum: [warmup, standard, challenging, open]
+
+# ===========================================================================
+# Missing angles — what the author could have seen but didn't
+# ===========================================================================
+  missing_angles:
+    type: list[object]
+    required: false
+    description: "Primarily for philosophy, theory, and conceptual papers. Alternative framings, neglected perspectives, what the author's own method reveals that they did not address."
+    fields:
+      angle:
+        type: string
+        required: true
+        description: "The angle the author missed."
+      why_missed:
+        type: string
+        required: false
+        description: "Why the author might have missed this. Different disciplinary background, historical context, scope limitations, implicit assumptions."
+      where_it_lands:
+        type: string
+        required: true
+        description: "What changes if this angle is incorporated. Does it strengthen, weaken, or redirect the paper's claims?"
+
+# ===========================================================================
+# Open questions — what the paper leaves open
+# ===========================================================================
+  open_questions:
+    type: list[object]
+    required: false
+    description: "Questions the paper raises but does not answer."
+    fields:
+      question:
+        type: string
+        required: true
+      closable:
+        type: boolean
+        required: true
+        description: "Can this be answered using the paper's own methods and framework? true = yes, within reach. false = requires external methods or new theory."
+      how_to_close:
+        type: string
+        required: false
+        description: "If closable: how the paper's own tools could answer it. If not closable: what is needed."
+
+# ===========================================================================
+# Unstated assumptions — what the argument depends on
+# ===========================================================================
+  unstated_assumptions:
+    type: list[string]
+    required: false
+    description: "Premises the paper relies on but does not articulate. The hidden load-bearing walls."
+
+# ===========================================================================
+# Experiments — what should be tested
+# ===========================================================================
+  experiments:
+    type: list[object]
+    required: false
+    description: "Primarily for empirical and ML papers. Experiments that would test the paper's claims or extend them."
+    fields:
+      hypothesis:
+        type: string
+        required: true
+      design:
+        type: string
+        required: true
+        description: "Brief experimental protocol."
+      predicted_true:
+        type: string
+        required: true
+        description: "Expected result if hypothesis is correct."
+      predicted_false:
+        type: string
+        required: true
+        description: "Expected result if hypothesis is incorrect (refutation criterion)."
+
+# ===========================================================================
+# Necessary connections — what this paper should engage with
+# ===========================================================================
+  necessary_connections:
+    type: list[object]
+    required: false
+    description: "Works the author should have engaged with but didn't. Different from the paper's own citations. These are gaps in the paper's engagement."
+    fields:
+      work:
+        type: string
+        required: true
+        description: "Title or description of the missing reference."
+      why_necessary:
+        type: string
+        required: true
+      impact:
+        type: string
+        required: true
+        description: "How the paper's claims would change if it engaged this work."
