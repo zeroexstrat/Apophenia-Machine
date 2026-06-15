@@ -1,0 +1,36 @@
+schema_version: 1
+id: 1independentresearcher11160caunesmi_715603255
+source:
+  title: 1   Independent Researcher, 11160 Caunes Minervois, France
+  authors:
+  - Unknown
+  year: 2024
+  path: /Users/tovarishchrafa/Desktop/apophenia-machine/nigredo/unclassified/Thermodynamic
+    Cost of Active Inference.pdf
+  arxiv: null
+  doi: null
+  venue: null
+  page_count: 1
+claims:
+- statement: "an upper bound on surprisal. In this paper, we develop an account of\
+    \ the former quantity\u2014the"
+  confidence: demonstrated
+  evidence: Full text contains this section summary.
+methods:
+- name: automated text parsing
+  description: Content was extracted from the PDF with fallback parsing.
+  domain: general
+techniques: []
+caveats:
+- Automated extraction used; review before downstream analysis.
+connections_explicit: []
+tags:
+- ingested
+- fallback
+ingestion:
+  date: '2026-06-15T05:42:34.702162+00:00'
+  agent: azoth-ingest
+  schema_version: 1
+  status: ingested
+parse_errors:
+- LLM unavailable

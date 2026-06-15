@@ -1,0 +1,36 @@
+schema_version: 1
+id: 2fieldsetal_210511373
+source:
+  title: 2      Fields et al.
+  authors:
+  - Unknown
+  year: 2025
+  path: /Users/tovarishchrafa/Desktop/apophenia-machine/nigredo/unclassified/Inner
+    Screens Imaginative Experience.pdf
+  arxiv: null
+  doi: null
+  venue: null
+  page_count: 1
+claims:
+- statement: This paper examines the constraints that the free-energy principle (FEP)
+    places on possible model of consciousness, particularly
+  confidence: demonstrated
+  evidence: Full text contains this section summary.
+methods:
+- name: automated text parsing
+  description: Content was extracted from the PDF with fallback parsing.
+  domain: general
+techniques: []
+caveats:
+- Automated extraction used; review before downstream analysis.
+connections_explicit: []
+tags:
+- ingested
+- fallback
+ingestion:
+  date: '2026-06-15T05:42:33.414146+00:00'
+  agent: azoth-ingest
+  schema_version: 1
+  status: ingested
+parse_errors:
+- LLM unavailable

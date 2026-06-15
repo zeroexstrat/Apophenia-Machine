@@ -1,0 +1,21 @@
+schema_version: 2
+exhaustion:
+  paper_id: orcid0000000248120744_908075239
+  paper_title: 'Orcid: 0000-0002-4812-0744'
+  domain: unclassified
+  paper_type: paper
+  exhaustion_depth: 3
+  schema_version: 2
+  agent: azoth-exhaust
+  date: '2026-06-15T05:42:58.197254+00:00'
+  termination:
+    criterion: completed
+    detail: non_redundant=0 / max=6; redundant_window=[]; speculative_window=[]
+    deeper_available: true
+derivations: []
+exercises: []
+missing_angles: []
+open_questions: []
+unstated_assumptions: []
+experiments: []
+necessary_connections: []

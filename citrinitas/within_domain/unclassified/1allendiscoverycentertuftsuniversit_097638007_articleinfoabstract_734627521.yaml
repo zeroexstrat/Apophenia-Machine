@@ -1,0 +1,17 @@
+pair_scope: within_domain
+paper_a_id: 1allendiscoverycentertuftsuniversit_097638007
+paper_b_id: articleinfoabstract_734627521
+connection_type: complementary_techniques
+description: LLM unavailable; fallback connection created for overlap review.
+evidence_a: shared top-level tags in registry
+evidence_b: shared top-level tags in registry
+confidence: 3
+novelty: non-obvious
+significance: Potentially similar conceptual framing.
+status: pending_review
+confidence_raw: 3
+pair_domains:
+  paper_a_domain: unclassified
+  paper_b_domain: unclassified
+score: 6.0
+agent_notes: Generated during connect pass.

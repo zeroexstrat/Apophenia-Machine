@@ -1,0 +1,35 @@
+schema_version: 1
+id: alettersjournalexploring_959740142
+source:
+  title: A L Etters J Ournal E Xploring
+  authors:
+  - Unknown
+  year: 2020
+  path: /Users/tovarishchrafa/Desktop/apophenia-machine/nigredo/unclassified/EPL Offprint
+    2025.pdf
+  arxiv: null
+  doi: null
+  venue: null
+  page_count: 1
+claims:
+- statement: Automated ingest found content in EPL Offprint 2025.pdf.
+  confidence: demonstrated
+  evidence: Full text contains this section summary.
+methods:
+- name: automated text parsing
+  description: Content was extracted from the PDF with fallback parsing.
+  domain: general
+techniques: []
+caveats:
+- Automated extraction used; review before downstream analysis.
+connections_explicit: []
+tags:
+- ingested
+- fallback
+ingestion:
+  date: '2026-06-15T05:42:32.705228+00:00'
+  agent: azoth-ingest
+  schema_version: 1
+  status: ingested
+parse_errors:
+- LLM unavailable

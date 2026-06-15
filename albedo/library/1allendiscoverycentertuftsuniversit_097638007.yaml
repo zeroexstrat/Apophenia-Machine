@@ -1,0 +1,35 @@
+schema_version: 1
+id: 1allendiscoverycentertuftsuniversit_097638007
+source:
+  title: 1   Allen Discovery Center, Tufts University, Medford, MA 02155, USA; michael.levin@tufts.edu
+  authors:
+  - Unknown
+  year: 2024
+  path: /Users/tovarishchrafa/Desktop/apophenia-machine/nigredo/unclassified/Self-Representation
+    Limits 2024.pdf
+  arxiv: null
+  doi: null
+  venue: null
+  page_count: 1
+claims:
+- statement: Automated ingest found content in Self-Representation Limits 2024.pdf.
+  confidence: demonstrated
+  evidence: Full text contains this section summary.
+methods:
+- name: automated text parsing
+  description: Content was extracted from the PDF with fallback parsing.
+  domain: general
+techniques: []
+caveats:
+- Automated extraction used; review before downstream analysis.
+connections_explicit: []
+tags:
+- ingested
+- fallback
+ingestion:
+  date: '2026-06-15T05:42:34.621527+00:00'
+  agent: azoth-ingest
+  schema_version: 1
+  status: ingested
+parse_errors:
+- LLM unavailable

@@ -1,0 +1,36 @@
+schema_version: 1
+id: orcid0000000248120744_381201750
+source:
+  title: 'Orcid: 0000-0002-4812-0744'
+  authors:
+  - Unknown
+  year: 2021
+  path: /Users/tovarishchrafa/Desktop/apophenia-machine/nigredo/unclassified/FEP Compart
+    Pre.pdf
+  arxiv: null
+  doi: null
+  venue: null
+  page_count: 1
+claims:
+- statement: 'Abstract: Living systems at all scales are compartmentalized into interacting
+    subsystems. This paper'
+  confidence: demonstrated
+  evidence: Full text contains this section summary.
+methods:
+- name: automated text parsing
+  description: Content was extracted from the PDF with fallback parsing.
+  domain: general
+techniques: []
+caveats:
+- Automated extraction used; review before downstream analysis.
+connections_explicit: []
+tags:
+- ingested
+- fallback
+ingestion:
+  date: '2026-06-15T05:42:33.003934+00:00'
+  agent: azoth-ingest
+  schema_version: 1
+  status: ingested
+parse_errors:
+- LLM unavailable

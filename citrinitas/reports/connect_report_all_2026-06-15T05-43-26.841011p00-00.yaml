@@ -1,0 +1,20 @@
+scope: all
+generated_at: '2026-06-15T05:43:26.841031+00:00'
+pairs:
+  total_pairs: 171
+  candidate_pairs: 0
+  analyzed_pairs: 0
+  pairs_with_no_connection: 0
+  skipped_similarity: 0
+  skipped_missing_records: 0
+  validation_failed: 0
+  speculative_filtered: 0
+  below_confidence_threshold: 0
+connections:
+  total_found: 0
+  by_confidence: {}
+  by_type: {}
+connections_from_exhaustion:
+  count: 0
+  example_pairs: []
+top_5_connections: []

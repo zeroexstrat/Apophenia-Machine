@@ -1,0 +1,21 @@
+schema_version: 2
+exhaustion:
+  paper_id: chapter13fieldspdf_264487800
+  paper_title: Chapter 13 Fields.pdf
+  domain: unclassified
+  paper_type: paper
+  exhaustion_depth: 3
+  schema_version: 2
+  agent: azoth-exhaust
+  date: '2026-06-15T05:42:58.173512+00:00'
+  termination:
+    criterion: completed
+    detail: non_redundant=0 / max=6; redundant_window=[]; speculative_window=[]
+    deeper_available: true
+derivations: []
+exercises: []
+missing_angles: []
+open_questions: []
+unstated_assumptions: []
+experiments: []
+necessary_connections: []

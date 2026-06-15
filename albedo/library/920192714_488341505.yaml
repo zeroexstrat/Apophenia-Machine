@@ -1,0 +1,36 @@
+schema_version: 1
+id: '920192714_488341505'
+source:
+  title: 9 (2019) 2714.
+  authors:
+  - Unknown
+  year: 2019
+  path: /Users/tovarishchrafa/Desktop/apophenia-machine/nigredo/unclassified/Battaglia
+    Comment.pdf
+  arxiv: null
+  doi: null
+  venue: null
+  page_count: 1
+claims:
+- statement: methodologies. The fundamental question raised by this paper is, therefore,
+    that of whether
+  confidence: demonstrated
+  evidence: Full text contains this section summary.
+methods:
+- name: automated text parsing
+  description: Content was extracted from the PDF with fallback parsing.
+  domain: general
+techniques: []
+caveats:
+- Automated extraction used; review before downstream analysis.
+connections_explicit: []
+tags:
+- ingested
+- fallback
+ingestion:
+  date: '2026-06-15T05:42:31.646488+00:00'
+  agent: azoth-ingest
+  schema_version: 1
+  status: ingested
+parse_errors:
+- LLM unavailable

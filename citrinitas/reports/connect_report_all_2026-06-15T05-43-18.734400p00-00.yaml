@@ -1,0 +1,63 @@
+scope: all
+generated_at: '2026-06-15T05:43:18.734560+00:00'
+pairs:
+  total_pairs: 171
+  candidate_pairs: 76
+  analyzed_pairs: 76
+  pairs_with_no_connection: 0
+  skipped_similarity: 95
+  skipped_missing_records: 0
+  validation_failed: 0
+  speculative_filtered: 0
+  below_confidence_threshold: 0
+connections:
+  total_found: 76
+  by_confidence:
+    '3': 76
+  by_type:
+    complementary_techniques: 76
+connections_from_exhaustion:
+  count: 76
+  example_pairs:
+  - paper_a_id: chapter13fieldspdf_264487800
+    paper_b_id: orcid0000000248120744_244394807
+  - paper_a_id: alettersjournalexploring_959740142
+    paper_b_id: orcid0000000248120744_244394807
+  - paper_a_id: articleinfoabstract_734627521
+    paper_b_id: orcid0000000248120744_244394807
+top_5_connections:
+- paper_a_id: chapter13fieldspdf_264487800
+  paper_b_id: orcid0000000248120744_244394807
+  score: 6.0
+  confidence: 3
+  connection_type: complementary_techniques
+  novelty: non-obvious
+  description: LLM unavailable; fallback connection created for overlap review.
+- paper_a_id: alettersjournalexploring_959740142
+  paper_b_id: orcid0000000248120744_244394807
+  score: 6.0
+  confidence: 3
+  connection_type: complementary_techniques
+  novelty: non-obvious
+  description: LLM unavailable; fallback connection created for overlap review.
+- paper_a_id: articleinfoabstract_734627521
+  paper_b_id: orcid0000000248120744_244394807
+  score: 6.0
+  confidence: 3
+  connection_type: complementary_techniques
+  novelty: non-obvious
+  description: LLM unavailable; fallback connection created for overlap review.
+- paper_a_id: 1independentresearcher11160caunesmi_885250859
+  paper_b_id: orcid0000000248120744_244394807
+  score: 6.0
+  confidence: 3
+  connection_type: complementary_techniques
+  novelty: non-obvious
+  description: LLM unavailable; fallback connection created for overlap review.
+- paper_a_id: 23ruedeslavandires_082087293
+  paper_b_id: orcid0000000248120744_244394807
+  score: 6.0
+  confidence: 3
+  connection_type: complementary_techniques
+  novelty: non-obvious
+  description: LLM unavailable; fallback connection created for overlap review.

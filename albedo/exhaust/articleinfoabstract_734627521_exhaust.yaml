@@ -1,0 +1,22 @@
+schema_version: 2
+exhaustion:
+  paper_id: articleinfoabstract_734627521
+  paper_title: A R T I C L E             I N F O                           A B S T
+    R A C T
+  domain: unclassified
+  paper_type: paper
+  exhaustion_depth: 3
+  schema_version: 2
+  agent: azoth-exhaust
+  date: '2026-06-15T05:42:58.179430+00:00'
+  termination:
+    criterion: completed
+    detail: non_redundant=0 / max=6; redundant_window=[]; speculative_window=[]
+    deeper_available: true
+derivations: []
+exercises: []
+missing_angles: []
+open_questions: []
+unstated_assumptions: []
+experiments: []
+necessary_connections: []

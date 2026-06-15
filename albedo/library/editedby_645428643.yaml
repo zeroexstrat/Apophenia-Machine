@@ -1,0 +1,36 @@
+schema_version: 1
+id: editedby_645428643
+source:
+  title: Edited By
+  authors:
+  - Unknown
+  year: 2025
+  path: /Users/tovarishchrafa/Desktop/apophenia-machine/nigredo/unclassified/Dissociation
+    TAME FP 2025.pdf
+  arxiv: null
+  doi: null
+  venue: null
+  page_count: 1
+claims:
+- statement: In this paper we provide a framework for building an integrated, dynamical
+    model
+  confidence: demonstrated
+  evidence: Full text contains this section summary.
+methods:
+- name: automated text parsing
+  description: Content was extracted from the PDF with fallback parsing.
+  domain: general
+techniques: []
+caveats:
+- Automated extraction used; review before downstream analysis.
+connections_explicit: []
+tags:
+- ingested
+- fallback
+ingestion:
+  date: '2026-06-15T05:42:32.597834+00:00'
+  agent: azoth-ingest
+  schema_version: 1
+  status: ingested
+parse_errors:
+- LLM unavailable

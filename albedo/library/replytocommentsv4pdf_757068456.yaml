@@ -1,0 +1,35 @@
+schema_version: 1
+id: replytocommentsv4pdf_757068456
+source:
+  title: Reply to Comments v4.pdf
+  authors:
+  - Unknown
+  year: 0
+  path: /Users/tovarishchrafa/Desktop/apophenia-machine/nigredo/unclassified/Reply
+    to Comments v4.pdf
+  arxiv: null
+  doi: null
+  venue: null
+  page_count: 1
+claims:
+- statement: Automated ingest found content in Reply to Comments v4.pdf.
+  confidence: demonstrated
+  evidence: Full text contains this section summary.
+methods:
+- name: automated text parsing
+  description: Content was extracted from the PDF with fallback parsing.
+  domain: general
+techniques: []
+caveats:
+- Automated extraction used; review before downstream analysis.
+connections_explicit: []
+tags:
+- ingested
+- fallback
+ingestion:
+  date: '2026-06-15T05:42:34.501054+00:00'
+  agent: azoth-ingest
+  schema_version: 1
+  status: ingested
+parse_errors:
+- LLM unavailable
