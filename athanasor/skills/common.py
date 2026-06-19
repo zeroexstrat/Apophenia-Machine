@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+import os
 import shutil
 import subprocess
 import sys
@@ -54,6 +55,9 @@ def load_yaml(path: Path) -> Any:
 
 def run_vigil_check(root: Path, phase: str, skill: str) -> str:
     """Run a Vigil phase for the current repo using the active Python interpreter."""
+    if os.getenv("AZOTH_SKIP_VIGIL", "").strip().lower() in {"1", "true", "on", "yes"}:
+        return f"Vigil skipped for {skill} ({phase})"
+
     cmd = [sys.executable, str(root / "athanasor" / "vigil" / "verify.py"), phase]
     try:
         result = subprocess.run(

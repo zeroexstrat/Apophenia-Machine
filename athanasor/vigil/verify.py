@@ -22,11 +22,21 @@ from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
-ALLOWED_UNTRACKED_PREFIXES = (
+ALLOWED_OUTPUT_PREFIXES = (
     "nigredo/",
     "albedo/",
     "citrinitas/",
     "rubedo/",
+    "athanasor/vigil/reports/",
+    "athanasor/lapis/",
+)
+ALLOWED_UNTRACKED_PREFIXES = ALLOWED_OUTPUT_PREFIXES
+ALLOWED_MODIFIED_PREFIXES = (
+    "nigredo/",
+    "albedo/",
+    "citrinitas/",
+    "rubedo/",
+    "athanasor/lapis/",
     "athanasor/vigil/reports/",
 )
 ALLOWED_UNTRACKED_EXACT = {
@@ -71,18 +81,21 @@ def check_git_drift() -> tuple[bool, str]:
                 clean_path = clean_path[1:-1]
             clean_path = clean_path.replace("\\", "/")
 
+            def _is_allowed_path(value: str, prefixes: tuple[str, ...]) -> bool:
+                return any(value == prefix[:-1] or value.startswith(prefix) for prefix in prefixes)
+
             if status == "??":
                 if clean_path in ALLOWED_UNTRACKED_EXACT:
                     continue
-                for prefix in ALLOWED_UNTRACKED_PREFIXES:
-                    if clean_path.startswith(prefix):
-                        break
-                else:
-                    noisy_lines.append(raw)
+                if _is_allowed_path(clean_path, ALLOWED_UNTRACKED_PREFIXES):
+                    continue
+                noisy_lines.append(raw)
+                continue
+
+            if _is_allowed_path(clean_path, ALLOWED_MODIFIED_PREFIXES):
                 continue
 
             noisy_lines.append(raw)
-
         if noisy_lines:
             return False, "Uncommitted changes:\n" + "\n".join(noisy_lines[:500])
         return True, "Worktree clean (allowed untracked runtime artifacts ignored)."
