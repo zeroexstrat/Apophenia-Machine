@@ -2,9 +2,14 @@
 
 Defaults are kept in ``azoth.config.yaml`` at the project root.
 Environment variables can override:
+- ``LLM_PROVIDER``
 - ``LLM_BASE_URL``
 - ``LLM_MODEL``
 - ``LLM_API_KEY``
+- ``LLM_THINK``
+- ``LLM_TIMEOUT``
+- ``LLM_TEMPERATURE``
+- ``LLM_MAX_TOKENS``
 - ``AZOTH_PROJECT_ROOT``
 """
 
@@ -51,11 +56,14 @@ class Config:
 def _default_config() -> dict[str, Any]:
     return {
         "llm": {
-            "base_url": "http://localhost:11434/v1",
-            "model": "llama3.1:70b",
+            "provider": "ollama_native",
+            "base_url": "http://localhost:11434",
+            "model": "nemotron-3-super:cloud",
             "api_key": "ollama",
             "temperature": 0.3,
             "max_tokens": 4096,
+            "think": False,
+            "timeout": 300,
         },
         "embeddings": {
             "model": "all-MiniLM-L6-v2",
@@ -82,6 +90,7 @@ def _default_config() -> dict[str, Any]:
         "exhaustion": {
             "depth_multipliers": {"1": 2, "2": 4, "3": 6, "4": 8, "5": 12},
             "batch_size": 3,
+            "llm_max_tokens": 384,
             "redundancy_stop_threshold": 3,
             "speculative_stop_count": 5,
         },
@@ -117,6 +126,19 @@ def _coerce_float(value: Any, default: float) -> float:
         return default
 
 
+def _coerce_bool(value: Any, default: bool) -> bool:
+    if isinstance(value, bool):
+        return value
+    if value is None:
+        return default
+    lowered = str(value).strip().lower()
+    if lowered in {"1", "true", "yes", "on"}:
+        return True
+    if lowered in {"0", "false", "no", "off"}:
+        return False
+    return default
+
+
 def load_config(path: Path | None = None) -> Config:
     merged: dict[str, Any] = _default_config()
     config_path = path or (Path(_project_root()) / "azoth.config.yaml")
@@ -131,12 +153,19 @@ def load_config(path: Path | None = None) -> Config:
     merged["paths"]["project_root"] = str(_project_root())
 
     # Environment variable overrides.
+    merged["llm"]["provider"] = os.getenv("LLM_PROVIDER", merged["llm"]["provider"])
     merged["llm"]["base_url"] = os.getenv("LLM_BASE_URL", merged["llm"]["base_url"])
     merged["llm"]["model"] = os.getenv("LLM_MODEL", merged["llm"]["model"])
     merged["llm"]["api_key"] = os.getenv("LLM_API_KEY", merged["llm"]["api_key"])
+    merged["llm"]["think"] = os.getenv("LLM_THINK", merged["llm"].get("think", False))
+    merged["llm"]["timeout"] = os.getenv("LLM_TIMEOUT", merged["llm"].get("timeout", 300))
+    merged["llm"]["temperature"] = os.getenv("LLM_TEMPERATURE", merged["llm"].get("temperature"))
+    merged["llm"]["max_tokens"] = os.getenv("LLM_MAX_TOKENS", merged["llm"].get("max_tokens"))
 
     merged["llm"]["temperature"] = _coerce_float(merged["llm"].get("temperature"), _default_config()["llm"]["temperature"])
     merged["llm"]["max_tokens"] = _coerce_int(merged["llm"].get("max_tokens"), _default_config()["llm"]["max_tokens"])
+    merged["llm"]["think"] = _coerce_bool(merged["llm"].get("think"), _default_config()["llm"]["think"])
+    merged["llm"]["timeout"] = _coerce_float(merged["llm"].get("timeout"), _default_config()["llm"]["timeout"])
     merged["embeddings"]["similarity_threshold"] = _coerce_float(
         merged["embeddings"].get("similarity_threshold"),
         _default_config()["embeddings"]["similarity_threshold"],
@@ -152,6 +181,10 @@ def load_config(path: Path | None = None) -> Config:
     merged["exhaustion"]["batch_size"] = _coerce_int(
         merged["exhaustion"].get("batch_size"),
         _default_config()["exhaustion"]["batch_size"],
+    )
+    merged["exhaustion"]["llm_max_tokens"] = _coerce_int(
+        merged["exhaustion"].get("llm_max_tokens"),
+        _default_config()["exhaustion"]["llm_max_tokens"],
     )
     merged["exhaustion"]["redundancy_stop_threshold"] = _coerce_int(
         merged["exhaustion"].get("redundancy_stop_threshold"),

@@ -15,7 +15,7 @@ You are the gate at every phase.
 
 - `pdftotext` (install via `brew install poppler` on macOS, `apt install poppler-utils` on Linux)
 - Python 3.10+
-- An LLM client configured in `azoth.config.yaml` (or use `--no-llm` for smoke runs)
+- Ollama available at `http://localhost:11434` with `nemotron-3-super:cloud` accessible, or another LLM configured in `azoth.config.yaml`
 - Optional: [Hermes Agent](https://github.com/NousResearch/hermes-agent) for cron automation
 
 ## First Run
@@ -112,8 +112,11 @@ azoth status --domain ML
 azoth status --status exhausted
 azoth status --json
 azoth config --show
-azoth config --set llm.model gpt-4
+azoth config --set llm.model nemotron-3-super:cloud
+azoth config --set llm.provider openai_compatible
 ```
+
+The default LLM provider is `ollama_native`, which calls Ollama `/api/chat` directly with `think: false` for schema-bound JSON outputs. Exhaustion batches default to `exhaustion.llm_max_tokens: 384`; raise that value for richer runs or lower it for slower cloud models. Use `--no-llm` for smoke tests or offline fallback.
 
 ## Validation and triage
 

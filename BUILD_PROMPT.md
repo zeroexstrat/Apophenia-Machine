@@ -55,9 +55,10 @@ These principles override any implementation decision you face:
    schemes. This is a standalone product with its own identity.
 
 4. **Local-first, model-agnostic.** All processing happens locally by
-   default. LLM calls use an abstraction layer that supports any
-   OpenAI-compatible API endpoint (including local Ollama, LM Studio,
-   vLLM, or remote APIs). No hard dependency on any specific provider.
+   default. LLM calls use an abstraction layer with provider routing. The
+   default provider is Ollama native with Nemotron 3 Super cloud, while
+   OpenAI-compatible API endpoints (including local Ollama `/v1`, LM
+   Studio, vLLM, or remote APIs) remain supported.
 
 5. **Transparent failure.** Every component reports what it did, what it
    failed to do, and why. No silent failures. No hallucinated completions.
@@ -129,11 +130,14 @@ athanasor/
 ```yaml
 # azoth.config.yaml (project root)
 llm:
-  base_url: "http://localhost:11434/v1"   # Default: local Ollama
-  model: "llama3.1:70b"                    # Default model
+  provider: "ollama_native"                # Default provider: Ollama /api/chat
+  base_url: "http://localhost:11434"       # Default Ollama host
+  model: "nemotron-3-super:cloud"          # Default model
   api_key: "ollama"                        # Placeholder for local
   temperature: 0.3                         # Low for extraction, higher for generation
   max_tokens: 4096
+  think: false                             # Disable reasoning traces for machine JSON
+  timeout: 300
 
 embeddings:
   model: "all-MiniLM-L6-v2"               # sentence-transformers model name
@@ -160,12 +164,15 @@ domains:
 exhaustion:
   depth_multipliers: {1: 2, 2: 4, 3: 6, 4: 8, 5: 12}
   batch_size: 3
+  llm_max_tokens: 384
   redundancy_stop_threshold: 3
   speculative_stop_count: 5        # 5 consecutive speculative items → stop
 ```
 
 Load config from `azoth.config.yaml` at project root. Allow environment
-variable overrides for `LLM_BASE_URL`, `LLM_MODEL`, `LLM_API_KEY`.
+variable overrides for `LLM_PROVIDER`, `LLM_BASE_URL`, `LLM_MODEL`,
+`LLM_API_KEY`, `LLM_THINK`, `LLM_TIMEOUT`, `LLM_TEMPERATURE`, and
+`LLM_MAX_TOKENS`.
 
 ### 2.3 LLM Abstraction (`llm.py`)
 

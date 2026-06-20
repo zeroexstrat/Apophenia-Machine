@@ -202,6 +202,7 @@ def _process_one(
 
     max_items = _compute_max_items(registry_entry, depth, config)
     batch_size = int(config.exhaustion.get("batch_size", 3))
+    llm_max_tokens = max(128, int(config.exhaustion.get("llm_max_tokens", config.llm.get("max_tokens", 1024))))
     redundancy_threshold = float(config.exhaustion.get("redundancy_threshold", 0.85))
     speculative_stop_count = int(config.exhaustion.get("speculative_stop_count", 5))
     redundancy_stop_threshold = int(config.exhaustion.get("redundancy_stop_threshold", 3))
@@ -245,7 +246,7 @@ def _process_one(
             method_count=method_count,
             technique_count=technique_count,
         )
-        generated = _generate_batch(context, llm, batch_size)
+        generated = _generate_batch(context, llm, batch_size, max_tokens=llm_max_tokens)
         if not generated:
             terminal_reason = "completed"
             break
@@ -504,7 +505,13 @@ def _build_context(
     )
 
 
-def _generate_batch(context: str, llm: LLMClient | None, batch_size: int) -> dict[str, list[dict[str, Any]]]:
+def _generate_batch(
+    context: str,
+    llm: LLMClient | None,
+    batch_size: int,
+    *,
+    max_tokens: int = 384,
+) -> dict[str, list[dict[str, Any]]]:
     if llm is None:
         return {}
 
@@ -517,7 +524,7 @@ def _generate_batch(context: str, llm: LLMClient | None, batch_size: int) -> dic
         structured=True,
         schema={"type": "object"},
         temperature=0.35,
-        max_tokens=4096,
+        max_tokens=max_tokens,
     )
     if not isinstance(result, dict):
         return {}
@@ -530,7 +537,10 @@ def _generate_batch(context: str, llm: LLMClient | None, batch_size: int) -> dic
         "experiments",
         "necessary_connections",
     ]}
-    return {k: [item for item in v if isinstance(item, dict)] for k, v in bucketized.items()}
+    generated = {k: [item for item in v if isinstance(item, dict)] for k, v in bucketized.items()}
+    if not any(generated.values()):
+        return {}
+    return generated
 
 
 def _item_text(bucket: str, item: dict[str, Any]) -> str:

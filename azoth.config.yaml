@@ -1,9 +1,12 @@
 llm:
-  base_url: "http://localhost:11434/v1"
-  model: "llama3.1:70b"
+  provider: "ollama_native"
+  base_url: "http://localhost:11434"
+  model: "nemotron-3-super:cloud"
   api_key: "ollama"
   temperature: 0.3
   max_tokens: 4096
+  think: false
+  timeout: 300
 
 embeddings:
   model: "all-MiniLM-L6-v2"
@@ -30,5 +33,6 @@ domains:
 exhaustion:
   depth_multipliers: {1: 2, 2: 4, 3: 6, 4: 8, 5: 12}
   batch_size: 3
+  llm_max_tokens: 384
   redundancy_stop_threshold: 3
   speculative_stop_count: 5

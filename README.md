@@ -56,6 +56,49 @@ Optional: install GPU/offline-friendly dependencies used by LLM and embeddings a
 
 ---
 
+## LLM backend
+
+The default LLM route is Ollama native with NVIDIA Nemotron 3 Super:
+
+```yaml
+llm:
+  provider: "ollama_native"
+  base_url: "http://localhost:11434"
+  model: "nemotron-3-super:cloud"
+  api_key: "ollama"
+  temperature: 0.3
+  max_tokens: 4096
+  think: false
+  timeout: 300
+
+exhaustion:
+  llm_max_tokens: 384
+```
+
+`ollama_native` calls Ollama's `/api/chat` endpoint directly. For structured machine outputs it sends JSON mode and `think: false`, which avoids leaking reasoning text into schema-validated artifacts.
+`exhaustion.llm_max_tokens` bounds each exhaustion batch; increase it for richer runs, lower it when using slower cloud models.
+
+To use another OpenAI-compatible endpoint:
+
+```bash
+azoth config --set llm.provider openai_compatible
+azoth config --set llm.base_url http://localhost:11434/v1
+azoth config --set llm.model chema-qwen:latest
+```
+
+Environment overrides:
+
+- `LLM_PROVIDER`
+- `LLM_BASE_URL`
+- `LLM_MODEL`
+- `LLM_API_KEY`
+- `LLM_THINK`
+- `LLM_TIMEOUT`
+- `LLM_TEMPERATURE`
+- `LLM_MAX_TOKENS`
+
+---
+
 ## Recommended workflow
 
 ### 1) Start a session
@@ -211,6 +254,8 @@ Automatic checkpointing can be disabled globally with:
 
 Also available:
 - `python3 scripts/check_cli.py`
+- `python3 scripts/check_llm_providers.py`
+- `python3 scripts/check_exhaust_llm_budget.py`
 - `python3 scripts/check_pipeline_smoke.py`
 - `python3 scripts/check_negative_paths.py`
 - `python3 scripts/hardening_audit.py`
