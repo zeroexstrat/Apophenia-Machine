@@ -21,6 +21,8 @@ from ..skills.common import ensure_dir, now_iso, run_vigil_check, slugify, write
 
 
 CONNECT_SCHEMA_PATH = Path(__file__).resolve().parents[2] / "CONNECT_SCHEMA.yaml"
+GENERIC_PAIR_TAGS = {"fallback", "ingested", "automated", "pdf", "paper"}
+STRONG_TAG_OVERLAP_COUNT = 2
 
 
 def build_cli_parser() -> argparse.ArgumentParser:
@@ -98,10 +100,13 @@ def connect(
             continue
 
         sim = _pair_similarity(a_id, b_id, store)
-        if sim < cfg.embeddings.get("similarity_threshold", 0.82):
-            analyzed.add(key)
+        if not _should_analyze_pair(
+            a_entry,
+            b_entry,
+            similarity=sim,
+            similarity_threshold=cfg.embeddings.get("similarity_threshold", 0.82),
+        ):
             report_stats["skipped_similarity"] += 1
-            _append_analyzed(root / "albedo" / "connections_analyzed.jsonl", a_id, b_id)
             continue
 
         report_stats["candidate_pairs"] += 1
@@ -459,9 +464,37 @@ def _write_connection_report(
 
 
 def _has_shared_tags(a: dict[str, Any], b: dict[str, Any]) -> bool:
-    a_tags = set(str(x).lower() for x in a.get("tags", []) if isinstance(x, str))
-    b_tags = set(str(x).lower() for x in b.get("tags", []) if isinstance(x, str))
-    return bool(a_tags and b_tags and a_tags.intersection(b_tags))
+    return bool(_shared_tags(a, b))
+
+
+def _shared_tags(a: dict[str, Any], b: dict[str, Any]) -> set[str]:
+    a_tags = _meaningful_tags(a)
+    b_tags = _meaningful_tags(b)
+    return a_tags.intersection(b_tags)
+
+
+def _meaningful_tags(entry: dict[str, Any]) -> set[str]:
+    tags: set[str] = set()
+    for raw in entry.get("tags", []) or []:
+        if not isinstance(raw, str):
+            continue
+        tag = raw.strip().lower()
+        if not tag or tag in GENERIC_PAIR_TAGS:
+            continue
+        tags.add(tag)
+    return tags
+
+
+def _should_analyze_pair(
+    a: dict[str, Any],
+    b: dict[str, Any],
+    *,
+    similarity: float,
+    similarity_threshold: float,
+) -> bool:
+    if similarity >= similarity_threshold:
+        return True
+    return len(_shared_tags(a, b)) >= STRONG_TAG_OVERLAP_COUNT
 
 
 def _paper_embedding(store: EmbeddingStore, paper_id: str) -> np.ndarray:

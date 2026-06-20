@@ -260,16 +260,17 @@ def run_smoke(project_root: Path) -> None:
     env.setdefault("TRANSFORMERS_VERBOSITY", "error")
     env.setdefault("PYTHONWARNINGS", "ignore")
     shared_text = (
-        "This paper presents a minimal synthetic test fixture.\\n"
-        "We present a simple pairwise relationship for deterministic extraction.\\n"
-        "This paper studies structured data flow for a small synthetic benchmark.\\n"
+        "This paper presents a minimal synthetic test fixture.\n"
+        "We present a simple pairwise relationship for deterministic extraction.\n"
+        "This paper studies structured data flow for a small synthetic benchmark.\n"
+        "The language model uses attention routing and sparse computation for the benchmark.\n"
     )
 
     inbox = project_root / "nigredo" / "inbox"
     for idx in range(3):
         _write_pdf(
             inbox / f"smoke_case_{idx + 1}.pdf",
-            f"{shared_text}\\nPaper: smoke_case_{idx + 1}\\n",
+            f"{shared_text}\nPaper: smoke_case_{idx + 1}\n",
         )
 
     ingest_outputs = _run_cmd(
