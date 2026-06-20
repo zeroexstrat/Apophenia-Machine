@@ -24,6 +24,7 @@ def parse_pdf(path: str | Path) -> dict[str, Any]:
     text_chunks: list[tuple[int, str]] = []
     sections: list[dict[str, Any]] = []
     references: list[str] = []
+    equations: list[dict[str, str]] = []
     full_lines: list[str] = []
     parse_warnings: list[str] = []
     abstract: str | None = None
@@ -41,6 +42,7 @@ def parse_pdf(path: str | Path) -> dict[str, Any]:
                 "full_text": "",
                 "sections": [],
                 "references": [],
+                "equations": [],
                 "abstract": None,
                 "parse_warnings": parse_warnings,
                 "encrypted": False,
@@ -73,6 +75,7 @@ def parse_pdf(path: str | Path) -> dict[str, Any]:
             for line in ref_text.splitlines():
                 if line.strip():
                     references.append(line.strip())
+        equations = _extract_equation_lines(full_text)
 
         return {
             "path": str(pdf_path),
@@ -81,6 +84,7 @@ def parse_pdf(path: str | Path) -> dict[str, Any]:
             "full_text": full_text,
             "sections": _merge_sections(sections),
             "references": [item for item in references if item.strip()],
+            "equations": equations,
             "abstract": abstract,
             "parse_warnings": parse_warnings,
             "encrypted": False,
@@ -97,6 +101,7 @@ def parse_pdf(path: str | Path) -> dict[str, Any]:
             "full_text": "",
             "sections": [],
             "references": [],
+            "equations": [],
             "abstract": None,
             "parse_warnings": parse_warnings,
             "encrypted": True,
@@ -169,6 +174,7 @@ def parse_pdf(path: str | Path) -> dict[str, Any]:
         for line in ref_text.splitlines():
             if line.strip():
                 references.append(line.strip())
+    equations = _extract_equation_lines(full_text)
 
     return {
         "path": str(pdf_path),
@@ -177,6 +183,7 @@ def parse_pdf(path: str | Path) -> dict[str, Any]:
         "full_text": full_text.strip(),
         "sections": _merge_sections(sections),
         "references": [item for item in references if item.strip()],
+        "equations": equations,
         "abstract": abstract,
         "parse_warnings": parse_warnings,
         "encrypted": False,
@@ -229,6 +236,37 @@ def _merge_sections(sections: list[dict[str, Any]]) -> list[dict[str, Any]]:
         seen.add(title)
         merged.append(item)
     return merged
+
+
+def _extract_equation_lines(text: str) -> list[dict[str, str]]:
+    equations: list[dict[str, str]] = []
+    lines = [line.strip() for line in (text or "").splitlines() if line.strip()]
+    equation_pattern = re.compile(r"([A-Za-z0-9_{}^<>|()\\/\[\]\s.,:+\-*]+=[^.;\n]{2,})")
+    for idx, line in enumerate(lines):
+        if len(line) > 240:
+            continue
+        if not any(symbol in line for symbol in ("=", "\u2211", "\\sum", "\\int", "\u2264", ">=", "<=", "->", "\u2192")):
+            continue
+        match = equation_pattern.search(line)
+        expression = (match.group(1) if match else line).strip()
+        if len(expression) < 5:
+            continue
+        context_parts = []
+        if idx > 0:
+            context_parts.append(lines[idx - 1])
+        context_parts.append(line)
+        if idx + 1 < len(lines):
+            context_parts.append(lines[idx + 1])
+        equations.append(
+            {
+                "label": f"equation_{len(equations) + 1}",
+                "expression": expression[:240],
+                "context": " ".join(context_parts)[:500],
+            }
+        )
+        if len(equations) >= 12:
+            break
+    return equations
 
 
 def _extract_with_pdftotext(path: Path) -> str | None:

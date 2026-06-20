@@ -38,6 +38,7 @@ Azoth is validated by schema and gate checks at each stage:
 - **Vigil gate checks**: `python3 athanasor/vigil/verify.py start|verify|close` wraps substantive runs and blocks invalid states.
 - **Registry state machine** in `albedo/registry.jsonl` tracks transitions.
 - **CLI and session wrappers** convert low-level errors into command context so failures are visible in command output.
+- **Semantic smoke checks** prove that rich paper records produce non-empty exhaustion candidates and that checkpoint memory captures concrete next directions.
 
 ---
 
@@ -127,6 +128,8 @@ It moves files to domain folders and writes:
 - registry entry (`status: ingested_only`)
 - embedding records for candidate retrieval
 
+Fallback ingestion extracts concrete claim, method, technique, tag, and equation anchors when text is available. LLM ingestion should still be preferred for serious runs.
+
 `ingest`, `awaken`, `exhaust`, `connect`, `detect`, and `draft` also persist a light checkpoint entry to
 `athanasor/lapis/memory.jsonl` after successful completion for crash recovery.
 
@@ -146,6 +149,8 @@ azoth exhaust --domain physics --depth 2 --count 5
 Both emit schema-conformant records:
 - `albedo/exhaust/<paper_id>_exhaust.yaml`
 - registry status updates to `status: exhausted`, with `exhausted_at_depth`
+
+Exhaustion uses canonical schema fields, but also normalizes common model aliases (`item`, `content`, `answer`, `rationale`, etc.) so useful model output is not silently discarded.
 
 ### 4) Discover connections
 
@@ -256,6 +261,7 @@ Also available:
 - `python3 scripts/check_cli.py`
 - `python3 scripts/check_llm_providers.py`
 - `python3 scripts/check_exhaust_llm_budget.py`
+- `python3 scripts/check_semantic_pipeline.py`
 - `python3 scripts/check_pipeline_smoke.py`
 - `python3 scripts/check_negative_paths.py`
 - `python3 scripts/hardening_audit.py`

@@ -185,6 +185,7 @@ def _process_one(
     claims = record.get("claims", [])
     methods = record.get("methods", [])
     techniques = record.get("techniques", [])
+    equations = record.get("equations", [])
     tags = record.get("tags", [])
     title = str((record.get("source") or {}).get("title") or paper_id)
     domain = str(registry_entry.get("domain") or "unclassified")
@@ -235,6 +236,7 @@ def _process_one(
             claims=claims,
             methods=methods,
             techniques=techniques,
+            equations=equations,
             tags=tags,
             strategy=f"{strategy} {strategy_notes}",
             depth=depth,
@@ -245,6 +247,7 @@ def _process_one(
             claim_count=claim_count,
             method_count=method_count,
             technique_count=technique_count,
+            equation_count=len(equations) if isinstance(equations, list) else 0,
         )
         generated = _generate_batch(context, llm, batch_size, max_tokens=llm_max_tokens)
         if not generated:
@@ -403,57 +406,76 @@ def _coerce_confidence(value: Any, allowed: list[str], fallback: str = "likely")
     return fallback
 
 
+def _first_text(payload: dict[str, Any], *keys: str) -> str:
+    for key in keys:
+        value = payload.get(key)
+        if isinstance(value, str) and value.strip():
+            return value.strip()
+        if value is not None and not isinstance(value, (dict, list)):
+            text = str(value).strip()
+            if text:
+                return text
+    return ""
+
+
+def _first_value(payload: dict[str, Any], *keys: str) -> Any:
+    for key in keys:
+        value = payload.get(key)
+        if value is not None:
+            return value
+    return None
+
+
 def _normalize_item(bucket: str, payload: dict[str, Any]) -> dict[str, Any]:
     if bucket == "derivations":
         return {
-            "statement": str(payload.get("statement", "")).strip(),
-            "follows_from": str(payload.get("follows_from", "claim_1")).strip(),
+            "statement": _first_text(payload, "statement", "content", "item", "description", "derivation", "claim"),
+            "follows_from": _first_text(payload, "follows_from", "source", "source_claim", "claim_ref", "claim") or "claim_1",
             "confidence": _coerce_confidence(payload.get("confidence"), ["derived", "likely", "speculative"]),
             "item_type": payload.get("item_type"),
-            "source_claim": payload.get("source_claim"),
-            **({"source_claim": payload.get("source_claim")} if "source_claim" in payload else {}),
+            "source_claim": _first_text(payload, "source_claim", "source", "follows_from", "claim_ref"),
         }
     if bucket == "exercises":
         return {
-            "problem": str(payload.get("problem", "")).strip(),
-            "solution": str(payload.get("solution", payload.get("approach", "") or "To be validated.")),
+            "problem": _first_text(payload, "problem", "item", "content", "question", "prompt"),
+            "solution": _first_text(payload, "solution", "answer", "approach", "method") or "To be validated.",
             "difficulty": payload.get("difficulty") or None,
             "source_claim": _coerce_source_claim(payload.get("source_claim")),
         }
     if bucket == "missing_angles":
         return {
-            "angle": str(payload.get("angle", "")).strip(),
-            "why_missed": payload.get("why_missed"),
-            "where_it_lands": str(payload.get("where_it_lands", "")).strip() or "Pending domain-specific synthesis.",
+            "angle": _first_text(payload, "angle", "item", "content", "description", "gap"),
+            "why_missed": _first_text(payload, "why_missed", "why", "rationale") or None,
+            "where_it_lands": _first_text(payload, "where_it_lands", "impact", "consequence", "result") or "Pending domain-specific synthesis.",
             "item_type": payload.get("item_type"),
             "source_claim": _coerce_source_claim(payload.get("source_claim")),
         }
     if bucket == "open_questions":
         return {
-            "question": str(payload.get("question", "")).strip(),
-            "closable": bool(payload.get("closable", False)),
-            "how_to_close": payload.get("how_to_close"),
+            "question": _first_text(payload, "question", "item", "content", "prompt"),
+            "closable": bool(_first_value(payload, "closable", "can_close", "answerable")),
+            "how_to_close": _first_text(payload, "how_to_close", "closure", "method", "approach") or None,
             "source_claim": _coerce_source_claim(payload.get("source_claim")),
         }
     if bucket == "unstated_assumptions":
         return {
-            "assumption": str(payload.get("assumption", "")).strip(),
-            "impacts_claim": payload.get("impacts_claim"),
+            "assumption": _first_text(payload, "assumption", "item", "content", "description"),
+            "impacts_claim": _first_text(payload, "impacts_claim", "impacts", "impact", "source_claim") or None,
             "source_claim": _coerce_source_claim(payload.get("source_claim")),
         }
     if bucket == "experiments":
         return {
-            "hypothesis": str(payload.get("hypothesis", "")).strip(),
-            "design": str(payload.get("design", "")).strip() or "Design not specified.",
-            "predicted_true": str(payload.get("predicted_true", "")).strip() or "Pending.",
-            "predicted_false": str(payload.get("predicted_false", "")).strip() or "Pending.",
+            "hypothesis": _first_text(payload, "hypothesis", "content", "item", "title", "claim"),
+            "design": _first_text(payload, "design", "method", "approach", "protocol") or "Design not specified.",
+            "predicted_true": _first_text(payload, "predicted_true", "success", "if_true", "positive") or "Pending.",
+            "predicted_false": _first_text(payload, "predicted_false", "failure", "if_false", "negative") or "Pending.",
             "source_claim": _coerce_source_claim(payload.get("source_claim")),
         }
     if bucket == "necessary_connections":
         return {
-            "work": str(payload.get("work", "")).strip(),
-            "why_necessary": str(payload.get("why_necessary", "")).strip() or "Needs explicit rationale.",
-            "impact": str(payload.get("impact", "")).strip() or "Potentially significant integration.",
+            "work": _first_text(payload, "work", "title", "item", "content", "name"),
+            "why_necessary": _first_text(payload, "why_necessary", "rationale", "why", "reason") or "Needs explicit rationale.",
+            "impact": _first_text(payload, "impact", "consequence", "result") or "Potentially significant integration.",
             "source_claim": _coerce_source_claim(payload.get("source_claim")),
         }
     return {}
@@ -465,6 +487,7 @@ def _build_context(
     claims: list[dict[str, Any]],
     methods: list[dict[str, Any]],
     techniques: list[dict[str, Any]],
+    equations: list[dict[str, Any]],
     tags: list[Any],
     strategy: str,
     depth: int,
@@ -475,10 +498,16 @@ def _build_context(
     claim_count: int,
     method_count: int,
     technique_count: int,
+    equation_count: int,
 ) -> str:
     claim_lines = [str(item.get("statement", "")) for item in claims[:8] if str(item.get("statement", "")).strip()]
     method_lines = [f"{item.get('name', '')}: {item.get('description', '')}" for item in methods[:6] if str(item.get("name", "")).strip()]
     technique_lines = [f"{item.get('name', '')}: {item.get('description', '')}" for item in techniques[:6] if str(item.get("name", "")).strip()]
+    equation_lines = [
+        f"{item.get('label', f'equation_{idx}')}: {item.get('expression', '')} ({item.get('context', '')})"
+        for idx, item in enumerate((equations or [])[:6], start=1)
+        if isinstance(item, dict) and str(item.get("expression", "")).strip()
+    ]
     tags_text = ", ".join(str(t) for t in (tags or [])[:12])
 
     bucket_lines = "\n".join(
@@ -492,15 +521,18 @@ def _build_context(
         f"Depth: {depth}\n"
         f"Budget: {budget} new non-redundant items max in this pass\n"
         f"Generated so far: {prior_count}\n"
-        f"Counts: claims={claim_count}, methods={method_count}, techniques={technique_count}\n"
+        f"Counts: claims={claim_count}, methods={method_count}, techniques={technique_count}, equations={equation_count}\n"
         f"Tags: {tags_text}\n\n"
         f"Strategy: {strategy}\n\n"
         f"Claims:\n- {'\n- '.join(claim_lines) if claim_lines else 'none'}\n\n"
         f"Methods:\n- {'\n- '.join(method_lines) if method_lines else 'none'}\n\n"
         f"Techniques:\n- {'\n- '.join(technique_lines) if technique_lines else 'none'}\n\n"
+        f"Equations:\n- {'\n- '.join(equation_lines) if equation_lines else 'none'}\n\n"
         "Target buckets: derivations, exercises, missing_angles, open_questions, unstated_assumptions, experiments, necessary_connections.\n"
         f"Bucket focus:\n{bucket_lines}\n\n"
         "Respond as JSON with exactly these top-level keys: derivations, exercises, missing_angles, open_questions, unstated_assumptions, experiments, necessary_connections. "
+        "Use canonical field names where possible: derivations.statement, exercises.problem, missing_angles.angle, open_questions.question, "
+        "unstated_assumptions.assumption, experiments.hypothesis/design/predicted_true/predicted_false, necessary_connections.work/why_necessary/impact. "
         "Confidence fields must be one of derived|likely|speculative. Return only items that are directly grounded where possible."
     )
 

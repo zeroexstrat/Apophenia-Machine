@@ -36,13 +36,67 @@ def _summarize_slice_outputs(command: str, outputs: Any) -> list[str]:
         for item in outputs[:3]:
             if not isinstance(item, dict):
                 continue
-            ident = item.get("paper_id") or item.get("cluster_id") or item.get("gap_id") or item.get("file")
+            ident = _output_identifier(item)
             if ident is None:
                 continue
-            findings.append(f"- {ident}")
+            summary = _output_detail_summary(item)
+            findings.append(f"- {ident}" + (f" | {summary}" if summary else ""))
+            direction = _output_direction(item)
+            if direction:
+                findings.append(f"  Direction: {direction}")
         if len(outputs) > 3:
             findings.append(f"- ... {len(outputs)-3} more")
     return findings
+
+
+def _output_identifier(item: dict[str, Any]) -> Any:
+    nested_exhaustion = item.get("exhaustion")
+    if isinstance(nested_exhaustion, dict):
+        return nested_exhaustion.get("paper_id")
+    return item.get("paper_id") or item.get("cluster_id") or item.get("gap_id") or item.get("file")
+
+
+def _output_detail_summary(item: dict[str, Any]) -> str:
+    bucket_names = (
+        "derivations",
+        "exercises",
+        "missing_angles",
+        "open_questions",
+        "unstated_assumptions",
+        "experiments",
+        "necessary_connections",
+    )
+    parts: list[str] = []
+    for name in bucket_names:
+        value = item.get(name)
+        if isinstance(value, list):
+            parts.append(f"{name}={len(value)}")
+    if parts:
+        return " ".join(parts)
+    status = item.get("status")
+    domain = item.get("domain")
+    return " ".join(str(part) for part in (domain, status) if part)
+
+
+def _output_direction(item: dict[str, Any]) -> str:
+    candidates = (
+        ("experiments", ("hypothesis", "design")),
+        ("open_questions", ("question", "how_to_close")),
+        ("missing_angles", ("angle", "where_it_lands")),
+        ("necessary_connections", ("work", "why_necessary")),
+        ("derivations", ("statement", "follows_from")),
+    )
+    for bucket, keys in candidates:
+        values = item.get(bucket)
+        if not isinstance(values, list):
+            continue
+        for value in values:
+            if not isinstance(value, dict):
+                continue
+            text = " - ".join(str(value.get(key, "")).strip() for key in keys if str(value.get(key, "")).strip())
+            if text:
+                return text[:300]
+    return ""
 
 
 def _persist_auto_checkpoint(command: str, outputs: Any, *, disable: bool) -> None:
@@ -50,7 +104,7 @@ def _persist_auto_checkpoint(command: str, outputs: Any, *, disable: bool) -> No
         return
     findings = _summarize_slice_outputs(command, outputs)
     memory_path = persist_checkpoint(command=command, findings=findings)
-    print(f"Auto checkpoint persisted to {memory_path}")
+    click.echo(f"Auto checkpoint persisted to {memory_path}", err=True)
 
 
 def _run_with_command_context(

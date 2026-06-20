@@ -114,6 +114,7 @@ def _stderr_is_allowed(raw_stderr: str) -> bool:
         r"^Notes:",
         r"^\s*\d+%\|",
         r"FutureWarning:",
+        r"^Auto checkpoint persisted to ",
     ]
 
     for line in raw_stderr.splitlines():

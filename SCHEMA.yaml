@@ -118,6 +118,27 @@ techniques:
       description: "Implementation detail. Pseudocode, LOC count, hardware requirements, known bottlenecks."
 
 # ===========================================================================
+# Equations — formal anchors available to downstream exhaustion
+# ===========================================================================
+equations:
+  type: list[object]
+  required: false
+  description: "Equation-like statements extracted from the paper. These are anchors for derivations and exercises, not proof that the equation is central."
+  fields:
+    label:
+      type: string
+      required: true
+      description: "Stable local label such as equation_1 or a paper label if available."
+    expression:
+      type: string
+      required: true
+      description: "The equation or equation-like expression as extracted."
+    context:
+      type: string
+      required: false
+      description: "Nearby text explaining where this equation appears or what it is used for."
+
+# ===========================================================================
 # Caveats — the honest constraints
 # ===========================================================================
 caveats:

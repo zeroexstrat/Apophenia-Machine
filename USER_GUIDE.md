@@ -77,6 +77,8 @@ Ingestion writes:
 - `albedo/library/<paper_id>.yaml`
 - one entry in `albedo/registry.jsonl` with status `pending` / `ingested_only`
 
+If the LLM is unavailable, fallback ingestion still extracts claim, method, technique, tag, and equation anchors from text heuristics. Review those records before treating downstream exhaustion as meaningful.
+
 ### Citrinitas — Cross-Connection
 
 Run pair discovery from exhausted papers:
@@ -90,6 +92,12 @@ azoth status --domain ML --json
 ```
 
 `/awaken` is the conversational alias of `azoth awaken`.
+
+If exhaustion returns empty buckets, inspect the corresponding `albedo/library/<paper_id>.yaml`. Empty exhaustion is expected when the library record contains only generic fallback text. To verify semantic behavior, run:
+
+```bash
+python3 scripts/check_semantic_pipeline.py
+```
 
 ### Rubedo — Gap Detection and Drafts
 

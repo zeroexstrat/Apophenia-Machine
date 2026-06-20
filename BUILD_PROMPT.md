@@ -215,7 +215,7 @@ Build a `parse_pdf(path)` function that:
   (if blocks appear in two distinct x-ranges, interleave them)
 - Extracts: full text, page count, section headers (detect by font size or
   numbering patterns), references section (split at "References" or
-  "Bibliography" heading)
+  "Bibliography" heading), and equation-like lines when available
 - Returns a structured dict:
   ```python
   {
@@ -225,6 +225,7 @@ Build a `parse_pdf(path)` function that:
       "full_text": str,
       "sections": [{"title": str, "text": str, "start_page": int}],
       "references": [str],  # Raw reference strings
+      "equations": [{"label": str, "expression": str, "context": str}],
       "abstract": str | None,  # If detectable
       "parse_warnings": [str]  # Any issues encountered
   }
@@ -988,14 +989,22 @@ After building everything, run this validation sequence:
 - Validate the output YAML against the schema
 - Check that domain classification is reasonable
 - Check that claims, methods, and techniques are substantive (not generic)
+- Check that equation-like formal anchors are captured when available
 - Check that embeddings are generated and searchable
 
 ### 10.3 Exhaust Pipeline
 - Exhaust one ingested paper at depth 3
 - Verify all three termination criteria are implemented
 - Check that items are domain-appropriate
+- Check that rich records produce at least one concrete exhaustion item
 - Check that redundancy detection works (some items should be filtered)
 - Verify the hard cap calculation
+
+### 10.3.1 Semantic Pipeline
+- Run `python3 scripts/check_semantic_pipeline.py`
+- Confirm rich fallback extraction produces concrete claims, methods, and equations
+- Confirm LLM output aliases are normalized into schema fields instead of discarded
+- Confirm automatic checkpoints include item counts and possible next directions
 
 ### 10.4 Connect Pipeline
 - Run connection discovery on the 3 ingested papers

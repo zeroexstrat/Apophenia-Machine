@@ -66,7 +66,14 @@ def _paper_id_suffix(value: str) -> str:
 
 
 def _fallback_extraction(parsed: dict[str, Any], path: Path, title: str, authors: list[str], year: int | None) -> dict[str, Any]:
-    abstract = (parsed.get("abstract") or "").strip()
+    full_text = (parsed.get("full_text") or "").strip()
+    abstract = (parsed.get("abstract") or "").strip() or _extract_inline_abstract(full_text)
+    claims = _fallback_claims(abstract=abstract, full_text=full_text, path=path)
+    methods = _fallback_methods(full_text)
+    techniques = _fallback_techniques(full_text)
+    equations = _fallback_equations(full_text, parsed.get("equations"))
+    tags = _fallback_tags(title=title, full_text=full_text)
+
     return {
         "schema_version": 1,
         "id": None,
@@ -79,24 +86,13 @@ def _fallback_extraction(parsed: dict[str, Any], path: Path, title: str, authors
             "doi": None,
             "venue": None,
         },
-        "claims": [
-            {
-                "statement": abstract[:420] or f"Automated ingest found content in {path.name}.",
-                "confidence": "demonstrated",
-                "evidence": "Full text contains this section summary.",
-            }
-        ],
-        "methods": [
-            {
-                "name": "automated text parsing",
-                "description": "Content was extracted from the PDF with fallback parsing.",
-                "domain": "general",
-            }
-        ],
-        "techniques": [],
+        "claims": claims,
+        "methods": methods,
+        "techniques": techniques,
+        "equations": equations,
         "caveats": ["Automated extraction used; review before downstream analysis."],
         "connections_explicit": [],
-        "tags": ["ingested", "fallback"],
+        "tags": tags,
         "ingestion": {
             "date": now_iso(),
             "agent": "ingest-fallback",
@@ -104,6 +100,222 @@ def _fallback_extraction(parsed: dict[str, Any], path: Path, title: str, authors
             "status": "ingested",
         },
     }
+
+
+def _extract_inline_abstract(text: str) -> str:
+    if not text:
+        return ""
+    normalized = re.sub(r"\s+", " ", text).strip()
+    match = re.search(
+        r"\babstract\b[:\s-]*(.+?)(?:\b(?:introduction|keywords|1\s+introduction|references)\b|$)",
+        normalized,
+        flags=re.IGNORECASE,
+    )
+    if match:
+        return match.group(1).strip()[:1800]
+    return ""
+
+
+def _split_sentences(text: str, *, limit: int = 80) -> list[str]:
+    normalized = re.sub(r"\s+", " ", text or "").strip()
+    if not normalized:
+        return []
+    parts = re.split(r"(?<=[.!?])\s+", normalized)
+    sentences: list[str] = []
+    for part in parts:
+        clean = part.strip(" \t\n\r;:")
+        if 35 <= len(clean) <= 500:
+            sentences.append(clean)
+        if len(sentences) >= limit:
+            break
+    return sentences
+
+
+def _fallback_claims(*, abstract: str, full_text: str, path: Path) -> list[dict[str, Any]]:
+    source_text = abstract or "\n".join(full_text.splitlines()[:120])
+    sentences = _split_sentences(source_text)
+    claim_cues = (
+        "we introduce",
+        "we present",
+        "we propose",
+        "we show",
+        "we demonstrate",
+        "we prove",
+        "we derive",
+        "we find",
+        "we study",
+        "we develop",
+        "results show",
+        "this paper",
+        "the method",
+    )
+    selected: list[str] = []
+    for sentence in sentences:
+        lowered = sentence.lower()
+        if any(cue in lowered for cue in claim_cues):
+            selected.append(sentence)
+        if len(selected) >= 5:
+            break
+    if not selected:
+        selected = sentences[:3]
+    if not selected:
+        selected = [f"Automated ingest found content in {path.name}."]
+
+    claims: list[dict[str, Any]] = []
+    for sentence in selected[:5]:
+        lowered = sentence.lower()
+        confidence = "demonstrated" if any(cue in lowered for cue in ("show", "demonstrate", "prove", "results")) else "hypothesized"
+        claims.append(
+            {
+                "statement": sentence[:500],
+                "confidence": confidence,
+                "evidence": "Heuristic extraction from abstract/full text; human review required.",
+            }
+        )
+    return claims
+
+
+def _fallback_methods(text: str) -> list[dict[str, Any]]:
+    sentences = _split_sentences(text)
+    method_cues = ("method", "approach", "using", "uses", "via", "based on", "architecture", "algorithm")
+    methods: list[dict[str, Any]] = []
+    for sentence in sentences:
+        lowered = sentence.lower()
+        if not any(cue in lowered for cue in method_cues):
+            continue
+        name = _method_name_from_sentence(sentence)
+        methods.append(
+            {
+                "name": name,
+                "description": sentence[:700],
+                "domain": "general",
+            }
+        )
+        if len(methods) >= 4:
+            break
+    if not methods:
+        methods.append(
+            {
+                "name": "automated text parsing",
+                "description": "Content was extracted from the PDF with fallback parsing.",
+                "domain": "general",
+            }
+        )
+    return methods
+
+
+def _method_name_from_sentence(sentence: str) -> str:
+    lowered = sentence.lower()
+    for cue in ("using ", "uses ", "via ", "based on "):
+        idx = lowered.find(cue)
+        if idx != -1:
+            phrase = sentence[idx + len(cue) :].strip()
+            words = re.findall(r"[A-Za-z0-9][A-Za-z0-9_-]*", phrase)[:6]
+            if words:
+                return " ".join(words)
+    words = re.findall(r"[A-Za-z0-9][A-Za-z0-9_-]*", sentence)[:6]
+    return " ".join(words) if words else "fallback extracted method"
+
+
+def _fallback_techniques(text: str) -> list[dict[str, Any]]:
+    known_terms = [
+        "transformer",
+        "attention",
+        "sparse attention",
+        "routing",
+        "retrieval gate",
+        "contrastive learning",
+        "variational",
+        "gradient",
+        "loss",
+        "objective",
+        "simulation",
+        "ablation",
+    ]
+    lowered = text.lower()
+    techniques: list[dict[str, Any]] = []
+    for term in known_terms:
+        if term not in lowered:
+            continue
+        techniques.append(
+            {
+                "name": term,
+                "description": f"Heuristically detected technique or mechanism: {term}.",
+            }
+        )
+        if len(techniques) >= 5:
+            break
+    return techniques
+
+
+def _fallback_equations(text: str, parsed_equations: Any = None) -> list[dict[str, Any]]:
+    if isinstance(parsed_equations, list) and parsed_equations:
+        cleaned: list[dict[str, Any]] = []
+        for idx, item in enumerate(parsed_equations, start=1):
+            if not isinstance(item, dict):
+                continue
+            expression = str(item.get("expression", "")).strip()
+            if not expression:
+                continue
+            cleaned.append(
+                {
+                    "label": str(item.get("label") or f"equation_{idx}"),
+                    "expression": expression[:240],
+                    "context": str(item.get("context", ""))[:500],
+                }
+            )
+            if len(cleaned) >= 8:
+                break
+        if cleaned:
+            return cleaned
+
+    equations: list[dict[str, Any]] = []
+    lines = [line.strip() for line in (text or "").splitlines()]
+    compact_sentences = _split_sentences(text, limit=120)
+    candidates = lines + compact_sentences
+    equation_pattern = re.compile(r"([A-Za-z0-9_{}^<>|()\\/\[\]\s.,:+\-*]+=[^.;\n]{2,})")
+    for candidate in candidates:
+        if len(candidate) > 240:
+            continue
+        if not any(symbol in candidate for symbol in ("=", "\u2211", "\\sum", "\\int", "\u2264", ">=", "<=", "->", "\u2192")):
+            continue
+        match = equation_pattern.search(candidate)
+        expression = (match.group(1) if match else candidate).strip()
+        if len(expression) < 5:
+            continue
+        equations.append(
+            {
+                "label": f"equation_{len(equations) + 1}",
+                "expression": expression[:240],
+                "context": candidate[:300],
+            }
+        )
+        if len(equations) >= 8:
+            break
+    return equations
+
+
+def _fallback_tags(*, title: str, full_text: str) -> list[str]:
+    text = f"{title}\n{full_text[:6000]}".lower()
+    tags = ["ingested", "fallback"]
+    tag_terms = {
+        "transformer": "transformers",
+        "attention": "attention",
+        "sparse": "sparse_computation",
+        "routing": "routing",
+        "retrieval": "retrieval",
+        "equation": "formalism",
+        "loss": "optimization",
+        "quantum": "quantum_physics",
+        "neural": "neural_networks",
+        "language model": "language_modeling",
+        "thermodynamic": "thermodynamics",
+        "game": "game_theory",
+    }
+    for needle, tag in tag_terms.items():
+        if needle in text and tag not in tags:
+            tags.append(tag)
+    return tags[:12]
 
 
 def _extract_with_llm(
@@ -117,12 +329,24 @@ def _extract_with_llm(
 
     title = _safe_title(parsed)
     raw_text = (parsed.get("full_text") or "")[:18000]
+    equations = parsed.get("equations") or []
+    equation_hint = ""
+    if isinstance(equations, list) and equations:
+        rendered = []
+        for item in equations[:8]:
+            if isinstance(item, dict):
+                rendered.append(f"- {item.get('label', 'equation')}: {item.get('expression', '')}")
+        if rendered:
+            equation_hint = "\n\nDetected equation-like anchors:\n" + "\n".join(rendered)
     schema_hint = schema.get("schema_version", 1)
     prompt = (
         "Extract a structured record from this research paper.\n\n"
         f"Paper title: {title}\n\n"
         f"Schema version: {schema_hint}\n\n"
-        "Return JSON with the exact structure expected by SCHEMA.yaml.\n\n"
+        "Return JSON with the exact structure expected by SCHEMA.yaml. "
+        "Extract concrete claims, methods, techniques, tags, and equations when available. "
+        "Claims must be statements precise enough to be wrong; do not emit generic summaries.\n\n"
+        f"{equation_hint}\n\n"
         f"Full paper text:\n{raw_text}"
     )
     if retry_with_errors:
