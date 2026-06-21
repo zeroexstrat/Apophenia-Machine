@@ -25,6 +25,12 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -e .
 
+      - name: Compile Python sources
+        run: python3 -m compileall athanasor scripts
+
+      - name: Check CLI diagnostics
+        run: python3 scripts/check_cli_diagnostics.py
+
       - name: Check CLI
         run: python3 scripts/check_cli.py
 

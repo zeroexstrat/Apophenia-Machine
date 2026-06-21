@@ -513,6 +513,10 @@ def _build_context(
     bucket_lines = "\n".join(
         f"- {name}: {desc}" for name, desc in buckets_terms.items()
     )
+    claim_block = "\n- ".join(claim_lines) if claim_lines else "none"
+    method_block = "\n- ".join(method_lines) if method_lines else "none"
+    technique_block = "\n- ".join(technique_lines) if technique_lines else "none"
+    equation_block = "\n- ".join(equation_lines) if equation_lines else "none"
 
     return (
         "Produce bounded exhaustion items for this paper.\n\n"
@@ -524,10 +528,10 @@ def _build_context(
         f"Counts: claims={claim_count}, methods={method_count}, techniques={technique_count}, equations={equation_count}\n"
         f"Tags: {tags_text}\n\n"
         f"Strategy: {strategy}\n\n"
-        f"Claims:\n- {'\n- '.join(claim_lines) if claim_lines else 'none'}\n\n"
-        f"Methods:\n- {'\n- '.join(method_lines) if method_lines else 'none'}\n\n"
-        f"Techniques:\n- {'\n- '.join(technique_lines) if technique_lines else 'none'}\n\n"
-        f"Equations:\n- {'\n- '.join(equation_lines) if equation_lines else 'none'}\n\n"
+        f"Claims:\n- {claim_block}\n\n"
+        f"Methods:\n- {method_block}\n\n"
+        f"Techniques:\n- {technique_block}\n\n"
+        f"Equations:\n- {equation_block}\n\n"
         "Target buckets: derivations, exercises, missing_angles, open_questions, unstated_assumptions, experiments, necessary_connections.\n"
         f"Bucket focus:\n{bucket_lines}\n\n"
         "Respond as JSON with exactly these top-level keys: derivations, exercises, missing_angles, open_questions, unstated_assumptions, experiments, necessary_connections. "
