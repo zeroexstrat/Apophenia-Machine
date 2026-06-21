@@ -327,8 +327,7 @@ def _synthesize_cluster(
     result["cluster_id"] = cluster_id
     result["scope"] = domain or ("-".join(cross) if cross else "mixed")
     result["paper_ids"] = sorted({str(record.get("id") or (record.get("source") or {}).get("title", "")) for record in paper_records if isinstance(record, dict)})
-    result["status"] = result.get("status", "pending_review")
-    result["status"] = result.get("status") or "pending_review"
+    result["status"] = "pending_review"
     result.setdefault("novelty", True)
     gaps = [gap for gap in result.get("gaps", []) if isinstance(gap, dict)]
     # Filter low-confidence gaps.
@@ -361,6 +360,7 @@ def _synthesize_cluster(
             exhaustion_records,
             schema,
         )
+    fixed["status"] = "pending_review"
     return fixed
 
 
