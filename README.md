@@ -21,7 +21,7 @@ Azoth follows `AESTHETIC.md` conventions:
 Non-alchemical names in machine payloads remain plain English:
 - Directories: `nigredo`, `albedo`, `citrinitas`, `rubedo`, `athanasor`
 - Data fields: `paper_id`, `status`, `source`, `tags`, `confidence`, etc.
-- Commands: `ingest`, `awaken`, `connect`, `detect`, `draft`, `triage`, `review`, `experiment`, `promote`
+- Commands: `ingest`, `awaken`, `connect`, `detect`, `draft`, `triage`, `review`, `experiment`, `promote`, `ouroboros`
 
 ---
 
@@ -130,7 +130,7 @@ It moves files to domain folders and writes:
 
 Fallback ingestion extracts concrete claim, method, technique, tag, and equation anchors when text is available. LLM ingestion should still be preferred for serious runs.
 
-`ingest`, `awaken`, `exhaust`, `connect`, `detect`, `draft`, `triage`, `review`, `experiment`, and `promote` also persist a light checkpoint entry to
+`ingest`, `awaken`, `exhaust`, `connect`, `detect`, `draft`, `triage`, `review`, `experiment`, `promote`, and `ouroboros` also persist a light checkpoint entry to
 `athanasor/lapis/memory.jsonl` after successful completion for crash recovery.
 
 ### 3) Awaken and exhaust papers
@@ -205,6 +205,23 @@ azoth promote <cluster_id> --decision rejected --reviewer <name> --note "Unsuppo
 `needs_prior_art` is recorded as the human decision but maps the hypothesis
 status to schema-compatible `investigate`. No command marks novelty as accepted
 without an explicit reviewer and note.
+
+If prior-art review rejects the novelty claim, feed those priors back into
+Nigredo with Ouroboros:
+
+```bash
+azoth ouroboros <cluster_id>
+azoth ingest nigredo/inbox/
+azoth awaken ML --depth 3 --count 8
+azoth connect --within ML --reanalyze-depth-upgrades
+azoth detect --domain ML
+```
+
+`ouroboros` reads `rubedo/prior_art/<cluster_id>.yaml`, writes
+`nigredo/ouroboros/<cluster_id>_expansion.yaml` and
+`nigredo/ouroboros/<cluster_id>_report.yaml`, downloads safe arXiv/direct-PDF
+sources into `nigredo/inbox/`, and leaves unresolved URLs queued for manual
+handling. It never auto-ingests or mutates the Rubedo decision.
 
 ### 6) Close a session
 
@@ -284,6 +301,15 @@ All commands are under `azoth` (entrypoint from `pyproject.toml`).
   - `--decision {accepted,rejected,needs_prior_art}`
   - `--reviewer <name>`
   - `--note <reason>`
+  - `--json`, `--no-auto-checkpoint`
+
+- `azoth ouroboros <cluster_id>`
+  - `--download/--no-download`
+  - `--include-impact <impact>` (repeatable)
+  - `--max-sources N`
+  - writes `nigredo/ouroboros/<cluster_id>_expansion.yaml`
+  - writes `nigredo/ouroboros/<cluster_id>_report.yaml`
+  - safely downloads arXiv/direct-PDF sources to `nigredo/inbox/`
   - `--json`, `--no-auto-checkpoint`
 
 Automatic checkpointing can be disabled globally with:
@@ -403,6 +429,8 @@ azoth/
   - `run_experiment(...)`: candidate gap to pilot experiment specification
 - `promote.py`
   - `run_promote(...)`: reviewer-gated status mutation for accepted/rejected/needs-prior-art decisions
+- `ouroboros.py`
+  - `run_ouroboros(...)`: rejected prior-art expansion into Nigredo queue/report artifacts and safe inbox downloads
 
 ### Shared helpers (`athanasor/skills/common.py`)
 

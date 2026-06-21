@@ -140,6 +140,22 @@ azoth promote <gap_id> --decision rejected --reviewer <name> --note "Unsupported
 `promote` is the only command that mutates a Rubedo hypothesis decision. All
 generated outputs remain `pending_review`.
 
+If prior-art review rejects a novelty claim, use Ouroboros to turn that mapped
+territory into the next Nigredo expansion:
+
+```bash
+azoth ouroboros <gap_id>
+azoth ingest nigredo/inbox/
+azoth awaken ML --depth 3 --count 8
+azoth connect --within ML --reanalyze-depth-upgrades
+azoth detect --domain ML
+```
+
+`ouroboros` reads `rubedo/prior_art/<gap_id>.yaml`, writes an expansion plan
+and report to `nigredo/ouroboros/`, safely downloads arXiv/direct-PDF priors
+into `nigredo/inbox/`, and leaves ambiguous URLs marked `manual_required`.
+Use `--no-download` to create only the queue artifacts.
+
 ## Registry and status queries
 
 ```bash

@@ -22,6 +22,7 @@ from .skills import draft as draft_skill
 from .skills import experiment as experiment_skill
 from .skills import exhaust as exhaust_skill
 from .skills import ingest as ingest_skill
+from .skills import ouroboros as ouroboros_skill
 from .skills import promote as promote_skill
 from .skills import review as review_skill
 from .skills import triage as triage_skill
@@ -701,6 +702,43 @@ def cmd_promote(
         _run,
         checkpoint=lambda result: _persist_auto_checkpoint(
             "azoth promote", [str(result)], disable=no_auto_checkpoint
+        ),
+    )
+    _emit_path(path, json_output)
+
+
+@main.command("ouroboros")
+@click.argument("cluster_id")
+@click.option("--download/--no-download", default=True, show_default=True, help="Download safe PDF sources into Nigredo inbox.")
+@click.option("--include-impact", multiple=True, help="Prior-art impact label to include. Repeatable.")
+@click.option("--max-sources", default=8, type=click.IntRange(min=1), show_default=True, help="Maximum source rows to queue.")
+@click.option("--json", "json_output", is_flag=True, help="Emit machine-readable JSON")
+@click.option("--no-auto-checkpoint", is_flag=True, help="Skip automatic post-slice memory checkpoint.")
+def cmd_ouroboros(
+    cluster_id: str,
+    download: bool,
+    include_impact: tuple[str, ...],
+    max_sources: int,
+    json_output: bool,
+    no_auto_checkpoint: bool,
+) -> None:
+    """Expand rejected prior art back into Nigredo."""
+    def _run() -> Path:
+        cfg = load_config()
+        impacts = list(include_impact) if include_impact else None
+        return ouroboros_skill.run_ouroboros(
+            cluster_id,
+            config=cfg,
+            download=download,
+            include_impacts=impacts,
+            max_sources=max_sources,
+        )
+
+    path = _run_with_command_context(
+        "azoth ouroboros",
+        _run,
+        checkpoint=lambda result: _persist_auto_checkpoint(
+            "azoth ouroboros", [str(result)], disable=no_auto_checkpoint
         ),
     )
     _emit_path(path, json_output)

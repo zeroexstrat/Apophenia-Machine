@@ -56,6 +56,7 @@ def main() -> int:
         "review",
         "experiment",
         "promote",
+        "ouroboros",
         "validate",
         "migrate",
         "config",
@@ -73,6 +74,7 @@ def main() -> int:
         "review",
         "experiment",
         "promote",
+        "ouroboros",
         "config",
         "migrate",
     ]:
