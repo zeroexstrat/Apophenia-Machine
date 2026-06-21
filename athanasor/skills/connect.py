@@ -22,6 +22,17 @@ from ..skills.common import ensure_dir, now_iso, run_vigil_check, slugify, write
 
 CONNECT_SCHEMA_PATH = Path(__file__).resolve().parents[2] / "CONNECT_SCHEMA.yaml"
 GENERIC_PAIR_TAGS = {"fallback", "ingested", "automated", "pdf", "paper"}
+HIGH_SIGNAL_PAIR_TAGS = {
+    "adaptive_computation",
+    "knowledge_distillation",
+    "latent_dynamics",
+    "latent_moe",
+    "looped_transformer",
+    "mamba_transformer",
+    "mixture_of_experts",
+    "state_space_models",
+    "world_model",
+}
 STRONG_TAG_OVERLAP_COUNT = 2
 
 
@@ -494,7 +505,8 @@ def _should_analyze_pair(
 ) -> bool:
     if similarity >= similarity_threshold:
         return True
-    return len(_shared_tags(a, b)) >= STRONG_TAG_OVERLAP_COUNT
+    shared = _shared_tags(a, b)
+    return bool(shared.intersection(HIGH_SIGNAL_PAIR_TAGS)) or len(shared) >= STRONG_TAG_OVERLAP_COUNT
 
 
 def _paper_embedding(store: EmbeddingStore, paper_id: str) -> np.ndarray:
