@@ -96,14 +96,14 @@ def _synthesize_draft(path: Path, hypothesis: dict[str, Any], llm: LLMClient | N
     if llm is None:
         title = f"Working note: {path.stem}"
         body = (
-            f"## Title\\n{title}\\n\\n"
-            f"## Context\\n{hypothesis.get('summary', 'No summary available.')}\\n\\n"
-            f"## The Gap\\n{description}\\n\\n"
-            "## Proposed Direction\\n"
-            f"{approach}\\n\\n"
-            "## Open Questions\\n"
-            "- Feasibility is unverified.\\n- Evidence strength remains candidate-level.\\n\\n"
-            f"## References\\n{', '.join(papers)}\\n"
+            f"## Title\n{title}\n\n"
+            f"## Context\n{hypothesis.get('summary', 'No summary available.')}\n\n"
+            f"## The Gap\n{description}\n\n"
+            "## Proposed Direction\n"
+            f"{approach}\n\n"
+            "## Open Questions\n"
+            "- Feasibility is unverified.\n- Evidence strength remains candidate-level.\n\n"
+            f"## References\n{', '.join(papers)}\n"
         )
         return _frontmatter(path.stem, papers, title) + body
 
@@ -123,15 +123,15 @@ def _synthesize_draft(path: Path, hypothesis: dict[str, Any], llm: LLMClient | N
             break
     if "## Title" not in result:
         result = (
-            f"## Title\\n{title}\\n\\n"
-            "## Context\\n"
-            f"{hypothesis.get('summary', '')}\\n\\n"
-            "## The Gap\\n"
-            f"{description}\\n\\n"
-            "## Proposed Direction\\n"
-            f"{approach}\\n\\n"
-            "## Open Questions\\n- If feasible, validate with follow-up work.\\n- Measure transferability across domains.\\n\\n"
-            f"## References\\n{', '.join(papers)}\\n"
+            f"## Title\n{title}\n\n"
+            "## Context\n"
+            f"{hypothesis.get('summary', '')}\n\n"
+            "## The Gap\n"
+            f"{description}\n\n"
+            "## Proposed Direction\n"
+            f"{approach}\n\n"
+            "## Open Questions\n- If feasible, validate with follow-up work.\n- Measure transferability across domains.\n\n"
+            f"## References\n{', '.join(papers)}\n"
         )
     return _frontmatter(path.stem, papers, title) + result.strip() + "\n"
 
@@ -139,13 +139,13 @@ def _synthesize_draft(path: Path, hypothesis: dict[str, Any], llm: LLMClient | N
 def _frontmatter(gap_id: str, papers: list[str], title: str) -> str:
     date = now_iso().split("T")[0]
     return (
-        "---\\n"
-        f"gap_id: {gap_id}\\n"
-        f"title: {title}\\n"
-        f"date: {date}\\n"
-        "status: pending_review\\n"
-        f"papers: [{', '.join(papers)}]\\n"
-        "---\\n\\n"
+        "---\n"
+        f"gap_id: {gap_id}\n"
+        f"title: {title}\n"
+        f"date: {date}\n"
+        "status: pending_review\n"
+        f"papers: [{', '.join(papers)}]\n"
+        "---\n\n"
     )
 
 
@@ -154,7 +154,7 @@ def _append_draft_reference(index_path: Path, draft_path: Path, payload: dict[st
     with open(index_path, "a", encoding="utf-8") as f:
         f.write(
             f"- {now_iso()} | {draft_path.name} | gap:{payload.get('cluster_id')} | "
-            f"papers:{','.join(str(p) for p in payload.get('paper_ids', []))}\\n"
+            f"papers:{','.join(str(p) for p in payload.get('paper_ids', []))}\n"
         )
 
 
