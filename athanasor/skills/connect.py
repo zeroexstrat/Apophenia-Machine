@@ -161,10 +161,7 @@ def connect(
             "paper_a_domain": a_entry.get("domain"),
             "paper_b_domain": b_entry.get("domain"),
         }
-        candidate.setdefault("status", "pending_review")
-        candidate["status"] = candidate.get("status")
-        if candidate["status"] not in {"pending_review", "accepted", "rejected", "investigate"}:
-            candidate["status"] = "pending_review"
+        candidate["status"] = "pending_review"
         candidate["score"] = _score_connection(candidate, novelty_weight=True)
         candidate["evidence_a"] = candidate.get("evidence_a") or "Unspecified"
         candidate["evidence_b"] = candidate.get("evidence_b") or "Unspecified"
@@ -188,6 +185,7 @@ def connect(
             _append_analyzed(root / "albedo" / "connections_analyzed.jsonl", a_id, b_id)
             continue
         candidate = fixed
+        candidate["status"] = "pending_review"
 
         if candidate.get("novelty") == "speculative" and candidate["confidence"] < 4:
             analyzed.add(key)
@@ -688,7 +686,7 @@ def _write_connection(
 
 
 def _normalize_connection(payload: dict[str, Any], path: Path) -> dict[str, Any]:
-    payload["status"] = payload.get("status", "pending_review")
+    payload["status"] = "pending_review"
     payload.setdefault("schema_version", 1)
     payload["pair_scope"] = payload.get("pair_scope", "within_domain")
     payload.setdefault("significance", "No significance provided.")
