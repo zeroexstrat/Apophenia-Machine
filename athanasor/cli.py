@@ -19,8 +19,12 @@ from .registry import VALID_STATUSES, Registry
 from .skills import connect as connect_skill
 from .skills import detect as detect_skill
 from .skills import draft as draft_skill
+from .skills import experiment as experiment_skill
 from .skills import exhaust as exhaust_skill
 from .skills import ingest as ingest_skill
+from .skills import promote as promote_skill
+from .skills import review as review_skill
+from .skills import triage as triage_skill
 from .session.commands import persist_checkpoint
 
 
@@ -603,6 +607,110 @@ def cmd_draft(
         for path in paths:
             click.echo(f"  - {path}")
         click.echo(f"Generated {len(paths)} draft file(s).")
+
+
+@main.command("triage")
+@click.argument("cluster_id")
+@click.option("--json", "json_output", is_flag=True, help="Emit machine-readable JSON")
+@click.option("--no-auto-checkpoint", is_flag=True, help="Skip automatic post-slice memory checkpoint.")
+def cmd_triage(cluster_id: str, json_output: bool, no_auto_checkpoint: bool) -> None:
+    """Build a human review packet for one Rubedo hypothesis."""
+    def _run() -> Path:
+        cfg = load_config()
+        return triage_skill.run_triage(cluster_id, config=cfg)
+
+    path = _run_with_command_context(
+        "azoth triage",
+        _run,
+        checkpoint=lambda result: _persist_auto_checkpoint(
+            "azoth triage", [str(result)], disable=no_auto_checkpoint
+        ),
+    )
+    _emit_path(path, json_output)
+
+
+@main.command("review")
+@click.argument("cluster_id")
+@click.option("--json", "json_output", is_flag=True, help="Emit machine-readable JSON")
+@click.option("--no-auto-checkpoint", is_flag=True, help="Skip automatic post-slice memory checkpoint.")
+def cmd_review(cluster_id: str, json_output: bool, no_auto_checkpoint: bool) -> None:
+    """Run deterministic gate review for one Rubedo hypothesis."""
+    def _run() -> Path:
+        cfg = load_config()
+        return review_skill.run_review(cluster_id, config=cfg)
+
+    path = _run_with_command_context(
+        "azoth review",
+        _run,
+        checkpoint=lambda result: _persist_auto_checkpoint(
+            "azoth review", [str(result)], disable=no_auto_checkpoint
+        ),
+    )
+    _emit_path(path, json_output)
+
+
+@main.command("experiment")
+@click.argument("cluster_id")
+@click.option("--gap-rank", default=1, type=click.IntRange(min=1), show_default=True, help="Ranked gap to convert.")
+@click.option("--json", "json_output", is_flag=True, help="Emit machine-readable JSON")
+@click.option("--no-auto-checkpoint", is_flag=True, help="Skip automatic post-slice memory checkpoint.")
+def cmd_experiment(cluster_id: str, gap_rank: int, json_output: bool, no_auto_checkpoint: bool) -> None:
+    """Generate a concrete pilot experiment spec from a Rubedo gap."""
+    def _run() -> Path:
+        cfg = load_config()
+        return experiment_skill.run_experiment(cluster_id, gap_rank=gap_rank, config=cfg)
+
+    path = _run_with_command_context(
+        "azoth experiment",
+        _run,
+        checkpoint=lambda result: _persist_auto_checkpoint(
+            "azoth experiment", [str(result)], disable=no_auto_checkpoint
+        ),
+    )
+    _emit_path(path, json_output)
+
+
+@main.command("promote")
+@click.argument("cluster_id")
+@click.option("--decision", type=click.Choice(sorted(promote_skill.VALID_DECISIONS)), required=True)
+@click.option("--reviewer", required=True, help="Human reviewer name or handle.")
+@click.option("--note", required=True, help="Decision rationale.")
+@click.option("--json", "json_output", is_flag=True, help="Emit machine-readable JSON")
+@click.option("--no-auto-checkpoint", is_flag=True, help="Skip automatic post-slice memory checkpoint.")
+def cmd_promote(
+    cluster_id: str,
+    decision: str,
+    reviewer: str,
+    note: str,
+    json_output: bool,
+    no_auto_checkpoint: bool,
+) -> None:
+    """Record a human decision for one Rubedo hypothesis."""
+    def _run() -> Path:
+        cfg = load_config()
+        return promote_skill.run_promote(
+            cluster_id,
+            decision=decision,
+            reviewer=reviewer,
+            note=note,
+            config=cfg,
+        )
+
+    path = _run_with_command_context(
+        "azoth promote",
+        _run,
+        checkpoint=lambda result: _persist_auto_checkpoint(
+            "azoth promote", [str(result)], disable=no_auto_checkpoint
+        ),
+    )
+    _emit_path(path, json_output)
+
+
+def _emit_path(path: Path, json_output: bool) -> None:
+    if json_output:
+        click.echo(json.dumps(str(path), indent=2))
+        return
+    click.echo(f"  - {path}")
 
 
 def _run_python_module(module_path: Path, argv: list[str]) -> int:

@@ -327,10 +327,23 @@ def run_smoke(project_root: Path) -> None:
         env=env,
     )
     _assert_expected_hypotheses(detect_outputs)
+    cluster_id = str(detect_outputs[0].get("cluster_id", "")).strip()
+    if not cluster_id:
+        raise RuntimeError("Detect output missing cluster_id for Rubedo review path.")
 
     draft_outputs = _run_cmd(project_root, ["draft", "--top", "1", "--no-llm", "--json"], env=env)
     if len(draft_outputs) < 1:
         raise RuntimeError("Expected at least one draft output.")
+
+    triage_path = Path(_run_cmd(project_root, ["triage", cluster_id, "--json"], env=env))
+    if not triage_path.exists():
+        raise RuntimeError(f"Missing triage artifact: {triage_path}")
+    review_path = Path(_run_cmd(project_root, ["review", cluster_id, "--json"], env=env))
+    if not review_path.exists():
+        raise RuntimeError(f"Missing review artifact: {review_path}")
+    experiment_path = Path(_run_cmd(project_root, ["experiment", cluster_id, "--json"], env=env))
+    if not experiment_path.exists():
+        raise RuntimeError(f"Missing experiment artifact: {experiment_path}")
 
     for paper_id in paper_ids:
         library_file = project_root / "albedo" / "library" / f"{paper_id}.yaml"

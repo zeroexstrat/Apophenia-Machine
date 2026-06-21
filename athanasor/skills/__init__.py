@@ -8,4 +8,8 @@ __all__ = [
     "connect",
     "detect",
     "draft",
+    "triage",
+    "review",
+    "experiment",
+    "promote",
 ]

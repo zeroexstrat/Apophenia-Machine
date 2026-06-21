@@ -15,13 +15,13 @@ Azoth follows `AESTHETIC.md` conventions:
 - **Nigredo** (`nigredo/`): raw intake.
 - **Albedo** (`albedo/`): structured extraction + canonical registry.
 - **Citrinitas** (`citrinitas/`): structural connections.
-- **Rubedo** (`rubedo/`): hypotheses and draft notes.
+- **Rubedo** (`rubedo/`): hypotheses, draft notes, triage packets, reviews, and experiment specs.
 - **Athanasor** (`athanasor/`): orchestration, memory, gates, scripts, and state.
 
 Non-alchemical names in machine payloads remain plain English:
 - Directories: `nigredo`, `albedo`, `citrinitas`, `rubedo`, `athanasor`
 - Data fields: `paper_id`, `status`, `source`, `tags`, `confidence`, etc.
-- Commands: `ingest`, `awaken`, `connect`, `detect`, `draft`
+- Commands: `ingest`, `awaken`, `connect`, `detect`, `draft`, `triage`, `review`, `experiment`, `promote`
 
 ---
 
@@ -130,7 +130,7 @@ It moves files to domain folders and writes:
 
 Fallback ingestion extracts concrete claim, method, technique, tag, and equation anchors when text is available. LLM ingestion should still be preferred for serious runs.
 
-`ingest`, `awaken`, `exhaust`, `connect`, `detect`, and `draft` also persist a light checkpoint entry to
+`ingest`, `awaken`, `exhaust`, `connect`, `detect`, `draft`, `triage`, `review`, `experiment`, and `promote` also persist a light checkpoint entry to
 `athanasor/lapis/memory.jsonl` after successful completion for crash recovery.
 
 ### 3) Awaken and exhaust papers
@@ -176,17 +176,35 @@ is stale.
 ### 5) Detect hypotheses and draft notes
 
 ```bash
-azoth detect --within ML
+azoth detect --domain ML
 azoth detect --cross physics ML
 azoth detect --all
 azoth detect --cluster cluster_xxx
 azoth draft --top 3
 azoth draft <cluster_id>
+azoth triage <cluster_id>
+azoth review <cluster_id>
+azoth experiment <cluster_id>
 ```
 
 Outputs:
 - `rubedo/hypotheses/<cluster_id>.yaml`
 - `rubedo/drafts/<slug>.md`
+- `rubedo/triage/<cluster_id>.yaml`
+- `rubedo/reviews/<cluster_id>_review.yaml`
+- `rubedo/experiments/<cluster_id>_gap<N>_experiment.yaml`
+
+Only `azoth promote` records a human decision:
+
+```bash
+azoth promote <cluster_id> --decision needs_prior_art --reviewer <name> --note "Search external prior art before acceptance."
+azoth promote <cluster_id> --decision accepted --reviewer <name> --note "Reviewed evidence and prior art."
+azoth promote <cluster_id> --decision rejected --reviewer <name> --note "Unsupported by the evidence packet."
+```
+
+`needs_prior_art` is recorded as the human decision but maps the hypothesis
+status to schema-compatible `investigate`. No command marks novelty as accepted
+without an explicit reviewer and note.
 
 ### 6) Close a session
 
@@ -248,6 +266,25 @@ All commands are under `azoth` (entrypoint from `pyproject.toml`).
   - `--top N`
   - `--no-llm`, `--json`
   - `--no-auto-checkpoint`
+
+- `azoth triage <cluster_id>`
+  - writes `rubedo/triage/<cluster_id>.yaml`
+  - `--json`, `--no-auto-checkpoint`
+
+- `azoth review <cluster_id>`
+  - writes `rubedo/reviews/<cluster_id>_review.yaml`
+  - `--json`, `--no-auto-checkpoint`
+
+- `azoth experiment <cluster_id>`
+  - `--gap-rank N`
+  - writes `rubedo/experiments/<cluster_id>_gap<N>_experiment.yaml`
+  - `--json`, `--no-auto-checkpoint`
+
+- `azoth promote <cluster_id>`
+  - `--decision {accepted,rejected,needs_prior_art}`
+  - `--reviewer <name>`
+  - `--note <reason>`
+  - `--json`, `--no-auto-checkpoint`
 
 Automatic checkpointing can be disabled globally with:
 `AZOTH_AUTO_CHECKPOINT=0`
@@ -358,6 +395,14 @@ azoth/
   - `detect(...)`: cluster synthesis + gap hypothesis generation
 - `draft.py`
   - `run_draft(...)`: markdown output generation from hypothesis files
+- `triage.py`
+  - `run_triage(...)`: review packet generation from hypothesis, connections, library records, and exhaust outputs
+- `review.py`
+  - `run_review(...)`: deterministic gate checks for unsupported, vague, or not-yet-searched hypotheses
+- `experiment.py`
+  - `run_experiment(...)`: candidate gap to pilot experiment specification
+- `promote.py`
+  - `run_promote(...)`: reviewer-gated status mutation for accepted/rejected/needs-prior-art decisions
 
 ### Shared helpers (`athanasor/skills/common.py`)
 

@@ -52,6 +52,10 @@ def main() -> int:
         "connect",
         "detect",
         "draft",
+        "triage",
+        "review",
+        "experiment",
+        "promote",
         "validate",
         "migrate",
         "config",
@@ -59,7 +63,19 @@ def main() -> int:
         _assert(token in help_text, f"command listed in --help: {token}", failures)
 
     help_outputs: dict[str, str] = {}
-    for command in ["awaken", "status", "connect", "detect", "draft", "config", "migrate"]:
+    for command in [
+        "awaken",
+        "status",
+        "connect",
+        "detect",
+        "draft",
+        "triage",
+        "review",
+        "experiment",
+        "promote",
+        "config",
+        "migrate",
+    ]:
         rc, sub_out, _ = _run([command, "--help"])
         _assert(rc == 0, f"{command} --help works", failures)
         _assert(len(sub_out.strip()) > 0, f"{command} --help has output", failures)

@@ -33,16 +33,19 @@ python3 scripts/incipere.py
 Add papers and run a minimal cycle:
 
 ```bash
-cp ~/Downloads/paper.pdf nigredo/
-azoth ingest nigredo/paper.pdf
+cp ~/Downloads/paper.pdf nigredo/inbox/
+azoth ingest nigredo/inbox/
 azoth awaken ML --depth 3 --count 3
 azoth status --domain ML --status ingested_only
 azoth connect --within ML
-azoth detect --within ML
+azoth detect --domain ML
 azoth draft --top 1
+azoth triage <cluster_id>
+azoth review <cluster_id>
+azoth experiment <cluster_id>
 ```
 
-After each slice command (`ingest`, `awaken`, `exhaust`, `connect`, `detect`, `draft`), Azoth now writes an automatic recovery checkpoint to `athanasor/lapis/memory.jsonl` by default.
+After each slice command (`ingest`, `awaken`, `exhaust`, `connect`, `detect`, `draft`, `triage`, `review`, `experiment`, `promote`), Azoth now writes an automatic recovery checkpoint to `athanasor/lapis/memory.jsonl` by default.
 Disable this per command with `--no-auto-checkpoint` or globally with `AZOTH_AUTO_CHECKPOINT=0`.
 
 ```bash
@@ -110,13 +113,32 @@ python3 scripts/check_semantic_pipeline.py
 Detect candidate hypotheses and draft notes:
 
 ```bash
-azoth detect --within ML
+azoth detect --domain ML
 azoth detect --all
 azoth draft --top 3
 azoth draft <gap_id>
+azoth triage <gap_id>
+azoth review <gap_id>
+azoth experiment <gap_id>
 ```
 
-Draft output lands in `rubedo/drafts/`.
+Rubedo outputs land in:
+- `rubedo/hypotheses/`
+- `rubedo/drafts/`
+- `rubedo/triage/`
+- `rubedo/reviews/`
+- `rubedo/experiments/`
+
+When a human has reviewed the packet and prior-art status, record the decision:
+
+```bash
+azoth promote <gap_id> --decision needs_prior_art --reviewer <name> --note "External novelty search needed."
+azoth promote <gap_id> --decision accepted --reviewer <name> --note "Evidence and prior art reviewed."
+azoth promote <gap_id> --decision rejected --reviewer <name> --note "Unsupported by current evidence."
+```
+
+`promote` is the only command that mutates a Rubedo hypothesis decision. All
+generated outputs remain `pending_review`.
 
 ## Registry and status queries
 
