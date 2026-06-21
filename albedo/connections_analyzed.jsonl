@@ -169,3 +169,18 @@
 {"pair": "1allendiscoverycentertuftsuniversit_097638007::1independentresearcher11160caunesmi_715603255", "analyzed_at": "2026-06-15T05:43:18.656877+00:00"}
 {"pair": "1allendiscoverycentertuftsuniversit_097638007::orcid0000000248120744_103988725", "analyzed_at": "2026-06-15T05:43:18.695637+00:00"}
 {"pair": "1independentresearcher11160caunesmi_715603255::orcid0000000248120744_103988725", "analyzed_at": "2026-06-15T05:43:18.734112+00:00"}
+{"pair": "12_800138536::orcid0000000248120744_110410683", "analyzed_at": "2026-06-20T22:37:17.301045+00:00"}
+{"pair": "nvidia_067618851::nvidia_184944598", "analyzed_at": "2026-06-20T22:40:07.874859+00:00"}
+{"pair": "nvidia_184944598::nvidia_352963215", "analyzed_at": "2026-06-20T22:40:08.224824+00:00"}
+{"pair": "nvidia_184944598::nvidia_259781136", "analyzed_at": "2026-06-20T22:49:08.286801+00:00"}
+{"pair": "nvidia_067618851::nvidia_259781136", "analyzed_at": "2026-06-20T22:49:15.607176+00:00"}
+{"pair": "nvidia_259781136::nvidia_352963215", "analyzed_at": "2026-06-21T02:06:05.234759+00:00"}
+{"pair": "loopedworldmodels_903887879::powerofloopedtransformers_159603065", "analyzed_at": "2026-06-21T02:06:11.536550+00:00"}
+{"pair": "nvidia_067618851::nvidia_184944598", "analyzed_at": "2026-06-21T03:55:05.142708+00:00", "paper_depths": {"nvidia_067618851": 3, "nvidia_184944598": 3}, "reanalysis_reason": "depth_upgrade"}
+{"pair": "nvidia_184944598::nvidia_352963215", "analyzed_at": "2026-06-21T03:55:05.805805+00:00", "paper_depths": {"nvidia_184944598": 3, "nvidia_352963215": 3}, "reanalysis_reason": "depth_upgrade_skipped_similarity"}
+{"pair": "nvidia_184944598::nvidia_259781136", "analyzed_at": "2026-06-21T03:55:16.327711+00:00", "paper_depths": {"nvidia_184944598": 3, "nvidia_259781136": 3}, "reanalysis_reason": "depth_upgrade"}
+{"pair": "nvidia_067618851::nvidia_259781136", "analyzed_at": "2026-06-21T03:55:28.180707+00:00", "paper_depths": {"nvidia_067618851": 3, "nvidia_259781136": 3}, "reanalysis_reason": "depth_upgrade"}
+{"pair": "nvidia_259781136::nvidia_352963215", "analyzed_at": "2026-06-21T03:56:49.078804+00:00", "paper_depths": {"nvidia_259781136": 3, "nvidia_352963215": 3}, "reanalysis_reason": "depth_upgrade"}
+{"pair": "loopedworldmodels_903887879::powerofloopedtransformers_159603065", "analyzed_at": "2026-06-21T03:56:57.686424+00:00", "paper_depths": {"loopedworldmodels_903887879": 5, "powerofloopedtransformers_159603065": 5}, "reanalysis_reason": "depth_upgrade"}
+{"pair": "paper_397502697::powerofloopedtransformers_159603065", "analyzed_at": "2026-06-21T03:57:15.638668+00:00", "paper_depths": {"paper_397502697": 5, "powerofloopedtransformers_159603065": 5}, "reanalysis_reason": "initial"}
+{"pair": "loopedworldmodels_903887879::paper_397502697", "analyzed_at": "2026-06-21T03:57:41.097984+00:00", "paper_depths": {"loopedworldmodels_903887879": 5, "paper_397502697": 5}, "reanalysis_reason": "initial"}

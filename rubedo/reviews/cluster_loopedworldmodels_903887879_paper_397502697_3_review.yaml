@@ -1,0 +1,62 @@
+schema_version: 1
+artifact_type: rubedo_review
+cluster_id: cluster_loopedworldmodels_903887879_paper_397502697_3
+status: pending_review
+generated_at: '2026-06-21T05:14:49.661821+00:00'
+triage_path: rubedo/triage/cluster_loopedworldmodels_903887879_paper_397502697_3.yaml
+hypothesis_status: pending_review
+checks:
+- name: hypothesis_status
+  status: pass
+  detail: Hypothesis status is pending_review.
+- name: cluster_size
+  status: pass
+  detail: Cluster includes 3 paper(s); Rubedo clusters should have at least 3.
+- name: library_records
+  status: pass
+  detail: All library records are present.
+- name: exhaustion_records
+  status: pass
+  detail: All exhaustion records are present.
+- name: connection_support
+  status: pass
+  detail: Found 3 connection artifact(s) inside this cluster.
+- name: candidate_gaps
+  status: pass
+  detail: Found 3 candidate gap(s).
+- name: gap_1_supporting_papers
+  status: pass
+  detail: Gap 1 supporting papers are inside the cluster.
+- name: gap_1_scores
+  status: pass
+  detail: Gap 1 confidence=4, feasibility=4.
+- name: gap_1_experiment_specificity
+  status: pass
+  detail: Gap 1 suggested approach is specific enough for a pilot.
+- name: gap_2_supporting_papers
+  status: pass
+  detail: Gap 2 supporting papers are inside the cluster.
+- name: gap_2_scores
+  status: pass
+  detail: Gap 2 confidence=3, feasibility=3.
+- name: gap_2_experiment_specificity
+  status: pass
+  detail: Gap 2 suggested approach is specific enough for a pilot.
+- name: gap_3_supporting_papers
+  status: pass
+  detail: Gap 3 supporting papers are inside the cluster.
+- name: gap_3_scores
+  status: pass
+  detail: Gap 3 confidence=3, feasibility=2.
+- name: gap_3_experiment_specificity
+  status: pass
+  detail: Gap 3 suggested approach is specific enough for a pilot.
+- name: prior_art_search
+  status: warn
+  detail: External prior-art search has not been run; do not accept novelty yet.
+blocking_issues: []
+warnings:
+- External prior-art search has not been run; do not accept novelty yet.
+recommended_decision: needs_prior_art
+agent_notes: Rule-based review only. External novelty and citation search remain required
+  before accepting any hypothesis.

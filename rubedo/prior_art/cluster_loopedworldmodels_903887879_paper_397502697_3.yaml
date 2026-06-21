@@ -1,0 +1,81 @@
+schema_version: 1
+artifact_type: rubedo_prior_art
+cluster_id: cluster_loopedworldmodels_903887879_paper_397502697_3
+generated_at: '2026-06-21T05:32:07Z'
+status: completed
+decision: reject_novelty_claim
+claim_reviewed: >-
+  Spectral constraints used in looped world models have not been applied to
+  transformer-based looped architectures, and applying spectral normalization
+  or spectral-radius constraints to looped transformer recurrence could improve
+  stability during deep unrolling.
+search_scope:
+  included:
+  - looped transformers
+  - recurrent transformers
+  - looped language models
+  - spectral norm constraints
+  - spectral radius regularization
+  - Lipschitz constrained transformers
+  excluded:
+  - non-primary blog summaries
+  - unrelated generic spectral normalization papers without transformer or looped-model relevance
+sources:
+- title: 'Parcae: Scaling Laws For Stable Looped Language Models'
+  url: https://arxiv.org/html/2604.12946v1
+  finding: >-
+    Directly overlaps the claim. The paper frames looping as a dynamical system
+    over the residual stream and proposes a stable looped transformer architecture
+    that constrains the spectral norm of injection parameters to prevent residual
+    explosion in looped layers.
+  impact: direct_prior_art
+- title: 'Stabilizing Recurrent Dynamics for Test-Time Scalable Latent Reasoning in Looped Language Models'
+  url: https://arxiv.org/html/2605.26733v1
+  finding: >-
+    Directly overlaps the stability mechanism. STARS uses Jacobian Spectral
+    Radius Regularization with random loop sampling to enforce asymptotic
+    stability in looped language models.
+  impact: direct_prior_art
+- title: 'CART: Context-Anchored Recurrent Transformer -- A Parameter-Efficient Architecture with Learned Stability'
+  url: https://arxiv.org/abs/2606.01495
+  finding: >-
+    Directly overlaps recurrent transformer stability. CART reuses a shared core
+    block across depth and reports a learned LTI gate whose spectral radius
+    settles below 1 across trained configurations.
+  impact: direct_prior_art
+- title: 'On the Residual Scaling of Looped Transformers: Stability and Transferability'
+  url: https://arxiv.org/html/2606.18524
+  finding: >-
+    Related prior art. The paper studies why weight sharing changes residual
+    accumulation in looped transformers and derives stronger residual scaling
+    for stability, although it is not the same as spectral normalization.
+  impact: related_prior_art
+- title: 'Training Transformers with Enforced Lipschitz Constants'
+  url: https://arxiv.org/abs/2507.13338
+  finding: >-
+    Related broader prior art. The paper studies spectral normalization and
+    other weight constraints for transformers with enforced Lipschitz constants,
+    supporting that spectral constraints for transformer stability are already
+    an active line of work.
+  impact: related_prior_art
+- title: 'The Lipschitz Constant of Self-Attention'
+  url: https://proceedings.mlr.press/v139/kim21i.html
+  finding: >-
+    Foundational related prior art. The paper analyzes Lipschitz properties of
+    self-attention and formulates contractive/invertible self-attention,
+    supporting the broader non-expansive transformer framing.
+  impact: foundational_related_prior_art
+assessment:
+  novelty_result: rejected
+  rationale: >-
+    The strongest gap claim is no longer defensible as novel. Multiple primary
+    sources already apply spectral-norm, spectral-radius, or equivalent stability
+    constraints to looped or recurrent transformer/language-model architectures.
+    The remaining useful work is a comparative or replication experiment across
+    constraint families, not a novel claim that spectral constraints have not
+    been applied to looped transformers.
+  recommended_reframe: >-
+    Reframe as a benchmark/comparison question: under the same looped-transformer
+    backbone, compare Parcae-style spectral norm constraints, STARS-style
+    Jacobian spectral-radius regularization, CART-style learned LTI gates, and
+    residual scaling across long-horizon reasoning tasks.

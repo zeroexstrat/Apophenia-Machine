@@ -1,0 +1,303 @@
+schema_version: 1
+artifact_type: rubedo_triage
+cluster_id: cluster_loopedworldmodels_903887879_paper_397502697_3
+status: pending_review
+generated_at: '2026-06-21T05:14:49.515182+00:00'
+hypothesis_status: pending_review
+summary: "This cluster identifies a structural analogy across three papers that independently\
+  \ explore looped architectures to achieve increased effective depth without proportional\
+  \ parameter growth. Despite differing domains\u2014latent state dynamics in world\
+  \ models, transformer blocks for reasoning, and manifold-constrained residual connections\u2014\
+  the core idea of iteratively applying a shared function under structural constraints\
+  \ (spectral, doubly stochastic, or manifold projections) to ensure stability and\
+  \ scalability reveals a unified principle for depth-efficient deep learning."
+paper_ids:
+- loopedworldmodels_903887879
+- paper_397502697
+- powerofloopedtransformers_159603065
+paper_count: 3
+connection_count: 3
+exhaustion_count: 3
+candidate_gaps:
+- rank: 1
+  gap_type: unapplied_method
+  confidence: 4
+  feasibility: 4
+  supporting_papers:
+  - loopedworldmodels_903887879
+  - powerofloopedtransformers_159603065
+  description: The spectral constraints used in looped world models to ensure contractive
+    latent dynamics (eigenvalues in (0,1)) have not been applied to transformer-based
+    looped architectures. Applying similar spectral normalization to the weight matrices
+    in looped transformers could improve training stability and prevent gradient explosion
+    during deep unrolling, especially in long-horizon reasoning tasks.
+  supporting_evidence: Paper A (loopedworldmodels_903887879) uses spectral constraints
+    on state transition matrices to guarantee contractive latent dynamics and prevent
+    divergence in long rollouts. Paper B (powerofloopedtransformers_159603065) uses
+    looping in transformer blocks to scale effective reasoning depth, but does not
+    apply explicit spectral or contractive bounds to the looped recurrence.
+  suggested_approach: Implement spectral normalization on the recurrent weight matrices
+    in looped transformer blocks, constraining eigenvalues to (0,1), and evaluate
+    on long-context reasoning benchmarks (e.g., PG-19, SCROLLS) measuring training
+    stability and perplexity over increased loop depth.
+  review_state: candidate
+- rank: 2
+  gap_type: missing_experiment
+  confidence: 3
+  feasibility: 3
+  supporting_papers:
+  - paper_397502697
+  - powerofloopedtransformers_159603065
+  - loopedworldmodels_903887879
+  description: While looped world models and looped transformers both use iterative
+    sharing for depth, no paper in the cluster empirically compares the effectiveness
+    of different constraint types (spectral vs. doubly stochastic vs. manifold projection)
+    on the same architectural backbone. A controlled ablation study is missing that
+    isolates the impact of constraint choice on trainability, expressivity, and scaling
+    behavior.
+  supporting_evidence: 'The cluster contains three distinct stabilization or depth-efficiency
+    mechanisms: spectral constraints in loopedworldmodels_903887879, manifold-constrained
+    residual connections with doubly stochastic Sinkhorn projections in paper_397502697,
+    and weight sharing through looping in powerofloopedtransformers_159603065. However,
+    no cross-paper evaluation exists to compare these methods under identical settings.'
+  suggested_approach: 'Implement a unified looped architecture (e.g., a recurrent
+    transformer or state-space model) and train three variants: one with spectral
+    constraints, one with Sinkhorn-projected doubly stochastic weights, and one with
+    manifold-constrained residuals. Evaluate on language modeling and sequential decision-making
+    tasks (e.g., MiniGrid, Procgen) measuring depth scaling, training stability, and
+    final performance.'
+  review_state: candidate
+- rank: 3
+  gap_type: theoretical_opportunity
+  confidence: 3
+  feasibility: 2
+  supporting_papers:
+  - paper_397502697
+  - powerofloopedtransformers_159603065
+  - loopedworldmodels_903887879
+  description: "The cluster observes that different constraints (spectral, doubly\
+    \ stochastic, manifold projection) serve analogous roles in stabilizing iterative\
+    \ updates, but no formal theory connects these approaches as instances of a broader\
+    \ principle\u2014such as non-expansive operators in metric spaces or contraction\
+    \ mappings under learned norms. A unifying theoretical framework is missing that\
+    \ explains why these diverse constraints enable stable deep iteration."
+  supporting_evidence: Connections describe analogies in purpose (stability, controlled
+    information flow) but rely on qualitative structural similarity. No paper provides
+    a unified mathematical treatment showing that spectral bounds, doubly stochasticity,
+    and manifold projections all enforce non-expansiveness in some induced norm or
+    geometry.
+  suggested_approach: "Formulate a theoretical framework where looped updates are\
+    \ viewed as iterations of operators in a Banach or Hilbert space. Show that spectral\
+    \ constraints (\u03C1(W)<1), doubly stochasticity (preserving L1/L2 norms), and\
+    \ manifold projections (non-expansive retractions) all imply Lipschitz continuity\
+    \ with constant \u22641. Derive implications for convergence and generalization\
+    \ error in deep looped networks."
+  review_state: candidate
+evidence_table:
+- paper_id: loopedworldmodels_903887879
+  title: L Ooped W Orld M Odels
+  domain: unknown
+  tags:
+  - world_model
+  - looped_transformer
+  - adaptive_computation
+  - parameter_efficiency
+  - latent_dynamics
+  - spectral_stability
+  - reinforcement_learning
+  library_path: albedo/library/loopedworldmodels_903887879.yaml
+  exhaust_path: albedo/exhaust/loopedworldmodels_903887879_exhaust.yaml
+  claims:
+  - Looped World Models (LoopWM) achieve competitive or superior predictive accuracy
+    to existing world model architectures while using significantly fewer parameters.
+  - LoopWM maintains stable rollouts over substantially longer horizons than conventional
+    fixed-depth world models due to spectrally-constrained state retention.
+  - LoopWM supports test-time adaptive computation by allocating more loop iterations
+    to complex transitions (e.g., collisions) and fewer to simple dynamics (e.g.,
+    free flight).
+  methods:
+  - "Spectrally-constrained state retention parameterization - A method to ensure\
+    \ numerical stability in recurrent latent updates by parameterizing the continuous-time\
+    \ state matrix as A := diag(\u2212exp(a)) with learnable a, then discretizing\
+    \ via zero-order hold to obtain A\u0304 = exp(\u2206A), which constrains all e"
+  exhaustion_counts:
+    derivations: 4
+    missing_angles: 4
+    open_questions: 0
+    experiments: 0
+    necessary_connections: 0
+- paper_id: paper_397502697
+  title: "\u210B!                               \U0001D4AB\u2133 $%#& (\u210B! )"
+  domain: unknown
+  tags:
+  - representation_learning
+  - sparse_computation
+  - active_inference
+  - world_model
+  - collapse_prevention
+  - symmetry_breaking
+  library_path: albedo/library/paper_397502697.yaml
+  exhaust_path: albedo/exhaust/paper_397502697_exhaust.yaml
+  claims:
+  - Manifold-Constrained Hyper-Connections (mHC) restores the identity mapping property
+    by projecting the residual connection space of Hyper-Connections (HC) onto the
+    manifold of doubly stochastic matrices via the Sinkhorn-Knopp algorithm.
+  - The composite mapping of mHC across multiple layers preserves the global mean
+    of features due to the closure of doubly stochastic matrices under multiplication,
+    ensuring signal conservation and stability.
+  - mHC incorporates kernel fusion, mixed precision kernels using TileLang, selective
+    recomputing, and overlapping communication in DualPipe to mitigate memory access
+    overhead and ensure computational efficiency.
+  methods:
+  - Manifold-Constrained Hyper-Connections (mHC) - A framework that projects the residual
+    connection space of Hyper-Connections (HC) onto a specific manifold (the Birkhoff
+    polytope of doubly stochastic matrices) to restore the identity mapping property,
+    while incorporating infrastructure optimizations f
+  exhaustion_counts:
+    derivations: 7
+    missing_angles: 7
+    open_questions: 0
+    experiments: 0
+    necessary_connections: 0
+- paper_id: powerofloopedtransformers_159603065
+  title: P Ower Of L Ooped T Ransformers
+  domain: unknown
+  tags:
+  - representation_learning
+  - sparse_computation
+  - world_model
+  - cognitive_neuroscience
+  - game_theory
+  library_path: albedo/library/powerofloopedtransformers_159603065.yaml
+  exhaust_path: albedo/exhaust/powerofloopedtransformers_159603065_exhaust.yaml
+  claims:
+  - Many reasoning problems require depth but not necessarily parameters, and can
+    be solved via looped models.
+  - For language modeling, looped models have an inductive bias towards good reasoning
+    despite having worse perplexity and memorization compared to an iso-flop non-looped
+    model.
+  - Looped models generate latent thoughts and can, in theory, simulate T steps of
+    chain-of-thought (CoT) reasoning with T loops.
+  methods:
+  - "Looped model analysis - A formalism for analyzing multilayer models with weight\
+    \ sharing, where a k-layer model looped L times (denoted k \u2297 L) is compared\
+    \ to iso-param (k \u2297 1) and iso-flop (kL \u2297 1) baselines to isolate the\
+    \ effects of depth versus parameter count in reasoning tasks."
+  exhaustion_counts:
+    derivations: 6
+    missing_angles: 6
+    open_questions: 0
+    experiments: 0
+    necessary_connections: 0
+connections:
+- file: citrinitas/within_domain/ML/loopedworldmodels_903887879_paper_397502697.yaml
+  paper_a_id: loopedworldmodels_903887879
+  paper_b_id: paper_397502697
+  connection_type: analogous_structure
+  confidence: 4
+  novelty: non-obvious
+  status: pending_review
+  description: "Both papers enforce structural constraints on state/update dynamics\
+    \ to ensure stability: Paper A uses spectral constraints (eigenvalues in (0,1))\
+    \ on state transition matrices to guarantee contractive latent dynamics and prevent\
+    \ divergence in long rollouts, while Paper B constrains residual mappings to be\
+    \ doubly stochastic via Sinkhorn-Knopp to preserve feature means and ensure stable\
+    \ signal propagation across layers. Despite different mathematical formulations,\
+    \ both approaches impose algebraic constraints on transformation matrices to control\
+    \ the behavior of iterative updates\u2014one in temporal latent space, the other\
+    \ in layer-wise feature space\u2014achieving analogous goals of stability and\
+    \ controlled information flow."
+  evidence_a: "Claim: 'LoopWM maintains stable rollouts over substantially longer\
+    \ horizons than conventional fixed-depth world models due to spectrally-constrained\
+    \ state retention.' Derivation: 'The spectral constraint on \u0100 (eigenvalues\
+    \ in (0,1)) implies that the latent state update in LoopWM is a contraction mapping,\
+    \ guaranteeing that the influence of initial conditions decays exponentially over\
+    \ iterations, which ensures bounded prediction error accumulation during long\
+    \ rollouts.' Equation: '\u0100 = exp(\u2206A)' with A = diag(\u2212exp(a)) ensuring\
+    \ eigenvalues of \u0100 in (0,1)."
+  evidence_b: "Claim: 'Manifold-Constrained Hyper-Connections (mHC) restores the identity\
+    \ mapping property by projecting the residual connection space of Hyper-Connections\
+    \ (HC) onto the manifold of doubly stochastic matrices via the Sinkhorn-Knopp\
+    \ algorithm.' Derivation: 'If the residual mapping H\u2097\u1D63\u2091\u209B is\
+    \ constrained to be doubly stochastic via Sinkhorn-Knopp projection, then the\
+    \ product of such matrices across L layers remains doubly stochastic, preserving\
+    \ the global mean of input features through the network.' Equation: 'x\U0001D459\
+    +1 = x\U0001D459 + F (x\U0001D459 , W\U0001D459 )' modified via H\u2097\u1D63\u2091\
+    \u209B projection."
+- file: citrinitas/within_domain/ML/loopedworldmodels_903887879_powerofloopedtransformers_159603065.yaml
+  paper_a_id: loopedworldmodels_903887879
+  paper_b_id: powerofloopedtransformers_159603065
+  connection_type: analogous_structure
+  confidence: 4
+  novelty: non-obvious
+  status: pending_review
+  description: "Both papers analyze looped architectures where parameter sharing enables\
+    \ increased effective depth without proportional parameter growth. Paper A applies\
+    \ this to latent state dynamics in world models via spectrally-constrained recurrent\
+    \ updates, while Paper B applies it to transformer blocks for reasoning depth.\
+    \ The core idea \u2014 using iteration of a shared function to scale computational\
+    \ depth efficiently \u2014 is structurally analogous, despite different domains\
+    \ and specific implementations."
+  evidence_a: "Claims: 'LoopWM supports test-time adaptive computation by allocating\
+    \ more loop iterations to complex transitions'; Methods: 'Spectrally-constrained\
+    \ state retention parameterization'; Techniques: 'Parameter-shared transformer\
+    \ block'; Equations: 'ht+1 = \u0100 ht + B\u0304 e + R\u0304(ht , e)', 'A\u0304\
+    \ = exp(\u2206A)'; Exhaustion outputs: derivations showing contractive dynamics\
+    \ and stable rollouts over long horizons due to spectral constraints on \u0100\
+    ."
+  evidence_b: "Claims: 'Many reasoning problems require depth but not necessarily\
+    \ parameters, and can be solved via looped models'; 'Looped models generate latent\
+    \ thoughts and can, in theory, simulate T steps of chain-of-thought (CoT) reasoning\
+    \ with T loops'; Methods: 'Looped model analysis'; Techniques: 'Weight sharing\
+    \ via looping'; Equations: 'f(L) = f \u25E6 f \xB7\xB7\xB7 \u25E6 f'; Exhaustion\
+    \ outputs: derivations showing effective depth kL with parameter count O(k), enabling\
+    \ depth scaling independent of model size under weight sharing."
+- file: citrinitas/within_domain/ML/paper_397502697_powerofloopedtransformers_159603065.yaml
+  paper_a_id: paper_397502697
+  paper_b_id: powerofloopedtransformers_159603065
+  connection_type: analogous_structure
+  confidence: 4
+  novelty: non-obvious
+  status: pending_review
+  description: 'Both papers propose architectural modifications to improve depth efficiency:
+    Paper A uses manifold-constrained residual connections (mHC) to preserve signal
+    and enable stable deep training via doubly stochastic projections, while Paper
+    B uses weight sharing through looping to achieve effective depth without increasing
+    parameters. Both aim to decouple representational depth from parameter or computational
+    cost, using structural constraints (manifold projection vs. iterative reuse) to
+    enhance scalability.'
+  evidence_a: "Claims: 'Manifold-Constrained Hyper-Connections (mHC) restores the\
+    \ identity mapping property by projecting the residual connection space of Hyper-Connections\
+    \ (HC) onto the manifold of doubly stochastic matrices via the Sinkhorn-Knopp\
+    \ algorithm.' and 'The composite mapping of mHC across multiple layers preserves\
+    \ the global mean of features due to the closure of doubly stochastic matrices\
+    \ under multiplication, ensuring signal conservation and stability.'; Methods:\
+    \ ['Manifold-Constrained Hyper-Connections (mHC)']; Techniques: ['Sinkhorn-Knopp\
+    \ algorithm']; Equations: ['x\U0001D459+1 = H\U0001D459res x\U0001D459 + H\U0001D459\
+    \ F (H\U0001D459 x\U0001D459 , W\U0001D459 )']; Exhaustion outputs: derivations\
+    \ showing that products of doubly stochastic residual mappings preserve global\
+    \ mean across layers."
+  evidence_b: "Claims: 'Many reasoning problems require depth but not necessarily\
+    \ parameters, and can be solved via looped models.' and 'Looped models generate\
+    \ latent thoughts and can, in theory, simulate T steps of chain-of-thought (CoT)\
+    \ reasoning with T loops.'; Methods: ['Looped model analysis']; Techniques: ['Weight\
+    \ sharing via looping', 'Looping-inspired regularization']; Equations: ['f(L)\
+    \ = f \u25E6 f \xB7\xB7\xB7 \u25E6 f']; Exhaustion outputs: derivations showing\
+    \ that looping k layers L times yields effective depth kL with O(k) parameters,\
+    \ enabling depth scaling independent of model size."
+novelty_checklist:
+  cluster_novelty_claim: true
+  prior_art_search: not_run
+  citation_overlap_check: not_implemented
+  required_before_promotion: true
+  notes: This packet does not perform external literature search; it records what
+    must be checked before human promotion.
+decision_options:
+- accepted
+- rejected
+- needs_prior_art
+linked_artifacts:
+  hypothesis: rubedo/hypotheses/cluster_loopedworldmodels_903887879_paper_397502697_3.yaml
+  triage: rubedo/triage/cluster_loopedworldmodels_903887879_paper_397502697_3.yaml
+  review: rubedo/reviews/cluster_loopedworldmodels_903887879_paper_397502697_3_review.yaml
+  experiment: rubedo/experiments/cluster_loopedworldmodels_903887879_paper_397502697_3_gap1_experiment.yaml

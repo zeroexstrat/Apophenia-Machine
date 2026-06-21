@@ -1,0 +1,96 @@
+schema_version: 1
+artifact_type: rubedo_experiment
+cluster_id: cluster_loopedworldmodels_903887879_paper_397502697_3
+gap_rank: 1
+status: pending_review
+generated_at: '2026-06-21T05:14:40.327417+00:00'
+paper_ids:
+- loopedworldmodels_903887879
+- paper_397502697
+- powerofloopedtransformers_159603065
+gap_type: unapplied_method
+hypothesis: The spectral constraints used in looped world models to ensure contractive
+  latent dynamics (eigenvalues in (0,1)) have not been applied to transformer-based
+  looped architectures. Applying similar spectral normalization to the weight matrices
+  in looped transformers could improve training stability and prevent gradient explosion
+  during deep unrolling, especially in long-horizon reasoning tasks.
+rationale: Bridging this gap could unify stability mechanisms across temporal and
+  layer-wise looped systems, enabling more robust scaling of reasoning depth in transformers
+  without heuristic tuning.
+baseline: 'Reproduce the most direct baseline from: loopedworldmodels_903887879, powerofloopedtransformers_159603065.'
+intervention: Implement spectral normalization on the recurrent weight matrices in
+  looped transformer blocks, constraining eigenvalues to (0,1), and evaluate on long-context
+  reasoning benchmarks (e.g., PG-19, SCROLLS) measuring training stability and perplexity
+  over increased loop depth.
+variables:
+  independent:
+  - constraint_or_method_variant
+  - loop_depth_or_iteration_budget
+  dependent:
+  - task_performance
+  - training_stability
+  - compute_cost
+  controls:
+  - model_size
+  - dataset
+  - training_tokens_or_steps
+  - optimizer
+  - random_seed
+datasets_or_benchmarks:
+- PG-19
+- SCROLLS
+metrics:
+- primary_task_metric
+- loss_curve_stability
+- gradient_norm_or_update_norm
+- wall_clock_or_token_cost
+protocol_steps:
+- Implement the baseline exactly as described in the strongest supporting paper.
+- Implement the intervention while changing only the target mechanism.
+- Run at least three seeds on a small benchmark slice before scaling.
+- Compare final performance, instability events, and compute-normalized performance.
+- Record whether the result supports, weakens, or falsifies the proposed connection.
+compute_budget:
+  scale: pilot
+  notes: Start with the smallest benchmark slice that can expose instability or transfer
+    failure.
+stop_criteria:
+- Stop if the intervention cannot reproduce baseline quality within the pilot budget.
+- Stop if instability is not measurable with the selected benchmark.
+- Promote to a larger run only after the pilot improves either stability or compute-normalized
+  performance.
+expected_if_true: The intervention improves stability or compute-normalized performance
+  as loop depth or iteration budget increases.
+expected_if_false: The intervention adds constraint overhead without improving stability,
+  performance, or scaling behavior.
+failure_modes:
+- The gap is already solved by prior art not represented in the current cluster.
+- The proposed mechanisms are only superficially analogous.
+- The benchmark is too small to expose the claimed stability difference.
+source_gap:
+  gap_type: unapplied_method
+  description: The spectral constraints used in looped world models to ensure contractive
+    latent dynamics (eigenvalues in (0,1)) have not been applied to transformer-based
+    looped architectures. Applying similar spectral normalization to the weight matrices
+    in looped transformers could improve training stability and prevent gradient explosion
+    during deep unrolling, especially in long-horizon reasoning tasks.
+  novelty: true
+  supporting_papers:
+  - loopedworldmodels_903887879
+  - powerofloopedtransformers_159603065
+  supporting_evidence: Paper A (loopedworldmodels_903887879) uses spectral constraints
+    on state transition matrices to guarantee contractive latent dynamics and prevent
+    divergence in long rollouts. Paper B (powerofloopedtransformers_159603065) uses
+    looping in transformer blocks to scale effective reasoning depth, but does not
+    apply explicit spectral or contractive bounds to the looped recurrence.
+  significance: Bridging this gap could unify stability mechanisms across temporal
+    and layer-wise looped systems, enabling more robust scaling of reasoning depth
+    in transformers without heuristic tuning.
+  feasibility: 4
+  suggested_approach: Implement spectral normalization on the recurrent weight matrices
+    in looped transformer blocks, constraining eigenvalues to (0,1), and evaluate
+    on long-context reasoning benchmarks (e.g., PG-19, SCROLLS) measuring training
+    stability and perplexity over increased loop depth.
+  confidence: 4
+  rank: 1
+  significance_weight: 4.0
