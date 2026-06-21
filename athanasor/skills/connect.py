@@ -43,6 +43,11 @@ def build_cli_parser() -> argparse.ArgumentParser:
     scope.add_argument("--cross", nargs=2, metavar=("D1", "D2"), help="Domain pair for cross-domain pass.")
     scope.add_argument("--paper", dest="paper_id", help="Single paper id")
     scope.add_argument("--all", action="store_true", help="Run all scopes.")
+    parser.add_argument(
+        "--reanalyze-depth-upgrades",
+        action="store_true",
+        help="Re-run previously analyzed pairs when either paper was exhausted at a deeper depth.",
+    )
     return parser
 
 
@@ -59,6 +64,7 @@ def connect(
     cross: tuple[str, str] | None = None,
     paper_id: str | None = None,
     all_scope: bool = False,
+    reanalyze_depth_upgrades: bool = False,
 ) -> list[dict[str, Any]]:
     cfg = config or load_config()
     root = Path(cfg.project_root).expanduser().resolve()
@@ -100,15 +106,28 @@ def connect(
     for a_id, b_id, pair_scope, pair_domain in pairs:
         a_id, b_id = sorted([str(a_id), str(b_id)])
         key = _pair_key(a_id, b_id)
-        if key in analyzed:
-            continue
 
         a_entry = registry.get(a_id)
         b_entry = registry.get(b_id)
         if not isinstance(a_entry, dict) or not isinstance(b_entry, dict):
-            analyzed.add(key)
-            _append_analyzed(root / "albedo" / "connections_analyzed.jsonl", a_id, b_id)
+            analyzed[key] = _append_analyzed(
+                root / "albedo" / "connections_analyzed.jsonl",
+                a_id,
+                b_id,
+                paper_depths={},
+                reanalysis_reason="missing_registry_entry",
+            )
             continue
+
+        existing_event = analyzed.get(key)
+        if existing_event is not None and _should_skip_analyzed_pair(
+            existing_event,
+            a_entry,
+            b_entry,
+            reanalyze_depth_upgrades=reanalyze_depth_upgrades,
+        ):
+            continue
+        reanalysis_reason = "depth_upgrade" if existing_event is not None else "initial"
 
         sim = _pair_similarity(a_id, b_id, store)
         if not _should_analyze_pair(
@@ -118,6 +137,14 @@ def connect(
             similarity_threshold=cfg.embeddings.get("similarity_threshold", 0.82),
         ):
             report_stats["skipped_similarity"] += 1
+            if existing_event is not None:
+                analyzed[key] = _append_analyzed(
+                    root / "albedo" / "connections_analyzed.jsonl",
+                    a_id,
+                    b_id,
+                    paper_depths=_paper_depths(a_entry, b_entry),
+                    reanalysis_reason=f"{reanalysis_reason}_skipped_similarity",
+                )
             continue
 
         report_stats["candidate_pairs"] += 1
@@ -132,16 +159,38 @@ def connect(
             if record_b:
                 library_records[b_id] = record_b
         if not record_a or not record_b:
-            analyzed.add(key)
             report_stats["skipped_missing_records"] += 1
-            _append_analyzed(root / "albedo" / "connections_analyzed.jsonl", a_id, b_id)
+            analyzed[key] = _append_analyzed(
+                root / "albedo" / "connections_analyzed.jsonl",
+                a_id,
+                b_id,
+                paper_depths=_paper_depths(a_entry, b_entry),
+                reanalysis_reason="missing_library_record",
+            )
             continue
 
-        candidate = _analyze_pair(a_id, b_id, record_a, record_b, pair_scope, llm, schema)
+        exhaust_a = _load_exhaustion_record(root, a_entry, a_id)
+        exhaust_b = _load_exhaustion_record(root, b_entry, b_id)
+        candidate = _analyze_pair(
+            a_id,
+            b_id,
+            record_a,
+            record_b,
+            pair_scope,
+            llm,
+            schema,
+            exhaust_a=exhaust_a,
+            exhaust_b=exhaust_b,
+        )
         if not candidate:
-            analyzed.add(key)
             report_stats["pairs_with_no_connection"] += 1
-            _append_analyzed(root / "albedo" / "connections_analyzed.jsonl", a_id, b_id)
+            analyzed[key] = _append_analyzed(
+                root / "albedo" / "connections_analyzed.jsonl",
+                a_id,
+                b_id,
+                paper_depths=_paper_depths(a_entry, b_entry),
+                reanalysis_reason=reanalysis_reason,
+            )
             continue
 
         confidence_raw = _coerce_confidence(candidate.get("confidence"), fallback=3)
@@ -181,22 +230,37 @@ def connect(
         if not ok:
             candidate["_schema_errors"] = errors
             report_stats["validation_failed"] += 1
-            analyzed.add(key)
-            _append_analyzed(root / "albedo" / "connections_analyzed.jsonl", a_id, b_id)
+            analyzed[key] = _append_analyzed(
+                root / "albedo" / "connections_analyzed.jsonl",
+                a_id,
+                b_id,
+                paper_depths=_paper_depths(a_entry, b_entry),
+                reanalysis_reason=reanalysis_reason,
+            )
             continue
         candidate = fixed
         candidate["status"] = "pending_review"
 
         if candidate.get("novelty") == "speculative" and candidate["confidence"] < 4:
-            analyzed.add(key)
             report_stats["speculative_filtered"] += 1
-            _append_analyzed(root / "albedo" / "connections_analyzed.jsonl", a_id, b_id)
+            analyzed[key] = _append_analyzed(
+                root / "albedo" / "connections_analyzed.jsonl",
+                a_id,
+                b_id,
+                paper_depths=_paper_depths(a_entry, b_entry),
+                reanalysis_reason=reanalysis_reason,
+            )
             continue
 
         if candidate["confidence"] < persistence_threshold:
-            analyzed.add(key)
             report_stats["below_confidence"] += 1
-            _append_analyzed(root / "albedo" / "connections_analyzed.jsonl", a_id, b_id)
+            analyzed[key] = _append_analyzed(
+                root / "albedo" / "connections_analyzed.jsonl",
+                a_id,
+                b_id,
+                paper_depths=_paper_depths(a_entry, b_entry),
+                reanalysis_reason=reanalysis_reason,
+            )
             continue
 
         out_path = _write_connection(
@@ -217,9 +281,14 @@ def connect(
             if isinstance(connection_type, str):
                 connection_types[connection_type] += 1
 
-        analyzed.add(key)
         _mark_connected(registry, a_entry, b_entry)
-        _append_analyzed(root / "albedo" / "connections_analyzed.jsonl", a_id, b_id)
+        analyzed[key] = _append_analyzed(
+            root / "albedo" / "connections_analyzed.jsonl",
+            a_id,
+            b_id,
+            paper_depths=_paper_depths(a_entry, b_entry),
+            reanalysis_reason=reanalysis_reason,
+        )
 
     _write_connection_report(
         root / "citrinitas" / "reports",
@@ -299,8 +368,8 @@ def _pair_key(a_id: str, b_id: str) -> str:
     return f"{a}::{b}"
 
 
-def _load_analyzed(path: Path) -> set[str]:
-    analyzed: set[str] = set()
+def _load_analyzed(path: Path) -> dict[str, dict[str, Any]]:
+    analyzed: dict[str, dict[str, Any]] = {}
     if not path.exists():
         return analyzed
     with open(path, "r", encoding="utf-8") as f:
@@ -310,16 +379,74 @@ def _load_analyzed(path: Path) -> set[str]:
                 if isinstance(payload, dict):
                     key = payload.get("pair")
                     if isinstance(key, str):
-                        analyzed.add(key)
+                        analyzed[key] = payload
             except json.JSONDecodeError:
                 continue
     return analyzed
 
 
-def _append_analyzed(path: Path, a_id: str, b_id: str) -> None:
+def _append_analyzed(
+    path: Path,
+    a_id: str,
+    b_id: str,
+    *,
+    paper_depths: dict[str, int] | None = None,
+    reanalysis_reason: str = "initial",
+) -> dict[str, Any]:
     ensure_dir(path.parent)
+    payload = {
+        "pair": _pair_key(a_id, b_id),
+        "analyzed_at": now_iso(),
+        "paper_depths": paper_depths or {},
+        "reanalysis_reason": reanalysis_reason,
+    }
     with open(path, "a", encoding="utf-8") as f:
-        f.write(json.dumps({"pair": _pair_key(a_id, b_id), "analyzed_at": now_iso()}) + "\n")
+        f.write(json.dumps(payload) + "\n")
+    return payload
+
+
+def _depth_for_entry(entry: dict[str, Any]) -> int:
+    try:
+        return int(entry.get("exhausted_at_depth") or 0)
+    except (TypeError, ValueError):
+        return 0
+
+
+def _paper_depths(a_entry: dict[str, Any], b_entry: dict[str, Any]) -> dict[str, int]:
+    depths: dict[str, int] = {}
+    for entry in (a_entry, b_entry):
+        paper_id = entry.get("paper_id")
+        if isinstance(paper_id, str) and paper_id:
+            depths[paper_id] = _depth_for_entry(entry)
+    return depths
+
+
+def _should_skip_analyzed_pair(
+    event: dict[str, Any],
+    a_entry: dict[str, Any],
+    b_entry: dict[str, Any],
+    *,
+    reanalyze_depth_upgrades: bool,
+) -> bool:
+    if not reanalyze_depth_upgrades:
+        return True
+
+    recorded_depths = event.get("paper_depths")
+    if not isinstance(recorded_depths, dict):
+        recorded_depths = {}
+
+    for entry in (a_entry, b_entry):
+        paper_id = entry.get("paper_id")
+        if not isinstance(paper_id, str) or not paper_id:
+            continue
+        current_depth = _depth_for_entry(entry)
+        try:
+            recorded_depth = int(recorded_depths.get(paper_id) or 0)
+        except (TypeError, ValueError):
+            recorded_depth = 0
+        if current_depth > recorded_depth:
+            return False
+    return True
 
 
 def _scope_label(
@@ -550,6 +677,27 @@ def _load_library_record(root: Path, rel_path: str | None, paper_id: str) -> dic
     return None
 
 
+def _load_exhaustion_record(root: Path, entry: dict[str, Any], paper_id: str) -> dict[str, Any]:
+    rel_path = None
+    paths = entry.get("paths")
+    if isinstance(paths, dict):
+        rel_path = paths.get("exhaust")
+
+    candidates: list[Path] = []
+    if isinstance(rel_path, str) and rel_path:
+        candidates.append(root / rel_path)
+    candidates.append(root / "albedo" / "exhaust" / f"{paper_id}_exhaust.yaml")
+
+    for candidate in candidates:
+        if not candidate.exists():
+            continue
+        with open(candidate, "r", encoding="utf-8") as f:
+            payload = yaml.safe_load(f)
+        if isinstance(payload, dict):
+            return payload
+    return {}
+
+
 def _coerce_int(value: Any, fallback: int = 0) -> int:
     try:
         return int(float(value))
@@ -588,6 +736,97 @@ def _coerce_confidence(value: Any, fallback: int = 0) -> int:
     return max(1, min(5, parsed))
 
 
+EXHAUST_PROMPT_BUCKETS: tuple[tuple[str, tuple[str, ...]], ...] = (
+    ("derivations", ("statement", "follows_from", "confidence")),
+    ("exercises", ("problem", "solution", "difficulty")),
+    ("missing_angles", ("angle", "where_it_lands", "why_missed")),
+    ("open_questions", ("question", "how_to_close", "closable")),
+    ("unstated_assumptions", ("assumption", "impacts_claim")),
+    ("experiments", ("hypothesis", "design", "predicted_true", "predicted_false")),
+    ("necessary_connections", ("work", "why_necessary")),
+)
+
+
+def _paper_prompt_block(paper_id: str, record: dict[str, Any], exhaust: dict[str, Any]) -> str:
+    title = record.get("source", {}).get("title", paper_id)
+    claims = [item.get("statement") for item in record.get("claims", [])[:5] if isinstance(item, dict)]
+    methods = [item.get("name") for item in record.get("methods", [])[:5] if isinstance(item, dict)]
+    techniques = [item.get("name") for item in record.get("techniques", [])[:5] if isinstance(item, dict)]
+    equations = [item.get("latex") or item.get("expression") for item in record.get("equations", [])[:3] if isinstance(item, dict)]
+    exhaust_lines = _exhaust_summary_lines(exhaust)
+
+    lines = [
+        f"Paper: {title}",
+        f"Paper ID: {paper_id}",
+        f"Claims: {claims}",
+        f"Methods: {methods}",
+        f"Techniques: {techniques}",
+    ]
+    if equations:
+        lines.append(f"Equations: {equations}")
+    if exhaust_lines:
+        lines.append("Exhaustion outputs:")
+        lines.extend(f"- {line}" for line in exhaust_lines)
+    else:
+        lines.append("Exhaustion outputs: none found")
+    return "\n".join(lines)
+
+
+def _exhaust_summary_lines(exhaust: dict[str, Any], *, max_items_per_bucket: int = 3) -> list[str]:
+    if not isinstance(exhaust, dict) or not exhaust:
+        return []
+
+    normalized = dict(exhaust)
+    nested = exhaust.get("exhaustion")
+    if isinstance(nested, dict):
+        for key, value in nested.items():
+            normalized.setdefault(key, value)
+
+    lines: list[str] = []
+    for bucket, keys in EXHAUST_PROMPT_BUCKETS:
+        values = normalized.get(bucket)
+        if not isinstance(values, list) or not values:
+            continue
+        for item in values[:max_items_per_bucket]:
+            summary = _exhaust_item_summary(item, keys)
+            if summary:
+                lines.append(f"{bucket}: {summary}")
+    return lines
+
+
+def _exhaust_item_summary(item: Any, keys: tuple[str, ...]) -> str:
+    if isinstance(item, str):
+        return item.strip()
+    if not isinstance(item, dict):
+        return ""
+
+    parts: list[str] = []
+    for key in keys:
+        value = item.get(key)
+        if value is None or value == "":
+            continue
+        parts.append(str(value).strip())
+    return " | ".join(part for part in parts if part)
+
+
+def _build_pair_prompt(
+    a_id: str,
+    b_id: str,
+    record_a: dict[str, Any],
+    record_b: dict[str, Any],
+    exhaust_a: dict[str, Any] | None = None,
+    exhaust_b: dict[str, Any] | None = None,
+) -> str:
+    return (
+        "Paper A\n"
+        "-------\n"
+        f"{_paper_prompt_block(a_id, record_a, exhaust_a or {})}\n\n"
+        "Paper B\n"
+        "-------\n"
+        f"{_paper_prompt_block(b_id, record_b, exhaust_b or {})}\n"
+    )
+
+
 def _analyze_pair(
     a_id: str,
     b_id: str,
@@ -596,6 +835,9 @@ def _analyze_pair(
     pair_scope: str,
     llm: LLMClient | None,
     schema: dict[str, Any],
+    *,
+    exhaust_a: dict[str, Any] | None = None,
+    exhaust_b: dict[str, Any] | None = None,
 ) -> dict[str, Any] | None:
     if llm is None:
         return {
@@ -612,21 +854,15 @@ def _analyze_pair(
             "status": "pending_review",
         }
 
-    prompt = (
-        f"Paper A: {record_a.get('source', {}).get('title', a_id)}\n"
-        f"Claims: {[item.get('statement') for item in record_a.get('claims', [])[:5]]}\n"
-        f"Methods: {[item.get('name') for item in record_a.get('methods', [])[:5]]}\n"
-        f"Techniques: {[item.get('name') for item in record_a.get('techniques', [])[:5]]}\n\n"
-        f"Paper B: {record_b.get('source', {}).get('title', b_id)}\n"
-        f"Claims: {[item.get('statement') for item in record_b.get('claims', [])[:5]]}\n"
-        f"Methods: {[item.get('name') for item in record_b.get('methods', [])[:5]]}\n"
-        f"Techniques: {[item.get('name') for item in record_b.get('techniques', [])[:5]]}\n"
-    )
+    prompt = _build_pair_prompt(a_id, b_id, record_a, record_b, exhaust_a, exhaust_b)
     response = llm.complete(
         (
             "Analyze whether these two papers share a substantive structural connection.\n\n"
             + prompt
-            + "\nIf no connection exists return {}."
+            + "\nUse claims, methods, equations, and exhaustion outputs as evidence. "
+            + "Prioritize connections that depend on derivations, missing angles, open questions, "
+            + "unstated assumptions, experiments, or necessary connections. "
+            + "If no connection exists return {}."
         ),
         structured=True,
         schema=schema,

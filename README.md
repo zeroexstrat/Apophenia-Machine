@@ -159,11 +159,19 @@ azoth connect --within ML
 azoth connect --cross physics ML
 azoth connect --paper <paper_id>
 azoth connect --all
+azoth connect --within ML --reanalyze-depth-upgrades
 ```
 
 Outputs go to:
 - `citrinitas/within_domain/<domain>/<id1>_<id2>.yaml`
 - `citrinitas/cross_domain/<id1>_<id2>.yaml`
+
+Citrinitas consumes both `albedo/library/<paper_id>.yaml` and
+`albedo/exhaust/<paper_id>_exhaust.yaml`. Previously analyzed pairs are skipped
+by default. Use `--reanalyze-depth-upgrades` after re-exhausting papers at a
+higher depth; Azoth compares the current `exhausted_at_depth` values with
+`albedo/connections_analyzed.jsonl` and only re-runs pairs whose recorded depth
+is stale.
 
 ### 5) Detect hypotheses and draft notes
 
@@ -223,6 +231,7 @@ All commands are under `azoth` (entrypoint from `pyproject.toml`).
   - `--cross <d1> <d2>`
   - `--paper <paper_id>`
   - `--all`
+  - `--reanalyze-depth-upgrades`
   - `--no-llm`, `--json`
   - `--no-auto-checkpoint`
 

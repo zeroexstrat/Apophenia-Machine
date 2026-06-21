@@ -133,7 +133,7 @@ def _index_draft_papers(root: Path) -> set[str]:
         match = pattern.search(raw)
         if not match:
             continue
-        payload = match.group(1).strip()
+        payload = match.group(1).replace("\\n", "").strip()
         for paper_id in payload.split(","):
             value = paper_id.strip()
             if value:

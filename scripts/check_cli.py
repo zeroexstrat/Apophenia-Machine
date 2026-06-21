@@ -58,10 +58,18 @@ def main() -> int:
     ]:
         _assert(token in help_text, f"command listed in --help: {token}", failures)
 
+    help_outputs: dict[str, str] = {}
     for command in ["awaken", "status", "connect", "detect", "draft", "config", "migrate"]:
         rc, sub_out, _ = _run([command, "--help"])
         _assert(rc == 0, f"{command} --help works", failures)
         _assert(len(sub_out.strip()) > 0, f"{command} --help has output", failures)
+        help_outputs[command] = sub_out
+
+    _assert(
+        "--reanalyze-depth-upgrades" in help_outputs.get("connect", ""),
+        "connect --help lists depth-upgrade reanalysis flag",
+        failures,
+    )
 
     rc, status_out, _ = _run(["status", "--json"])
     _assert(rc == 0, "status --json runs", failures)
@@ -90,4 +98,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

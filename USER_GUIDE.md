@@ -88,10 +88,16 @@ azoth awaken ML --depth 3 --count 3
 azoth connect --within ML
 azoth connect --cross ML physics
 azoth connect --all
+azoth connect --within ML --reanalyze-depth-upgrades
 azoth status --domain ML --json
 ```
 
 `/awaken` is the conversational alias of `azoth awaken`.
+
+`connect` reads each paper's Albedo record and its latest exhaust output. If a
+pair was already analyzed, it is skipped unless `--reanalyze-depth-upgrades` is
+set and one of the papers now has a higher `exhausted_at_depth` than the depth
+recorded in `albedo/connections_analyzed.jsonl`.
 
 If exhaustion returns empty buckets, inspect the corresponding `albedo/library/<paper_id>.yaml`. Empty exhaustion is expected when the library record contains only generic fallback text. To verify semantic behavior, run:
 

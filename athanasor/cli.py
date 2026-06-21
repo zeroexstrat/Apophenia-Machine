@@ -472,6 +472,11 @@ def cmd_config(show: bool, set_kv: tuple[str, str] | None) -> None:
 @click.option("--cross", nargs=2, metavar="D1 D2", required=False, help="Domain pair for cross-domain pass.")
 @click.option("--paper", "paper_id", help="Single paper id sweep.")
 @click.option("--all", "all_scope", is_flag=True, help="Run all candidate pairs.")
+@click.option(
+    "--reanalyze-depth-upgrades",
+    is_flag=True,
+    help="Re-run previously analyzed pairs when either paper was exhausted at a deeper depth.",
+)
 @click.option("--no-llm", is_flag=True, help="Disable LLM pair assessment.")
 @click.option("--json", "json_output", is_flag=True, help="Emit machine-readable JSON")
 @click.option("--no-auto-checkpoint", is_flag=True, help="Skip automatic post-slice memory checkpoint.")
@@ -480,6 +485,7 @@ def cmd_connect(
     cross: tuple[str, str] | None,
     paper_id: str | None,
     all_scope: bool,
+    reanalyze_depth_upgrades: bool,
     no_llm: bool,
     json_output: bool,
     no_auto_checkpoint: bool,
@@ -500,6 +506,7 @@ def cmd_connect(
             cross=cross,
             paper_id=paper_id,
             all_scope=all_scope,
+            reanalyze_depth_upgrades=reanalyze_depth_upgrades,
         )
 
     outputs = _run_with_command_context(
