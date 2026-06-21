@@ -1,0 +1,70 @@
+schema_version: 1
+artifact_type: nigredo_ouroboros_expansion
+cluster_id: cluster_loopedworldmodels_903887879_paper_397502697_3
+generated_at: '2026-06-21T07:05:33.919422+00:00'
+source_artifact: rubedo/prior_art/cluster_loopedworldmodels_903887879_paper_397502697_3.yaml
+download_enabled: false
+included_impacts:
+- direct_prior_art
+- related_prior_art
+max_sources: 8
+items:
+- source_index: 1
+  title: 'Parcae: Scaling Laws For Stable Looped Language Models'
+  url: https://arxiv.org/html/2604.12946v1
+  resolved_url: https://arxiv.org/pdf/2604.12946v1.pdf
+  impact: direct_prior_art
+  status: queued
+  reason: Download disabled; source queued for later ingestion.
+  finding: Directly overlaps the claim. The paper frames looping as a dynamical system
+    over the residual stream and proposes a stable looped transformer architecture
+    that constrains the spectral norm of injection parameters to prevent residual
+    explosion in looped layers.
+- source_index: 2
+  title: Stabilizing Recurrent Dynamics for Test-Time Scalable Latent Reasoning in
+    Looped Language Models
+  url: https://arxiv.org/html/2605.26733v1
+  resolved_url: https://arxiv.org/pdf/2605.26733v1.pdf
+  impact: direct_prior_art
+  status: queued
+  reason: Download disabled; source queued for later ingestion.
+  finding: Directly overlaps the stability mechanism. STARS uses Jacobian Spectral
+    Radius Regularization with random loop sampling to enforce asymptotic stability
+    in looped language models.
+- source_index: 3
+  title: 'CART: Context-Anchored Recurrent Transformer -- A Parameter-Efficient Architecture
+    with Learned Stability'
+  url: https://arxiv.org/abs/2606.01495
+  resolved_url: https://arxiv.org/pdf/2606.01495.pdf
+  impact: direct_prior_art
+  status: queued
+  reason: Download disabled; source queued for later ingestion.
+  finding: Directly overlaps recurrent transformer stability. CART reuses a shared
+    core block across depth and reports a learned LTI gate whose spectral radius settles
+    below 1 across trained configurations.
+- source_index: 4
+  title: 'On the Residual Scaling of Looped Transformers: Stability and Transferability'
+  url: https://arxiv.org/html/2606.18524
+  resolved_url: https://arxiv.org/pdf/2606.18524.pdf
+  impact: related_prior_art
+  status: queued
+  reason: Download disabled; source queued for later ingestion.
+  finding: Related prior art. The paper studies why weight sharing changes residual
+    accumulation in looped transformers and derives stronger residual scaling for
+    stability, although it is not the same as spectral normalization.
+- source_index: 5
+  title: Training Transformers with Enforced Lipschitz Constants
+  url: https://arxiv.org/abs/2507.13338
+  resolved_url: https://arxiv.org/pdf/2507.13338.pdf
+  impact: related_prior_art
+  status: queued
+  reason: Download disabled; source queued for later ingestion.
+  finding: Related broader prior art. The paper studies spectral normalization and
+    other weight constraints for transformers with enforced Lipschitz constants, supporting
+    that spectral constraints for transformer stability are already an active line
+    of work.
+next_commands:
+- azoth ingest nigredo/inbox/
+- azoth awaken ML --depth 3 --count 8
+- azoth connect --within ML --reanalyze-depth-upgrades
+- azoth detect --domain ML
