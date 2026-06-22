@@ -21,6 +21,7 @@ from .skills import detect as detect_skill
 from .skills import draft as draft_skill
 from .skills import experiment as experiment_skill
 from .skills import exhaust as exhaust_skill
+from .skills import export_signals as export_signals_skill
 from .skills import ingest as ingest_skill
 from .skills import ouroboros as ouroboros_skill
 from .skills import promote as promote_skill
@@ -420,6 +421,27 @@ def cmd_status(domain: str | None, status_filter: str | None, json_output: bool)
     else:
         for line in _status_lines(payload):
             click.echo(line)
+
+
+@main.command("export")
+@click.option("--signals", is_flag=True, help="Export bounded candidate signals.")
+@click.option("--max", "max_signals", default=3, type=click.IntRange(min=1), show_default=True)
+@click.option("--out", "output_path", required=True, type=click.Path(path_type=Path), help="Output JSON path.")
+def cmd_export(signals: bool, max_signals: int, output_path: Path) -> None:
+    """Export bounded Azoth signals for external staging."""
+    if not signals:
+        raise click.ClickException("Only signal export is supported; pass --signals.")
+
+    def _run() -> Path:
+        cfg = load_config()
+        return export_signals_skill.write_export(
+            Path(cfg.project_root),
+            output_path,
+            max_signals=max_signals,
+        )
+
+    path = _run_with_command_context("azoth export", _run)
+    click.echo(f"  - {path}")
 
 
 @main.command("config")
