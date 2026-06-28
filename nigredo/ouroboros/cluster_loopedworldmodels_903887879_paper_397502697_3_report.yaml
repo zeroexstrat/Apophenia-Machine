@@ -1,11 +1,11 @@
 schema_version: 1
 artifact_type: nigredo_ouroboros_report
 cluster_id: cluster_loopedworldmodels_903887879_paper_397502697_3
-generated_at: '2026-06-21T07:05:33.919422+00:00'
+generated_at: '2026-06-21T07:28:42.219064+00:00'
 source_artifact: rubedo/prior_art/cluster_loopedworldmodels_903887879_paper_397502697_3.yaml
 total_sources: 5
-downloaded_count: 0
-queued_count: 5
+downloaded_count: 5
+queued_count: 0
 manual_required_count: 0
 failed_count: 0
 next_command: azoth ingest nigredo/inbox/

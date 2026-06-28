@@ -1,7 +1,7 @@
 {
   "project": "Azoth / Apophenia Machine",
   "version": "0.1.0",
-  "last_updated": "2026-06-21T07:09:11.120155+00:00",
+  "last_updated": "2026-06-21T16:05:32.938173+00:00",
   "pipeline": {
     "nigredo": {
       "total_papers_inbox": 0,
@@ -41,11 +41,11 @@
     "last_triage": null
   },
   "gates": {
-    "git_drift": "pass",
+    "git_drift": "fail",
     "registry": "pass",
     "exhaustion_ceiling": "pass",
     "nigredo_redux": "pass",
-    "last_vigil": "2026-06-21T07:09:11.120155+00:00"
+    "last_vigil": "2026-06-21T16:05:32.938173+00:00"
   },
   "sessions": {
     "total": 0,
