@@ -1,0 +1,38 @@
+{
+  "hypotheses": [
+    {
+      "schema_version": 1,
+      "cluster_id": "cluster_0e4d82270854",
+      "paper_ids": [
+        "synthetic_001",
+        "synthetic_002",
+        "synthetic_003"
+      ],
+      "scope": "operations_research",
+      "novelty": false,
+      "summary": "The fictional records define three controls but omit a shared demand-shift comparison.",
+      "status": "pending_review",
+      "gaps": [
+        {
+          "gap_type": "missing_experiment",
+          "description": "The synthetic records do not compare queue delay and capacity use under the same demand transition.",
+          "novelty": false,
+          "supporting_papers": [
+            "synthetic_001",
+            "synthetic_002",
+            "synthetic_003"
+          ],
+          "supporting_evidence": "Each fictional claim defines one control, but none reports a joint three-regime run.",
+          "significance": "The comparison would demonstrate the hypothesis import and human-review workflow.",
+          "feasibility": 5,
+          "suggested_approach": "Run all three fictional controls on one fixed low-high-recovery demand trace and compare delay and capacity use.",
+          "confidence": 4,
+          "rank": 1,
+          "references": [
+            "Synthetic claim 1"
+          ]
+        }
+      ]
+    }
+  ]
+}

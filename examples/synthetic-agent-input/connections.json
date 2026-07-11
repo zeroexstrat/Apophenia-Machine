@@ -1,0 +1,50 @@
+{
+  "connections": [
+    {
+      "schema_version": 1,
+      "pair_scope": "within_domain",
+      "paper_a_id": "synthetic_001",
+      "paper_b_id": "synthetic_002",
+      "pair_domains": {
+        "paper_a_domain": "operations_research",
+        "paper_b_domain": "operations_research"
+      },
+      "connection_type": "complementary_techniques",
+      "description": "A bounded queue complements threshold routing when demand changes abruptly.",
+      "evidence_a": "Synthetic claim 1 defines a fixed upper bound on queued work.",
+      "evidence_b": "Synthetic claim 1 defines a threshold for staged routing.",
+      "confidence": 4,
+      "confidence_raw": 4,
+      "novelty": "obvious",
+      "significance": "The fictional pair exposes a measurable delay-capacity tradeoff for workflow testing.",
+      "status": "pending_review",
+      "tags": [
+        "bounded_queue",
+        "threshold_routing"
+      ]
+    },
+    {
+      "schema_version": 1,
+      "pair_scope": "within_domain",
+      "paper_a_id": "synthetic_002",
+      "paper_b_id": "synthetic_003",
+      "pair_domains": {
+        "paper_a_domain": "operations_research",
+        "paper_b_domain": "operations_research"
+      },
+      "connection_type": "methodological_overlap",
+      "description": "Threshold routing and staged allocation both gate resources using observable operating state.",
+      "evidence_a": "Synthetic claim 1 specifies the routing threshold.",
+      "evidence_b": "Synthetic claim 1 specifies the staged allocation rule.",
+      "confidence": 4,
+      "confidence_raw": 4,
+      "novelty": "obvious",
+      "significance": "The fictional comparison demonstrates a second validated edge for cluster construction.",
+      "status": "pending_review",
+      "tags": [
+        "threshold_routing",
+        "staged_allocation"
+      ]
+    }
+  ]
+}

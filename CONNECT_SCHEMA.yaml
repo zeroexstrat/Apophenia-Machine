@@ -1,0 +1,114 @@
+# CONNECT_SCHEMA.yaml — Per-Connection Record
+# Azoth / Apophenia Machine
+# Version: 1 (explicit machine contract for Citrinitas outputs)
+
+# For each pair of papers that shares a substantive connection, write one YAML
+# record at:
+# `citrinitas/within_domain/<domain>/<paper_a_id>_<paper_b_id>.yaml`
+# or
+# `citrinitas/cross_domain/<paper_a_id>_<paper_b_id>.yaml`
+#
+# This schema is intentionally strict so the pipeline can validate outputs with
+# tooling instead of relying on prose conventions.
+
+schema_version:
+  type: integer
+  required: false
+  default: 1
+  description: "Schema version for this connection record."
+
+pair_scope:
+  type: string
+  required: true
+  enum: [within_domain, cross_domain]
+  description: "Whether this is a within-domain or cross-domain pair."
+
+paper_a_id:
+  type: string
+  required: true
+  description: "Paper ID for side A."
+
+paper_b_id:
+  type: string
+  required: true
+  description: "Paper ID for side B."
+
+pair_domains:
+  type: object
+  required: false
+  fields:
+    paper_a_domain:
+      type: string
+      required: false
+      description: "Domain label for paper A."
+    paper_b_domain:
+      type: string
+      required: false
+      description: "Domain label for paper B."
+
+connection_type:
+  type: string
+  required: true
+  enum: [methodological_overlap, contradictory_claims, complementary_techniques, shared_assumptions, missing_citation, generalization, analogous_structure, extension]
+  description: "Type of substantive connection."
+
+description:
+  type: string
+  required: true
+  description: "Concise description of why this is a meaningful connection."
+
+evidence_a:
+  type: string
+  required: true
+  description: "Specific claim/method/technique trace from paper A."
+
+evidence_b:
+  type: string
+  required: true
+  description: "Specific claim/method/technique trace from paper B."
+
+confidence:
+  type: integer
+  required: true
+  minimum: 1
+  maximum: 5
+  description: "Shared inference confidence after any cross-domain penalty (1..5)."
+
+confidence_raw:
+  type: integer
+  required: false
+  minimum: 1
+  maximum: 5
+  description: "LLM-assigned confidence before cross-domain penalty."
+
+novelty:
+  type: string
+  required: true
+  enum: [obvious, non-obvious, speculative]
+  description: "Novelty framing of the connection."
+
+significance:
+  type: string
+  required: true
+  description: "Why this connection matters for the literature map (2-3 sentences)."
+
+score:
+  type: number
+  required: false
+  description: "Computed rank score (e.g., confidence × novelty weight)."
+
+status:
+  type: string
+  required: true
+  enum: [pending_review, accepted, rejected, investigate]
+  description: "Human triage status."
+
+tags:
+  type: list[string]
+  required: false
+  description: "Optional tags for filtering and reporting."
+
+agent_notes:
+  type: string
+  required: false
+  description: "Optional short notes from the analysis run."

@@ -1,0 +1,46 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "azoth"
+version = "0.1.3"
+description = "Azoth — the Apophenia Machine"
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.10"
+classifiers = [
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+]
+dependencies = [
+  "click>=8.1",
+  "numpy>=1.26",
+  "openai>=1.30",
+  "pymupdf>=1.23",
+  "pyyaml>=6.0",
+  "rich>=13.7",
+]
+
+[project.optional-dependencies]
+# Semantic embeddings (pulls in torch). Without it, azoth falls back to a
+# deterministic hash embedding: pipeline runs, similarity pruning is weaker.
+embeddings = [
+  "sentence-transformers>=2.7",
+]
+dev = [
+  "pytest>=8.0",
+]
+
+[project.scripts]
+azoth = "athanasor.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "."}
+
+[tool.setuptools.packages.find]
+include = ["athanasor*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

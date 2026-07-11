@@ -1,0 +1,87 @@
+# Vigil — Gate Definitions
+# Azoth / Apophenia Machine
+# Five gates govern the pipeline. Each gate has a description, a trigger,
+# and a failure response. The Vigil runs all gates before substantive work.
+
+gates:
+
+  corpus:
+    name: Corpus
+    alchemy: "The body — the requirement that claims be embodied in evidence."
+    description: >
+      Every registry row in ingested_only or exhausted state must resolve to a
+      readable SCHEMA.yaml-valid library record with at least one claim whose
+      statement and evidence fields are nonblank and non-placeholder. This is a
+      structural trace check; it does not establish scientific truth or evidence adequacy.
+    trigger:
+      - A processed registry row has no readable library record.
+      - A processed library record fails SCHEMA.yaml.
+      - No claim contains both a specific statement and specific evidence.
+    failure: "Processed paper {paper_id} lacks a schema-valid evidence-bearing library record."
+    severity: hard
+
+  coniunctio:
+    name: Coniunctio
+    alchemy: "The marriage — the requirement that cross-domain connections be genuine unions, not coincidences."
+    description: >
+      Every persisted substantive connection must validate against CONNECT_SCHEMA.yaml,
+      reference two readable library records, and contain specific evidence fields.
+      A non-obvious or speculative novelty label is rejected when either library
+      record declares the other in connections_explicit. This checks declared
+      explicit citations only; it is not an external novelty search.
+    trigger:
+      - A connection artifact is unreadable or schema-invalid.
+      - Either referenced library record is missing.
+      - evidence_a or evidence_b is blank or placeholder text.
+      - A non-obvious or speculative pair has a declared explicit citation.
+    failure: "Connection {id1}↔{id2} violates structure, trace, or declared-citation constraints."
+    severity: hard
+
+  calcinatio:
+    name: Calcinatio
+    alchemy: "Burning — the requirement that derivations be honest about their confidence."
+    description: >
+      Every exhaustion artifact must validate against EXHAUST_SCHEMA.yaml. Derived
+      and likely items require a specific follows_from trace, and no run may contain
+      more than five consecutive speculative derivations. These checks validate
+      schema, confidence, trace presence, and the speculative ceiling; they do not
+      prove that a derivation logically follows from its source.
+    trigger:
+      - An exhaustion artifact is unreadable or schema-invalid.
+      - A derived or likely item has a blank or placeholder follows_from field.
+      - Six consecutive speculative derivations are present.
+    failure: "Exhaustion artifact {paper_id} violates schema, trace, or speculative-ceiling constraints."
+    severity: soft_on_downgrade, hard_on_fabrication
+
+  caput_mortuum:
+    name: Caput Mortuum
+    alchemy: "The dead head — the requirement that exhausted matter not be reprocessed."
+    description: >
+      Every exhausted registry row must have a readable exhaustion artifact whose
+      paper ID and depth exactly match the registry cursor, with depth in 1 through 5.
+      A non-exhausted row must not carry an exhaustion cursor. This detects durable
+      state disagreement; it cannot reconstruct prior token use before state was written.
+    trigger:
+      - An exhausted row has no readable artifact.
+      - Artifact and registry paper IDs differ.
+      - Artifact and registry depths differ or lie outside 1 through 5.
+      - A non-exhausted row carries an exhaustion cursor.
+    failure: "Paper {id} has inconsistent durable exhaustion identity or depth state."
+    severity: hard
+
+  nigredo_redux:
+    name: Nigredo Redux
+    alchemy: "Return to black — the requirement that rejected candidates not resurface."
+    description: >
+      A human rejection records separate canonical fingerprints for the Rubedo
+      cluster identity and its evidence packet in an append-only workspace ledger.
+      A pending or investigate hypothesis may not match both fingerprints. The same
+      cluster may return only when its evidence fingerprint changes. This contract
+      covers Rubedo hypotheses promoted through azoth promote, not connection decisions.
+    trigger:
+      - The rejection ledger is malformed.
+      - A pending or investigate hypothesis matches a recorded cluster/evidence fingerprint pair.
+      - A rejected hypothesis is missing its cluster/evidence fingerprint pair from the ledger.
+      - A hypothesis records rejected triage metadata while retaining a pending state.
+    failure: "Hypothesis {id} violates the durable Rubedo rejection-fingerprint contract."
+    severity: hard

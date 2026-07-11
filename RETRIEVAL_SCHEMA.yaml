@@ -1,0 +1,74 @@
+# RETRIEVAL_SCHEMA.yaml — deterministic pair-retrieval candidate
+
+schema_version:
+  type: integer
+  required: true
+  minimum: 1
+  maximum: 1
+
+artifact_type:
+  type: string
+  required: true
+  enum: [retrieval_candidate]
+
+pair_id:
+  type: string
+  required: true
+
+paper_a_id:
+  type: string
+  required: true
+
+paper_b_id:
+  type: string
+  required: true
+
+pair_scope:
+  type: string
+  required: true
+  enum: [within_domain, cross_domain]
+
+pair_domains:
+  type: object
+  required: true
+  fields:
+    paper_a_domain:
+      type: string
+      required: true
+    paper_b_domain:
+      type: string
+      required: true
+
+shared_tags:
+  type: list[string]
+  required: true
+  min_items: 1
+
+similarity:
+  type: number
+  required: false
+  minimum: -1
+  maximum: 1
+
+selection_reasons:
+  type: list[string]
+  required: true
+  min_items: 1
+
+status:
+  type: string
+  required: true
+  enum: [pending_assessment]
+
+metadata:
+  type: object
+  required: true
+  fields:
+    method:
+      type: string
+      required: true
+      enum: [deterministic_retrieval]
+    generated_at:
+      type: string
+      required: true
+      format: "ISO 8601"
