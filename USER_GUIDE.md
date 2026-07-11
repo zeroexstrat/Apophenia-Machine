@@ -19,7 +19,20 @@ Every connection and hypothesis remains `pending_review` until a named human use
 - `pdftotext` or PyMuPDF-compatible source parsing
 - Optional configured LLM backend for generative extraction, connection assessment, and gap synthesis
 
-Install for development:
+Install a built wheel and create an independent workspace:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install /path/to/azoth.whl
+azoth init research-workspace
+cd research-workspace
+azoth status
+```
+
+Azoth's schemas, default configuration, and Vigil gate definitions remain immutable package resources. The initialized directory contains user-owned runtime data and a copied `azoth.config.yaml` whose project root points to that directory. Re-running `azoth init` repairs missing empty directories but does not overwrite existing config, registry, or state files. It refuses non-empty directories that are not already Azoth workspaces.
+
+Install for development from a repository clone:
 
 ```bash
 python3 -m venv .venv
@@ -32,7 +45,7 @@ pip install -e ".[dev]"
 ```bash
 python3 scripts/incipere.py
 python3 scripts/incipere.py --json
-python3 athanasor/vigil/verify.py start
+python -m athanasor.vigil.verify start
 ```
 
 Incipere reads live Git and runtime state plus `PROJECT_ROADMAP.md`. A fresh public checkout has no runtime registry; that is a valid empty baseline.
@@ -40,7 +53,6 @@ Incipere reads live Git and runtime state plus `PROJECT_ROADMAP.md`. A fresh pub
 ## Ingestion
 
 ```bash
-mkdir -p nigredo/inbox
 cp path/to/document.pdf nigredo/inbox/
 azoth ingest nigredo/inbox/
 azoth status --json
@@ -194,7 +206,7 @@ For rejection, Azoth writes a durable cluster/evidence fingerprint before comple
 ```bash
 azoth validate --all
 python scripts/validate.py --all
-python3 athanasor/vigil/verify.py verify
+python -m athanasor.vigil.verify verify
 ```
 
 The five Vigil gates are structural:
@@ -205,7 +217,7 @@ The five Vigil gates are structural:
 - Caput Mortuum — exact registry/artifact identity and depth agreement.
 - Nigredo Redux — durable suppression of unchanged rejected Rubedo evidence.
 
-Read `athanasor/vigil/gates.yaml` for the executable limits. None of these gates establishes scientific truth or literature-wide novelty.
+The installed gate definitions are versioned with the package; the repository authoring copy is `athanasor/vigil/gates.yaml`. None of these gates establishes scientific truth or literature-wide novelty.
 
 ## Runtime state and recovery
 
@@ -224,8 +236,8 @@ Run verification before close:
 ```bash
 python -m pytest -q
 python scripts/check_public_tree.py
-python3 athanasor/vigil/verify.py verify
-python3 athanasor/vigil/verify.py close
+python -m athanasor.vigil.verify verify
+python -m athanasor.vigil.verify close
 ```
 
 For a memory-only checkpoint:

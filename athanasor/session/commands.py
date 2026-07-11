@@ -28,7 +28,9 @@ from collections import Counter
 from pathlib import Path
 from typing import Any
 
-ROOT = Path(__file__).resolve().parents[2]
+from ..workspace import discover_workspace
+
+ROOT = discover_workspace()
 STATE_PATH = ROOT / "athanasor" / "lapis" / "state.json"
 CODEX_PATH = ROOT / "athanasor" / "lapis" / "codex.md"
 ROADMAP_PATH = ROOT / "PROJECT_ROADMAP.md"
@@ -860,10 +862,19 @@ def run_concludere(argv: list[str] | None = None) -> int:
         committed = False
         try:
             append_findings_to_memory(memory_path, entry)
+            vigil_env = os.environ.copy()
+            vigil_env["AZOTH_PROJECT_ROOT"] = str(ROOT)
+            local_vigil = ROOT / "athanasor" / "vigil" / "verify.py"
+            vigil_command = (
+                [sys.executable, str(local_vigil), "close"]
+                if local_vigil.is_file()
+                else [sys.executable, "-m", "athanasor.vigil.verify", "close"]
+            )
             run_cmd(
-                [sys.executable, str(ROOT / "athanasor" / "vigil" / "verify.py"), "close"],
+                vigil_command,
                 cwd=ROOT,
-                context="athanasor/vigil/verify.py close",
+                env=vigil_env,
+                context="Vigil close",
                 check=True,
             )
             post_vigil_staged = _staged_paths(ROOT)

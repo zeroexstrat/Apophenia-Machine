@@ -1,0 +1,232 @@
+# EXHAUST_SCHEMA.yaml — Per-Paper Exhaustion Record
+# Azoth / Apophenia Machine
+# Version: 2 (updated 2026-06-14 — added source_claim to all optional buckets)
+#
+# After a paper is ingested to Albedo, a domain subagent can be awakened
+# to exhaust it: derive corollaries, solve implied exercises, identify
+# missing angles, close open questions, and propose experiments.
+#
+# Exhaustion is domain-sensitive. A physics textbook is exhausted differently
+# from a philosophy paper. Use the fields relevant to the paper's domain.
+# Fields not applicable to a given domain may be omitted.
+
+# ===========================================================================
+# Header
+# ===========================================================================
+exhaustion:
+  type: object
+  required: true
+  fields:
+    paper_id:
+      type: string
+      required: true
+      description: "Matches the id in albedo/registry.jsonl."
+    paper_title:
+      type: string
+      required: true
+    domain:
+      type: string
+      required: true
+      description: "Primary domain from Separatio classification."
+    paper_type:
+      type: string
+      required: true
+      enum: [paper, textbook, monograph, essay, review, commentary, lecture_notes]
+      description: "Determines exhaustion strategy. Textbooks get exercises solved. Papers get implications derived. Essays get missing angles identified."
+    exhaustion_depth:
+      type: integer
+      required: true
+      minimum: 1
+      maximum: 5
+      description: "User-specified. 1 = surface skim. 3 = thorough. 5 = obsessive."
+    schema_version:
+      type: integer
+      required: false
+      default: 2
+    agent:
+      type: string
+      required: false
+      description: "Model/provider that performed exhaustion."
+    date:
+      type: string
+      format: "ISO 8601"
+      required: false
+    termination:
+      type: object
+      required: false
+      description: "Why exhaustion stopped."
+      fields:
+        criterion:
+          type: string
+          enum: [redundancy, speculative_ceiling, hard_cap, completed]
+        detail:
+          type: string
+        deeper_available:
+          type: boolean
+
+# ===========================================================================
+# Derivations — what follows from the paper's claims
+# ===========================================================================
+  derivations:
+    type: list[object]
+    required: false
+    description: "Corollaries, consequences, logical implications."
+    fields:
+      statement:
+        type: string
+        required: true
+        description: "The derived statement."
+      follows_from:
+        type: string
+        required: true
+        description: "Which claim, theorem, or method in the paper. Reference by claim index (e.g., 'claim_3')."
+      confidence:
+        type: string
+        required: true
+        enum: [derived, likely, speculative]
+        description: "derived = strict consequence. likely = probable. speculative = interesting possibility."
+      item_type:
+        type: string
+        required: false
+        enum: [corollary, implication, extension, counterargument, boundary_condition]
+        description: "Optional sub-classification."
+      source_claim:
+        type: string
+        required: false
+        description: "Which claim, method, or section this derivation is rooted in."
+
+# ===========================================================================
+# Exercises — problems implied but not solved
+# ===========================================================================
+  exercises:
+    type: list[object]
+    required: false
+    description: "Exercises the author might assign in a course based on this material."
+    fields:
+      problem:
+        type: string
+        required: true
+      solution:
+        type: string
+        required: true
+      difficulty:
+        type: string
+        required: false
+        enum: [warmup, standard, challenging, open]
+      source_claim:
+        type: string
+        required: false
+        description: "Which claim, method, or section this exercise derives from."
+
+# ===========================================================================
+# Missing angles — what the author could have seen but didn't
+# ===========================================================================
+  missing_angles:
+    type: list[object]
+    required: false
+    description: "Alternative framings, neglected perspectives."
+    fields:
+      angle:
+        type: string
+        required: true
+      why_missed:
+        type: string
+        required: false
+      where_it_lands:
+        type: string
+        required: true
+        description: "What changes if this angle is incorporated."
+      item_type:
+        type: string
+        required: false
+        enum: [alternative_framing, neglected_perspective, counterargument, adjacent_field]
+      source_claim:
+        type: string
+        required: false
+        description: "Which claim, method, or section this missing angle was anchored to."
+
+# ===========================================================================
+# Open questions — what the paper leaves open
+# ===========================================================================
+  open_questions:
+    type: list[object]
+    required: false
+    fields:
+      question:
+        type: string
+        required: true
+      closable:
+        type: boolean
+        required: true
+        description: "Can this be answered using the paper's own methods?"
+      how_to_close:
+        type: string
+        required: false
+      source_claim:
+        type: string
+        required: false
+        description: "Which claim, method, or section this question extends."
+
+# ===========================================================================
+# Unstated assumptions — hidden load-bearing walls
+# ===========================================================================
+  unstated_assumptions:
+    type: list[object]
+    required: false
+    fields:
+      assumption:
+        type: string
+        required: true
+      impacts_claim:
+        type: string
+        required: false
+        description: "Which claim or argument depends on this assumption."
+      source_claim:
+        type: string
+        required: false
+        description: "Which claim, method, or section this assumption affects."
+
+# ===========================================================================
+# Experiments — what should be tested
+# ===========================================================================
+  experiments:
+    type: list[object]
+    required: false
+    fields:
+      hypothesis:
+        type: string
+        required: true
+      design:
+        type: string
+        required: true
+      predicted_true:
+        type: string
+        required: true
+      predicted_false:
+        type: string
+        required: true
+      source_claim:
+        type: string
+        required: false
+        description: "Which claim, method, or section motivates this experiment."
+
+# ===========================================================================
+# Necessary connections — what the paper should engage with
+# ===========================================================================
+  necessary_connections:
+    type: list[object]
+    required: false
+    fields:
+      work:
+        type: string
+        required: true
+      why_necessary:
+        type: string
+        required: true
+      impact:
+        type: string
+        required: true
+      source_claim:
+        type: string
+        required: false
+        description: "Which claim, method, or section motivates this connection."

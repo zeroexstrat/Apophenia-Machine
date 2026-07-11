@@ -86,17 +86,14 @@ def run_vigil_check(root: Path, phase: str, skill: str) -> str:
     if os.getenv("AZOTH_SKIP_VIGIL", "").strip().lower() in {"1", "true", "on", "yes"}:
         return f"Vigil skipped for {skill} ({phase})"
 
-    verify_path = root / "athanasor" / "vigil" / "verify.py"
-    if not verify_path.exists():
-        # Fresh or minimal project roots have no gate runtime; skipping keeps
-        # the pipeline usable there while full checkouts stay gated.
-        return f"Vigil unavailable for {skill} ({phase}): {verify_path} missing"
-
-    cmd = [sys.executable, str(verify_path), phase]
+    cmd = [sys.executable, "-m", "athanasor.vigil.verify", phase]
+    env = os.environ.copy()
+    env["AZOTH_PROJECT_ROOT"] = str(root.resolve())
     try:
         result = subprocess.run(
             cmd,
             cwd=str(root),
+            env=env,
             capture_output=True,
             text=True,
             check=False,

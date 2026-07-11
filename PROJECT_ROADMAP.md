@@ -5,7 +5,7 @@
 **Target:** `v0.2.0` portfolio release
 
 **Public position:** A local, human-gated research-operations pipeline that converts technical documents into schema-validated evidence records, ranks candidate connections, and preserves an auditable review trail.
-**Last reconciled:** 2026-07-11 after verified P2 implementation commit `0b2599567271ff9f5d1a02a36c98f71745c0602d`
+**Last reconciled:** 2026-07-11 after verified P3 implementation commit `949b89164e5902a42ce490393cd06b38d6fa84d2`
 
 ## 1. Reading order and authority
 
@@ -84,7 +84,7 @@ The operator workspace is richer because ignored local files exist. Local green 
 | P0-T1 | Canonical roadmap and safe session control | High | none | completed; inherited project gates open | Fresh session resumes from roadmap; close cannot stage unrelated files or leave tracked state dirty |
 | P1-T1 | Verified private pilot and Git archive | Ultra | P0-T1 | completed | Archive restores independently and every hash passes |
 | P2-T1 | Sanitized public baseline and honest structural gates | High + Ultra review | P1-T1 | completed | Clean checkout is data-independent and gate language matches code |
-| P3-T1 | Wheel resources and `azoth init` | High | P2-T1 | pending | Fresh wheel operates outside repository on Python 3.10-3.12 |
+| P3-T1 | Wheel resources and `azoth init` | High | P2-T1 | completed | Fresh wheel operates outside repository on Python 3.10-3.12 |
 | P4-T1 | Clean public Git lineage | Ultra | P3-T1 | pending | No reachable public pilot objects or private paths; remote CI green |
 | P5-T1 | Frozen benchmark protocol and gold-label packet | Ultra | P4-T1 | pending | Sources, rubric, metrics, thresholds, and blinded boundary are frozen |
 | P6-T1 | Benchmark CLI, scorer, report, and synthetic fixtures | High | P5-T1 | pending | Generation and scoring are isolated and deterministic scoring reproduces |
@@ -144,19 +144,19 @@ Create `<private-archive>/pilot-v0.1.3-20260711/` with mode `700`, all pilot/run
 
 | Field | Value |
 |---|---|
-| Task | P2-T1 — Sanitized public baseline and honest structural gates |
+| Task | P3-T1 — Wheel resources and `azoth init` |
 | Date | 2026-07-11 |
-| Effort | High implementation with Ultra contract review |
-| Branch | `codex/p2-public-baseline` |
-| Starting SHA | `ec7293fd614dc5ebc15be4f518eebe0d03c34235` |
-| Implementation SHA | `0b2599567271ff9f5d1a02a36c98f71745c0602d` |
+| Effort | High |
+| Branch | `codex/p1-private-pilot` |
+| Starting SHA | `b7d2f44a8d114dee8195e6cd63a19675f883e38f` |
+| Implementation SHA | `949b89164e5902a42ce490393cd06b38d6fa84d2` |
 | Push state | Not pushed; the user did not request a push |
-| Goal | Replace the pilot-dependent tracked product surface with a data-independent baseline whose gate language matches executable behavior |
-| Status | closed; P2 acceptance met, overall project remains in progress |
-| Acceptance | Zero tracked PDFs/runtime artifacts/private paths; isolated fixtures; five bounded structural gates; retrieval-only no-LLM connect; atomic connection and hypothesis imports; durable rejection fingerprints; synthetic examples; installable Apache-2.0 metadata |
-| Clean-clone proof | Python 3.12 editable install, 183 tests, public-tree audit, hardening audit, Vigil start, and clean Git status all pass at the implementation SHA |
+| Goal | Make immutable contracts wheel-resident and create an explicit user-owned runtime workspace without writing into `site-packages` |
+| Status | closed; P3 acceptance met, overall project remains in progress |
+| Acceptance | Seven immutable YAML resources embedded and synchronized; environment/config/CWD workspace discovery; conflict-safe idempotent `azoth init`; package-bound validate/migrate/Vigil; installed init, ingest, validate, auto-checkpoint, and structural gates outside the clone |
+| Installed-wheel proof | One current wheel passed the isolated workflow on Python 3.10, 3.11, and 3.12 with no checkout path on `sys.path`; 214 tests, all behavioral checks, public/hardening audits, compileall, and Vigil pass |
 | Private archive | `<private-archive>/pilot-v0.1.3-20260711` remained sealed and unmodified |
-| Open gate | No P2 gate remains open; P3-T1 owns wheel resources and `azoth init` across Python 3.10-3.12 |
+| Open gate | No P3 gate remains open; P4-T1 owns the irreversible public-history rewrite, remote reference purge, and remote CI proof |
 
 ## 8. Verification ledger
 
@@ -194,6 +194,8 @@ Sections 8-10 are append-only after this control plane is adopted. Correct an ea
 | 2026-07-11 | P2-T1 | tracked index and focused contract suite | public-tree audit, direct tracked-path/path-pattern scans, and import/gate/rejection tests | PASS: zero tracked runtime/PDF paths, zero private absolute-path matches, and 82 focused contract tests |
 | 2026-07-11 | P2-T1 | clean feature commit | `vigil start` and `vigil verify` | PASS: all seven checks, including all five bounded structural gates, on the empty public runtime baseline |
 | 2026-07-11 | P2-T1 | independent no-local clone, Python 3.12 | `uv sync --extra dev`, full pytest, public-tree audit, hardening audit, Vigil start, and Git status | PASS at `0b2599567271ff9f5d1a02a36c98f71745c0602d`: install succeeds, 183 tests pass, both audits pass, Vigil passes, and generated `uv.lock` leaves Git clean |
+| 2026-07-11 | P3-T1 | isolated feature worktree, Python 3.12 | compileall, full pytest, all existing `scripts/check_*.py` behavioral checks, public-tree audit, hardening audit, `git diff --check`, Vigil verify, and Vigil close | PASS at `949b89164e5902a42ce490393cd06b38d6fa84d2`: 214 tests, all behavioral checks, both audits, and all seven gates pass; tracked worktree remains clean |
+| 2026-07-11 | P3-T1 | one built wheel installed into temporary environments outside the clone | `scripts/check_wheel_install.py --wheel <wheel> --python 3.10 --python 3.11 --python 3.12` | PASS: all seven package resources present; each interpreter initializes a workspace, imports no checkout path, ingests a synthetic text record, validates it, writes auto-checkpoint state under the workspace, and passes Vigil start/verify |
 
 ## 9. Decision log
 
@@ -213,6 +215,7 @@ Sections 8-10 are append-only after this control plane is adopted. Correct an ea
 | D-012 | 2026-07-11 | Close P0 while retaining inherited project-gate failures as an explicit open gap | P0 control-plane acceptance is met; fabricating private artifacts or weakening the gate test would violate the approved P1-P2 order |
 | D-013 | 2026-07-11 | Preserve Git with both a PR-ref-aware `--all` bundle and a raw Git-directory snapshot | A normal local bundle omits remote `refs/pull/1/head`, six unreachable commits, 283 blobs, 902 trees, and two tree-valued Codex refs even though bundle verification can still pass |
 | D-014 | 2026-07-11 | Seal the accepted P1 archive and record verifier proof gaps externally instead of rewriting it in place | Every artifact-integrity requirement is independently proven; changing sealed files would invalidate the manifest, while reusable archival tooling is outside the P1 deliverable |
+| D-015 | 2026-07-11 | Keep immutable contracts in `athanasor.resources` and mutable state in initialized workspaces | Package-resource resolution is installer-portable and prevents runtime writes or editable-layout assumptions in `site-packages` |
 
 ## 10. Completed-session ledger
 
@@ -223,19 +226,20 @@ Sections 8-10 are append-only after this control plane is adopted. Correct an ea
 | 2026-07-11 | P1-T1 | Complete private pilot, PR-aware bundle, raw Git object store, relative manifest, and independent restorations verified; inherited registry defects preserved honestly | `10f4b461f892d12f4580a9baa4f06d2f08bdb72e` | 523 manifest hashes; 495-file source parity; 57/57/54; 11 refs; two clone/fsck paths; 1,191 raw unreachable objects; independent ACCEPT | archive source-ref SHA verified on `origin/codex/p1-private-pilot` before closeout |
 | 2026-07-11 | P1-T1 correction | Supersedes the prior row's SHA interpretation: `10f4b461` is the immutable archive source-ref; `9d29d5a` is the P1 implementation commit that records acceptance and the P2 handoff | `9d29d5a83949326faefed8cf4f843e77795dab32` | sealed verifier PASS; 9 tooling tests plus 4 subtests; 115 data-independent tests pass; inherited live-corpus test and two Vigil gates remain explicitly red | implementation SHA verified on `origin/codex/p1-private-pilot`; final closeout push follows this row |
 | 2026-07-11 | P2-T1 | Pilot/runtime evidence removed from the tracked product; structural gates made exact; no-LLM synthesis boundaries corrected; atomic agent imports, rejection persistence, synthetic examples, and Apache-2.0 metadata added | `0b2599567271ff9f5d1a02a36c98f71745c0602d` | independent clean clone installs; 183 tests, 15 check scripts, public/hardening audits, compileall, and Vigil pass; tracked runtime/PDF/path counts are zero | not pushed; user did not request push |
+| 2026-07-11 | P3-T1 | Wheel-resident contracts, workspace discovery, conflict-safe `azoth init`, installed helper/Vigil execution, and cross-version artifact smoke verification implemented | `949b89164e5902a42ce490393cd06b38d6fa84d2` | 214 tests, all behavioral checks, public/hardening audits, seven gates, and isolated installed-wheel init/ingest/validate/Vigil on Python 3.10-3.12 pass | not pushed; user did not request push |
 
 ## 11. Next-session handoff
 
-**Next task:** P3-T1 — Package wheel resources and implement `azoth init`.
+**Next task:** P4-T1 — Clean public Git lineage.
 
-**Effort:** High.
+**Effort:** Ultra.
 
-**Why next:** the tracked checkout is now data-independent and installs cleanly, but built wheels still need embedded schemas, defaults, and gate resources plus an explicit workspace initializer.
+**Why next:** the tracked product and installed artifact are now data-independent, but the public repository's reachable history and retained remote references still contain the superseded pilot lineage.
 
-**First inspection:** read the P3 contract, inventory every repository-root resource opened by installed code, build a wheel, install it into a temporary environment outside the clone, and capture the exact failures before changing packaging.
+**First inspection:** read the P4 contract, reconcile every local and remote ref with the sealed private archive, record the current remote SHA for an exact force-with-lease boundary, and rehearse the sanitized-tree export and full verification in a disposable repository before changing public history.
 
-**Acceptance:** a fresh wheel installed outside the repository works on Python 3.10, 3.11, and 3.12; schemas, default configuration, and Vigil definitions resolve from package resources; `azoth init <directory>` creates a usable empty workspace without writing into `site-packages`.
+**Acceptance:** the public Git lineage retains no pilot objects, third-party PDFs, private paths, old `v0.1.x` tags, or contaminated pull-request refs; an independent clone and the Python 3.10-3.12 remote CI matrix pass from the rewritten lineage.
 
-**Risk:** keep package resources immutable and separate from initialized runtime state. Do not begin the public-history rewrite, delete tags/PR refs, or force-update `main`; those operations remain P4-T1 only.
+**Risk:** P4 is irreversible public state. Preserve the sealed private archive, use exact leases, verify the exported repository before any remote mutation, and replace the public repository if GitHub cannot purge retained references.
 
-**Inherited open gap:** editable installs still benefit from repository-root resources, so clean-clone success does not prove wheel independence. P3 must test from an installed artifact in a directory with no repository checkout on `sys.path`.
+**Inherited open gap:** local branch success does not prove remote reference deletion or hosted CI. P4 must inspect GitHub-visible refs and verify the post-rewrite remote from an independent clone.

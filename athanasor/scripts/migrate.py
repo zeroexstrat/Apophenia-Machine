@@ -17,7 +17,7 @@ from typing import Any
 
 import yaml
 
-ROOT = Path(__file__).resolve().parents[2]
+from athanasor.workspace import discover_workspace
 
 
 KNOWN_VERSIONS = {
@@ -111,9 +111,10 @@ def coerce_confidence(value: Any, fallback: int = 0) -> int:
     return max(1, min(5, int(mapped)))
 
 
-def _infer_schema_type(path: Path) -> str:
+def _infer_schema_type(path: Path, root: Path | None = None) -> str:
+    workspace = (root or discover_workspace()).resolve()
     try:
-        rel = path.relative_to(ROOT)
+        rel = path.resolve().relative_to(workspace)
     except ValueError:
         rel = None
 
@@ -456,7 +457,7 @@ def _iter_targets(
 
 
 def _resolve_targets(target_versions: dict[str, int], paths: list[Path], all_scope: bool) -> tuple[list[Path], list[str]]:
-    targets = _iter_targets(ROOT, paths, all_scope=all_scope)
+    targets = _iter_targets(discover_workspace(), paths, all_scope=all_scope)
     summary: list[str] = []
     if not targets:
         summary.append("No YAML files selected.")
@@ -464,8 +465,9 @@ def _resolve_targets(target_versions: dict[str, int], paths: list[Path], all_sco
 
 
 def _report_file(path: Path) -> str:
+    root = discover_workspace()
     try:
-        return str(path.relative_to(ROOT))
+        return str(path.relative_to(root))
     except ValueError:
         return str(path)
 

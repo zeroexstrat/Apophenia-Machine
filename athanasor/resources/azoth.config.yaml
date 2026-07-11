@@ -1,0 +1,39 @@
+llm:
+  provider: "ollama_native"
+  base_url: "http://localhost:11434"
+  model: "nemotron-3-super:cloud"
+  api_key: "ollama"
+  temperature: 0.3
+  max_tokens: 4096
+  think: false
+  timeout: 300
+
+embeddings:
+  model: "all-MiniLM-L6-v2"
+  store_path: "athanasor/embeddings.store"
+  similarity_threshold: 0.82
+  redundancy_threshold: 0.85
+
+paths:
+  project_root: "~/Desktop/apophenia-machine"
+  nigredo: "nigredo"
+  albedo: "albedo"
+  citrinitas: "citrinitas"
+  rubedo: "rubedo"
+  athanasor: "athanasor"
+
+domains:
+  - physics
+  - ML
+  - philosophy
+  - neuroscience
+  - mathematics
+  - biology
+  - unclassified
+
+exhaustion:
+  depth_multipliers: {1: 2, 2: 4, 3: 6, 4: 8, 5: 12}
+  batch_size: 3
+  llm_max_tokens: 384
+  redundancy_stop_threshold: 3
+  speculative_stop_count: 5

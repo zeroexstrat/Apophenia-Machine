@@ -23,15 +23,12 @@ from typing import Any
 
 import yaml
 
-
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
+from .resources import resource_yaml
+from .workspace import discover_workspace
 
 
 def _project_root() -> Path:
-    override = os.environ.get("AZOTH_PROJECT_ROOT")
-    if override:
-        return Path(override).expanduser().resolve()
-    return PROJECT_ROOT.resolve()
+    return discover_workspace()
 
 
 @dataclass(frozen=True)
@@ -54,48 +51,10 @@ class Config:
 
 
 def _default_config() -> dict[str, Any]:
-    return {
-        "llm": {
-            "provider": "ollama_native",
-            "base_url": "http://localhost:11434",
-            "model": "nemotron-3-super:cloud",
-            "api_key": "ollama",
-            "temperature": 0.3,
-            "max_tokens": 4096,
-            "think": False,
-            "timeout": 300,
-        },
-        "embeddings": {
-            "model": "all-MiniLM-L6-v2",
-            "store_path": "athanasor/embeddings.store",
-            "similarity_threshold": 0.82,
-            "redundancy_threshold": 0.85,
-        },
-        "paths": {
-            "project_root": str(_project_root()),
-            "nigredo": "nigredo",
-            "albedo": "albedo",
-            "citrinitas": "citrinitas",
-            "rubedo": "rubedo",
-            "athanasor": "athanasor",
-        },
-        "domains": [
-            "physics",
-            "ML",
-            "philosophy",
-            "neuroscience",
-            "mathematics",
-            "biology",
-            "unclassified",
-        ],
-        "exhaustion": {
-            "depth_multipliers": {"1": 2, "2": 4, "3": 6, "4": 8, "5": 12},
-            "batch_size": 3,
-            "llm_max_tokens": 384,
-            "redundancy_stop_threshold": 3,
-            "speculative_stop_count": 5,
-        },
-    }
+    payload = resource_yaml("azoth.config.yaml")
+    if not isinstance(payload, dict):
+        raise RuntimeError("Bundled azoth.config.yaml must contain a YAML mapping")
+    return deepcopy(payload)
 
 
 def _coerce_depth_multipliers(value: Any) -> dict[int, int]:
@@ -108,8 +67,10 @@ def _coerce_depth_multipliers(value: Any) -> dict[int, int]:
             fixed[key] = int(raw_value)
         except (TypeError, ValueError):
             continue
+    defaults = _default_config()["exhaustion"]["depth_multipliers"]
     for key in [1, 2, 3, 4, 5]:
-        fixed.setdefault(key, _default_config()["exhaustion"]["depth_multipliers"][str(key)])
+        default_value = defaults.get(key, defaults.get(str(key)))
+        fixed.setdefault(key, int(default_value))
     return fixed
 
 
@@ -142,7 +103,8 @@ def _coerce_bool(value: Any, default: bool) -> bool:
 
 def load_config(path: Path | None = None) -> Config:
     merged: dict[str, Any] = _default_config()
-    config_path = path or (Path(_project_root()) / "azoth.config.yaml")
+    root = path.expanduser().resolve().parent if path is not None else _project_root()
+    config_path = path.expanduser().resolve() if path is not None else (root / "azoth.config.yaml")
 
     if config_path.exists():
         try:
@@ -155,7 +117,7 @@ def load_config(path: Path | None = None) -> Config:
         merged = _deep_update(merged, loaded)
 
     merged = _sanitize_sections(merged)
-    merged["paths"]["project_root"] = str(_project_root())
+    merged["paths"]["project_root"] = str(root)
 
     # Environment variable overrides.
     merged["llm"]["provider"] = os.getenv("LLM_PROVIDER", merged["llm"]["provider"])
@@ -206,7 +168,7 @@ def load_config(path: Path | None = None) -> Config:
         paths=merged["paths"],
         domains=[str(item) for item in merged.get("domains", [])],
         exhaustion=merged["exhaustion"],
-        project_root=str(_project_root()),
+        project_root=str(root),
     )
 
 
@@ -244,7 +206,7 @@ def save_config(config: Config, path: Path | None = None) -> None:
         "domains": config.domains,
         "exhaustion": config.exhaustion,
     }
-    target = path or (Path(_project_root()) / "azoth.config.yaml")
+    target = path or (_project_root() / "azoth.config.yaml")
     target.parent.mkdir(parents=True, exist_ok=True)
     with open(target, "w", encoding="utf-8") as f:
         yaml.safe_dump(output, f, sort_keys=False)

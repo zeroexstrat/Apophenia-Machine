@@ -89,6 +89,7 @@ def main() -> int:
     _assert(rc == 0, "azoth --help exits 0", failures)
     help_text = out + err
     for token in [
+        "init",
         "ingest",
         "reclassify",
         "awaken",
@@ -110,6 +111,7 @@ def main() -> int:
 
     help_outputs: dict[str, str] = {}
     for command in [
+        "init",
         "reclassify",
         "awaken",
         "status",

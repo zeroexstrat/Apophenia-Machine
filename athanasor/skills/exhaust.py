@@ -14,11 +14,9 @@ from ..config import Config, load_config
 from ..embeddings import EmbeddingStore
 from ..llm import LLMClient, LLMUnavailableError
 from ..registry import Registry
+from ..resources import resource_yaml
 from ..schemas import validate as validate_schema
 from ..skills.common import ensure_dir, now_iso, run_vigil_check, write_yaml
-
-
-EXHAUST_SCHEMA_PATH = Path(__file__).resolve().parents[2] / "EXHAUST_SCHEMA.yaml"
 
 
 def build_cli_parser() -> argparse.ArgumentParser:
@@ -644,8 +642,8 @@ def _domain_strategy(domain: str) -> str:
 
 
 def _load_schema() -> dict[str, Any]:
-    with open(EXHAUST_SCHEMA_PATH, "r", encoding="utf-8") as f:
-        return yaml.safe_load(f) or {}
+    payload = resource_yaml("EXHAUST_SCHEMA.yaml")
+    return payload if isinstance(payload, dict) else {}
 
 
 BUCKET_NAMES = (

@@ -29,6 +29,7 @@ from .skills import reclassify as reclassify_skill
 from .skills import review as review_skill
 from .skills import triage as triage_skill
 from .session.commands import persist_checkpoint
+from .workspace import WorkspaceConflictError, initialize_workspace
 
 
 def _is_auto_checkpoint_enabled() -> bool:
@@ -282,6 +283,17 @@ def _status_lines(payload: dict[str, Any]) -> list[str]:
                 f"- {entry.get('paper_id', 'unknown')} | {entry.get('status', 'unknown')} | {entry.get('domain', 'unknown')} | {entry.get('title', 'untitled')}"
             )
     return lines
+
+
+@main.command("init")
+@click.argument("directory", type=click.Path(path_type=Path))
+def cmd_init(directory: Path) -> None:
+    """Create or repair an empty Azoth workspace."""
+    try:
+        root = initialize_workspace(directory)
+    except WorkspaceConflictError as exc:
+        raise click.ClickException(str(exc)) from None
+    click.echo(f"Initialized Azoth workspace: {root}")
 
 
 @main.command("ingest")
@@ -977,23 +989,24 @@ def _emit_path(path: Path, json_output: bool) -> None:
     click.echo(f"  - {path}")
 
 
-def _run_python_module(module_path: Path, argv: list[str]) -> int:
-    if not module_path.exists():
-        raise click.ClickException(f"Module path does not exist: {module_path}")
-    cmd = [sys.executable, str(module_path), *argv]
+def _run_python_module(module_name: str, argv: list[str], *, root: Path) -> int:
+    cmd = [sys.executable, "-m", module_name, *argv]
+    env = os.environ.copy()
+    env["AZOTH_PROJECT_ROOT"] = str(root.resolve())
     try:
         result = subprocess.run(
             cmd,
-            cwd=str(Path(__file__).resolve().parents[1]),
+            cwd=str(root.resolve()),
+            env=env,
             capture_output=True,
             text=True,
         )
     except OSError as exc:
-        raise click.ClickException(f"Failed to launch '{module_path.name}': {exc}") from None
+        raise click.ClickException(f"Failed to launch '{module_name}': {exc}") from None
     if result.returncode != 0:
         output = (result.stdout or "") + (result.stderr or "")
         raise click.ClickException(
-            f"External module '{module_path.name}' failed with exit code {result.returncode}: {output.strip() or 'no output'}"
+            f"External module '{module_name}' failed with exit code {result.returncode}: {output.strip() or 'no output'}"
         )
     # Surface the module's report on success too — a silent validate/migrate
     # run reads as if nothing was checked.
@@ -1024,8 +1037,11 @@ def cmd_validate(paths: tuple[Path, ...], all_scope: bool, schema: Path | None, 
     if fix:
         argv.append("--fix")
     argv.extend(str(path) for path in paths)
-    module = (Path(__file__).resolve().parents[1] / "athanasor" / "scripts" / "validate.py")
-    _run_with_command_context("azoth validate", lambda: _run_python_module(module, argv[1:]))
+    root = Path(load_config().project_root)
+    _run_with_command_context(
+        "azoth validate",
+        lambda: _run_python_module("athanasor.scripts.validate", argv[1:], root=root),
+    )
 
 
 @main.command("migrate")
@@ -1072,8 +1088,11 @@ def cmd_migrate(
         argv += ["--detect-version", str(detect_version)]
 
     argv.extend(str(path) for path in paths)
-    module = (Path(__file__).resolve().parents[1] / "athanasor" / "scripts" / "migrate.py")
-    _run_with_command_context("azoth migrate", lambda: _run_python_module(module, argv[1:]))
+    root = Path(load_config().project_root)
+    _run_with_command_context(
+        "azoth migrate",
+        lambda: _run_python_module("athanasor.scripts.migrate", argv[1:], root=root),
+    )
 
 
 if __name__ == "__main__":

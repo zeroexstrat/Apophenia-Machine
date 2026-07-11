@@ -20,11 +20,9 @@ from ..config import Config, load_config
 from ..llm import LLMClient
 from ..rejections import is_rejected
 from ..registry import Registry
+from ..resources import resource_yaml
 from ..schemas import validate as validate_schema
 from ..skills.common import ensure_dir, load_yaml_tolerant, now_iso, run_vigil_check, write_yaml
-
-
-DETECT_SCHEMA_PATH = Path(__file__).resolve().parents[2] / "DETECT_SCHEMA.yaml"
 
 
 @dataclass(frozen=True)
@@ -435,8 +433,8 @@ def _load_exhaustion(root: Path, paper_id: str) -> dict[str, Any] | None:
 
 
 def _load_schema() -> dict[str, Any]:
-    with open(DETECT_SCHEMA_PATH, "r", encoding="utf-8") as f:
-        return yaml.safe_load(f) or {}
+    payload = resource_yaml("DETECT_SCHEMA.yaml")
+    return payload if isinstance(payload, dict) else {}
 
 
 def _synthesize_cluster(

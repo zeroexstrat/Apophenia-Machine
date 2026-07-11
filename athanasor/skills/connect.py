@@ -20,6 +20,7 @@ from ..config import Config, load_config
 from ..embeddings import EmbeddingStore
 from ..llm import LLMClient
 from ..registry import Registry
+from ..resources import resource_yaml
 from ..schemas import validate as validate_schema
 from ..skills.common import (
     ensure_dir,
@@ -32,8 +33,6 @@ from ..skills.common import (
 )
 
 
-CONNECT_SCHEMA_PATH = Path(__file__).resolve().parents[2] / "CONNECT_SCHEMA.yaml"
-RETRIEVAL_SCHEMA_PATH = Path(__file__).resolve().parents[2] / "RETRIEVAL_SCHEMA.yaml"
 GENERIC_PAIR_TAGS = {"fallback", "ingested", "automated", "pdf", "paper"}
 HIGH_SIGNAL_PAIR_TAGS = {
     "adaptive_computation",
@@ -542,13 +541,13 @@ def connect(
     return output
 
 def _load_schema() -> dict[str, Any]:
-    with open(CONNECT_SCHEMA_PATH, "r", encoding="utf-8") as f:
-        return yaml.safe_load(f) or {}
+    payload = resource_yaml("CONNECT_SCHEMA.yaml")
+    return payload if isinstance(payload, dict) else {}
 
 
 def _load_retrieval_schema() -> dict[str, Any]:
-    with open(RETRIEVAL_SCHEMA_PATH, "r", encoding="utf-8") as f:
-        return yaml.safe_load(f) or {}
+    payload = resource_yaml("RETRIEVAL_SCHEMA.yaml")
+    return payload if isinstance(payload, dict) else {}
 
 
 def _within_domain_pairs(registry: Registry, domain: str) -> list[tuple[str, str, str, str]]:

@@ -42,5 +42,8 @@ package-dir = {"" = "."}
 [tool.setuptools.packages.find]
 include = ["athanasor*"]
 
+[tool.setuptools.package-data]
+"athanasor.resources" = ["*.yaml", "vigil/*.yaml"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]

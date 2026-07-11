@@ -26,7 +26,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -e ".[dev]"
+          python -m pip install -e ".[dev]" uv
 
       - name: Compile Python sources
         run: python3 -m compileall athanasor scripts
@@ -51,3 +51,8 @@ jobs:
       - name: Run negative-path checks
         run: |
           python3 scripts/check_negative_paths.py
+
+      - name: Verify installed wheel outside checkout
+        run: |
+          uv build --wheel --out-dir dist
+          python3 scripts/check_wheel_install.py --wheel 'dist/azoth-*.whl' --python '${{ matrix.python-version }}'

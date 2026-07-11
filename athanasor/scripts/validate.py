@@ -16,6 +16,9 @@ from pathlib import Path
 from typing import Any
 import copy
 
+from athanasor.resources import resource_yaml
+from athanasor.workspace import discover_workspace
+
 try:
     import yaml
 except ImportError as exc:  # pragma: no cover
@@ -24,12 +27,11 @@ except ImportError as exc:  # pragma: no cover
     ) from exc
 
 
-ROOT = Path(__file__).resolve().parents[2]
-SCHEMA_PATHS = {
-    "library": ROOT / "SCHEMA.yaml",
-    "exhaust": ROOT / "EXHAUST_SCHEMA.yaml",
-    "connect": ROOT / "CONNECT_SCHEMA.yaml",
-    "detect": ROOT / "DETECT_SCHEMA.yaml",
+SCHEMA_RESOURCES = {
+    "library": "SCHEMA.yaml",
+    "exhaust": "EXHAUST_SCHEMA.yaml",
+    "connect": "CONNECT_SCHEMA.yaml",
+    "detect": "DETECT_SCHEMA.yaml",
 }
 
 
@@ -275,28 +277,29 @@ def validate_document(document: dict[str, Any], schema: dict[str, Any], path: st
     return (len(errors) == 0), errors, doc_copy, changed
 
 
-def detect_schema(path: Path) -> Path | None:
+def detect_schema(path: Path, root: Path | None = None) -> str | None:
+    workspace = (root or discover_workspace()).resolve()
     try:
-        rel = path.relative_to(ROOT)
+        rel = path.resolve().relative_to(workspace)
     except ValueError:
         rel = None
 
     if rel is not None and len(rel.parts) >= 2:
         if rel.parts[0] == "albedo" and rel.parts[1] == "library":
-            return SCHEMA_PATHS["library"]
+            return SCHEMA_RESOURCES["library"]
         if rel.parts[0] == "albedo" and rel.parts[1] == "exhaust":
-            return SCHEMA_PATHS["exhaust"]
+            return SCHEMA_RESOURCES["exhaust"]
         if rel.parts[0] == "citrinitas" and (rel.parts[1] == "within_domain" or rel.parts[1] == "cross_domain"):
-            return SCHEMA_PATHS["connect"]
+            return SCHEMA_RESOURCES["connect"]
         if rel.parts[0] == "rubedo" and rel.parts[1] == "hypotheses":
-            return SCHEMA_PATHS["detect"]
+            return SCHEMA_RESOURCES["detect"]
 
     if path.name.endswith("_exhaust.yaml"):
-        return SCHEMA_PATHS["exhaust"]
+        return SCHEMA_RESOURCES["exhaust"]
     if path.name.startswith("cluster_") and path.suffix == ".yaml":
-        return SCHEMA_PATHS["detect"]
+        return SCHEMA_RESOURCES["detect"]
     if path.parent.name in {"within_domain", "cross_domain"}:
-        return SCHEMA_PATHS["connect"]
+        return SCHEMA_RESOURCES["connect"]
     return None
 
 
@@ -313,13 +316,14 @@ def iter_targets(explicit_targets: list[Path] | None = None) -> list[Path]:
                 targets.extend([p for p in target.rglob("*.y*ml") if p.is_file()])
         return targets
 
+    root = discover_workspace()
     files: list[Path] = []
     for subdir in [
-        ROOT / "albedo" / "library",
-        ROOT / "albedo" / "exhaust",
-        ROOT / "citrinitas" / "within_domain",
-        ROOT / "citrinitas" / "cross_domain",
-        ROOT / "rubedo" / "hypotheses",
+        root / "albedo" / "library",
+        root / "albedo" / "exhaust",
+        root / "citrinitas" / "within_domain",
+        root / "citrinitas" / "cross_domain",
+        root / "rubedo" / "hypotheses",
     ]:
         if subdir.exists():
             files.extend(sorted(subdir.rglob("*.yaml")))
@@ -329,11 +333,16 @@ def iter_targets(explicit_targets: list[Path] | None = None) -> list[Path]:
 
 def validate_file(path: Path, schema_path: Path | None = None, *, fix: bool = False) -> tuple[bool, list[str], int]:
     schema_target = schema_path or detect_schema(path)
-    if not schema_target or not schema_target.exists():
+    if not schema_target:
         return False, [f"{path}: cannot infer schema path"], 0
 
     try:
-        schema = load_yaml(schema_target)
+        if isinstance(schema_target, Path):
+            if not schema_target.exists():
+                return False, [f"{schema_target}: schema path does not exist"], 0
+            schema = load_yaml(schema_target)
+        else:
+            schema = resource_yaml(schema_target)
     except Exception as exc:  # pragma: no cover
         return False, [f"{schema_target}: failed to parse schema ({exc})"], 0
 
@@ -397,7 +406,8 @@ def main() -> int:
             status = "FAIL"
             all_ok = False
             failed += 1
-        label = str(path.relative_to(ROOT)) if path.is_relative_to(ROOT) else str(path)
+        root = discover_workspace()
+        label = str(path.relative_to(root)) if path.is_relative_to(root) else str(path)
         print(f"{status} {label}")
         for err in errors:
             print(f"  - {err}")

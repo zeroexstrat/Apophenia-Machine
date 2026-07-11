@@ -23,6 +23,21 @@ The examples under `examples/` are synthetic documentation, not system-performan
 
 Azoth supports Python 3.10 through 3.12.
 
+Install a built wheel into an isolated environment, then initialize a user-owned workspace:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install /path/to/azoth.whl
+azoth init research-workspace
+cd research-workspace
+azoth status
+```
+
+The wheel embeds immutable schemas, default configuration, and Vigil definitions under the `athanasor` package. `azoth init` copies only a configured runtime seed and creates mutable Nigredo, Albedo, Citrinitas, Rubedo, Lapis, and Vigil directories in the target. It never writes workspace state into the Python environment. This repository does not claim that the package is currently published on PyPI.
+
+For development from a clone:
+
 ```bash
 git clone https://github.com/zeroexstrat/Apophenia-Machine.git
 cd Apophenia-Machine
@@ -56,7 +71,6 @@ All connection and gap artifacts use integer confidence values from 1 through 5.
 ### 1. Ingest and classify
 
 ```bash
-mkdir -p nigredo/inbox
 cp path/to/paper.pdf nigredo/inbox/
 azoth ingest nigredo/inbox/
 azoth status
@@ -148,12 +162,12 @@ Valid decisions are `accepted`, `rejected`, and `needs_prior_art`. Rejection wri
 
 ## Vigil gates
 
-Run Vigil before and after substantive pipeline work:
+Run installed Vigil before and after substantive pipeline work:
 
 ```bash
-python3 athanasor/vigil/verify.py start
-python3 athanasor/vigil/verify.py verify
-python3 athanasor/vigil/verify.py close
+python -m athanasor.vigil.verify start
+python -m athanasor.vigil.verify verify
+python -m athanasor.vigil.verify close
 ```
 
 | Gate | Executable guarantee | Explicit limit |
@@ -172,6 +186,7 @@ Vigil also checks Git drift and registry review-state integrity. A missing runti
 python -m pytest -q
 python scripts/check_public_tree.py
 python scripts/check_pipeline_smoke.py
+python scripts/check_wheel_install.py --wheel 'dist/azoth-*.whl' --python 3.10 --python 3.11 --python 3.12
 python scripts/hardening_audit.py
 python -m compileall athanasor scripts tests
 ```

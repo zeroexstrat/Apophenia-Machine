@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import os
 import sys
 import tempfile
 from pathlib import Path
@@ -136,6 +137,9 @@ def _build_fixture(root: Path) -> str:
 
 
 def main() -> int:
+    # This smoke isolates Rubedo transaction behavior with intentionally
+    # abbreviated upstream fixtures; dedicated Vigil tests cover gate behavior.
+    os.environ["AZOTH_SKIP_VIGIL"] = "1"
     with tempfile.TemporaryDirectory(prefix="azoth-rubedo-review-") as tmp:
         root = Path(tmp)
         cluster_id = _build_fixture(root)

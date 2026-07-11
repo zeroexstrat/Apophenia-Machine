@@ -15,6 +15,7 @@ from ..embeddings import EmbeddingStore
 from ..llm import LLMClient, LLMUnavailableError
 from ..pdf_parser import parse_pdf, parse_text_file
 from ..registry import Registry
+from ..resources import resource_yaml
 from ..schemas import validate as validate_schema
 from ..skills.common import now_iso, ensure_dir, run_vigil_check, write_yaml
 from . import common
@@ -22,7 +23,6 @@ from . import common
 import yaml
 
 
-INGEST_SCHEMA_PATH = Path(__file__).resolve().parents[2] / "SCHEMA.yaml"
 TEXT_SUFFIXES = {".txt", ".md"}
 
 
@@ -74,8 +74,8 @@ def _safe_title(parsed: dict[str, Any]) -> str:
 
 
 def _load_schema_template() -> dict[str, Any]:
-    with open(INGEST_SCHEMA_PATH, "r", encoding="utf-8") as f:
-        return yaml.safe_load(f) or {}
+    payload = resource_yaml("SCHEMA.yaml")
+    return payload if isinstance(payload, dict) else {}
 
 
 def _normalize_paper_id(value: str) -> str:

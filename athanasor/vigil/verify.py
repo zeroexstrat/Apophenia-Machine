@@ -21,17 +21,24 @@ import sys
 from pathlib import Path
 from typing import Any
 
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
-if str(PROJECT_ROOT) not in sys.path:
-    sys.path.insert(0, str(PROJECT_ROOT))
+try:
+    from athanasor.workspace import discover_workspace
+except ModuleNotFoundError:  # Direct execution from a source checkout.
+    source_root = Path(__file__).resolve().parents[2]
+    if str(source_root) not in sys.path:
+        sys.path.insert(0, str(source_root))
+    from athanasor.workspace import discover_workspace
 
-from athanasor.schemas import parse_schema, validate as validate_schema
+from athanasor.resources import resource_yaml
+from athanasor.schemas import validate as validate_schema
 from athanasor.rejections import (
     candidate_fingerprint,
     evidence_fingerprint,
     load_rejections,
 )
 from athanasor.skills.common import is_specific_text
+
+PROJECT_ROOT = discover_workspace()
 
 ALLOWED_OUTPUT_PREFIXES = (
     "nigredo/",
@@ -63,7 +70,6 @@ ALLOWED_UNTRACKED_EXACT = {
 # Paths
 # ---------------------------------------------------------------------------
 STATE_PATH = PROJECT_ROOT / "athanasor" / "lapis" / "state.json"
-GATES_PATH = PROJECT_ROOT / "athanasor" / "vigil" / "gates.yaml"
 REPORTS_DIR = PROJECT_ROOT / "athanasor" / "vigil" / "reports"
 REGISTRY_PATH = PROJECT_ROOT / "albedo" / "registry.jsonl"
 
@@ -71,13 +77,18 @@ REGISTRY_PATH = PROJECT_ROOT / "albedo" / "registry.jsonl"
 # Gate checks
 # ---------------------------------------------------------------------------
 
-def check_git_drift() -> tuple[bool, str]:
+def check_git_drift(root: Path = PROJECT_ROOT) -> tuple[bool, str]:
     """Fail if uncommitted changes exist. Worktree must be clean."""
     import subprocess
     result = subprocess.run(
         ["git", "status", "--porcelain"],
-        capture_output=True, text=True, cwd=PROJECT_ROOT
+        capture_output=True, text=True, cwd=root
     )
+    if result.returncode != 0:
+        detail = (result.stderr or result.stdout or "").strip()
+        if "not a git repository" in detail.lower():
+            return True, "Workspace is not a Git repository; no Git drift applies."
+        return False, f"Git status failed: {detail or f'exit code {result.returncode}'}"
     if result.stdout.strip():
         noisy_lines: list[str] = []
         for raw in result.stdout.splitlines():
@@ -111,12 +122,13 @@ def check_git_drift() -> tuple[bool, str]:
     return True, "Worktree clean."
 
 
-def check_registry() -> tuple[bool, str]:
+def check_registry(root: Path | None = None) -> tuple[bool, str]:
     """Fail if any entry has status 'confirmed' without a triage date."""
-    if not REGISTRY_PATH.exists():
+    registry_path = (root / "albedo" / "registry.jsonl") if root is not None else REGISTRY_PATH
+    if not registry_path.exists():
         return True, "No registry yet — no entries to verify."
     issues = []
-    with open(REGISTRY_PATH, encoding="utf-8") as f:
+    with open(registry_path, encoding="utf-8") as f:
         for i, line in enumerate(f, 1):
             if not line.strip():
                 continue
@@ -152,7 +164,9 @@ def _safe_yaml(path: Path):
 
 def _schema_errors(payload: dict[str, Any], schema_name: str) -> list[str]:
     try:
-        schema = parse_schema(PROJECT_ROOT / schema_name)
+        schema = resource_yaml(schema_name)
+        if not isinstance(schema, dict):
+            raise TypeError("schema root is not a mapping")
     except Exception as exc:
         return [f"schema unavailable: {exc}"]
     ok, errors, _, changed = validate_schema(payload, schema, path="/", fix=False)
@@ -439,21 +453,23 @@ def make_report(gates: dict[str, tuple[bool, str]], mode: str) -> dict:
     return report
 
 
-def write_report(report: dict, mode: str) -> Path:
+def write_report(report: dict, mode: str, root: Path = PROJECT_ROOT) -> Path:
     """Write report to athanasor/vigil/reports/."""
-    REPORTS_DIR.mkdir(parents=True, exist_ok=True)
+    reports_dir = root / "athanasor" / "vigil" / "reports"
+    reports_dir.mkdir(parents=True, exist_ok=True)
     ts = dt.datetime.now().strftime("%Y%m%d_%H%M%S")
-    path = REPORTS_DIR / f"vigil_{mode}_{ts}.json"
+    path = reports_dir / f"vigil_{mode}_{ts}.json"
     with open(path, "w") as f:
         json.dump(report, f, indent=2)
     return path
 
 
-def update_state(report: dict) -> None:
+def update_state(report: dict, root: Path = PROJECT_ROOT) -> None:
     """Update lapis/state.json with latest gate states and live pipeline counts."""
-    if not STATE_PATH.exists():
+    state_path = root / "athanasor" / "lapis" / "state.json"
+    if not state_path.exists():
         return
-    with open(STATE_PATH) as f:
+    with open(state_path) as f:
         state = json.load(f)
     state["gates"] = {
         name: gate["status"] for name, gate in report["gates"].items()
@@ -462,7 +478,7 @@ def update_state(report: dict) -> None:
     state["last_updated"] = report["timestamp"]
 
     # Sync counts from the registry so durable state never drifts from reality.
-    entries = _registry_entries(PROJECT_ROOT)
+    entries = _registry_entries(root)
     status_counts: dict[str, int] = {}
     for entry in entries:
         key = str(entry.get("status") or "unknown")
@@ -470,12 +486,12 @@ def update_state(report: dict) -> None:
     state["processing"] = {
         "registry_total": len(entries),
         "status_counts": status_counts,
-        "library_records": len(list((PROJECT_ROOT / "albedo" / "library").glob("*.yaml")))
-        if (PROJECT_ROOT / "albedo" / "library").exists() else 0,
-        "exhaust_records": len(list((PROJECT_ROOT / "albedo" / "exhaust").glob("*_exhaust.yaml")))
-        if (PROJECT_ROOT / "albedo" / "exhaust").exists() else 0,
+        "library_records": len(list((root / "albedo" / "library").glob("*.yaml")))
+        if (root / "albedo" / "library").exists() else 0,
+        "exhaust_records": len(list((root / "albedo" / "exhaust").glob("*_exhaust.yaml")))
+        if (root / "albedo" / "exhaust").exists() else 0,
     }
-    with open(STATE_PATH, "w") as f:
+    with open(state_path, "w") as f:
         json.dump(state, f, indent=2)
 
 
@@ -488,20 +504,24 @@ def main() -> None:
     parser.add_argument("mode", choices=["start", "verify", "close"])
     args = parser.parse_args()
 
+    root = discover_workspace()
+    gate_definitions = resource_yaml("vigil/gates.yaml")
+    if not isinstance(gate_definitions, dict):
+        parser.error("bundled Vigil gate definitions are invalid")
     gates = {}
-    gates["git_drift"] = check_git_drift()
-    gates["registry"] = check_registry()
-    gates["corpus"] = check_corpus()
-    gates["coniunctio"] = check_coniunctio()
-    gates["calcinatio"] = check_calcinatio()
-    gates["caput_mortuum"] = check_caput_mortuum()
-    gates["nigredo_redux"] = check_nigredo_redux()
+    gates["git_drift"] = check_git_drift(root)
+    gates["registry"] = check_registry(root)
+    gates["corpus"] = check_corpus(root)
+    gates["coniunctio"] = check_coniunctio(root)
+    gates["calcinatio"] = check_calcinatio(root)
+    gates["caput_mortuum"] = check_caput_mortuum(root)
+    gates["nigredo_redux"] = check_nigredo_redux(root)
 
     report = make_report(gates, args.mode)
-    path = write_report(report, args.mode)
+    path = write_report(report, args.mode, root)
 
     if args.mode == "close":
-        update_state(report)
+        update_state(report, root)
 
     if report["passed"]:
         print(f"Vigil {args.mode}: PASS ({len(gates)} gates)")

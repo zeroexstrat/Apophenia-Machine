@@ -1,0 +1,214 @@
+# SCHEMA.yaml — The Per-Paper Structured Record
+# Azoth / Apophenia Machine
+# Every paper ingested into Albedo must conform to this schema.
+# Fields marked 'required: true' must be populated. All others are optional but encouraged.
+
+# ===========================================================================
+# Base fields
+# ===========================================================================
+schema_version:
+  type: integer
+  required: false
+  default: 1
+  description: "Schema version for this record."
+
+id:
+  type: string
+  required: true
+  description: "Unique stable identifier. Format: {corpus}_{index}. Example: rx2_013, arxiv_042, inbox_003."
+  pattern: "^[a-z0-9]+_[0-9]+$"
+
+source:
+  type: object
+  required: true
+  description: "Bibliographic metadata."
+  fields:
+    title:
+      type: string
+      required: true
+      description: "Full paper title."
+    authors:
+      type: list[string]
+      required: true
+      description: "Full author names in publication order."
+    year:
+      type: integer
+      required: true
+      description: "Publication year. 4 digits."
+    path:
+      type: string
+      required: true
+      description: "Filesystem path to the PDF relative to the corpus root."
+    arxiv:
+      type: string
+      required: false
+      description: "arXiv ID if available. Format: '2501.xxxxx'."
+    doi:
+      type: string
+      required: false
+      description: "DOI if available."
+    venue:
+      type: string
+      required: false
+      description: "Journal or conference. Example: 'NeurIPS 2025', 'arXiv preprint'."
+
+# ===========================================================================
+# Claims — the core structural extraction
+# ===========================================================================
+claims:
+  type: list[object]
+  required: true
+  description: "Structural claims the paper makes. Not summaries. Not opinions. Claims — statements precise enough to be wrong."
+  min_items: 1
+  fields:
+    statement:
+      type: string
+      required: true
+      description: "The claim, stated in one sentence. What does the paper assert as true?"
+    confidence:
+      type: string
+      required: true
+      description: "How strongly does the paper support this claim? Confidence tier, not a float."
+      enum: [proven, formalizable, demonstrated, hypothesized, speculative]
+    evidence:
+      type: string
+      required: true
+      description: "What supports the claim. Theorem number, equation range, experimental result, citation chain. Be specific."
+
+# ===========================================================================
+# Methods — the formal/inferential machinery
+# ===========================================================================
+methods:
+  type: list[object]
+  required: false
+  description: "Formalisms, mathematical frameworks, inferential techniques."
+  fields:
+    name:
+      type: string
+      required: true
+      description: "Method name. Example: 'characteristic-function matching', 'variational free energy minimization', 'contrastive learning'."
+    description:
+      type: string
+      required: true
+      description: "One paragraph describing what the method does and how it works."
+    domain:
+      type: string
+      required: true
+      description: "Domain where this method is applied. Example: 'representation learning', 'quantum field theory', 'cognitive neuroscience', 'game theory'."
+
+# ===========================================================================
+# Techniques — implementable operations
+# ===========================================================================
+techniques:
+  type: list[object]
+  required: false
+  description: "Algorithms, architectures, training procedures — things you could implement."
+  fields:
+    name:
+      type: string
+      required: true
+      description: "Technique name. Example: 'SIGReg', 'EMA', 'stop-gradient', 'Mixture of Experts'."
+    description:
+      type: string
+      required: true
+      description: "What the technique does. Concise. Enough to understand the mechanism."
+    implementation:
+      type: string
+      required: false
+      description: "Implementation detail. Pseudocode, LOC count, hardware requirements, known bottlenecks."
+
+# ===========================================================================
+# Equations — formal anchors available to downstream exhaustion
+# ===========================================================================
+equations:
+  type: list[object]
+  required: false
+  description: "Equation-like statements extracted from the paper. These are anchors for derivations and exercises, not proof that the equation is central."
+  fields:
+    label:
+      type: string
+      required: true
+      description: "Stable local label such as equation_1 or a paper label if available."
+    expression:
+      type: string
+      required: true
+      description: "The equation or equation-like expression as extracted."
+    context:
+      type: string
+      required: false
+      description: "Nearby text explaining where this equation appears or what it is used for."
+
+# ===========================================================================
+# Caveats — the honest constraints
+# ===========================================================================
+caveats:
+  type: list[string]
+  required: false
+  description: "Known limitations, unvalidated assumptions, scope boundaries, methodological weaknesses. Be honest. The reader's trust depends on this field."
+
+# ===========================================================================
+# Explicit connections — what the paper itself cites or builds on
+# ===========================================================================
+connections_explicit:
+  type: list[object]
+  required: false
+  description: "Connections the paper explicitly makes to other works. Used as ground truth for cross-connection novelty checking."
+  fields:
+    target_paper:
+      type: string
+      required: true
+      description: "Title of the referenced paper."
+    relationship:
+      type: string
+      required: true
+      description: "Nature of the connection."
+      enum: [extends, contradicts, uses, is_predecessor_of, is_alternative_to, cites_as_background]
+    strength:
+      type: integer
+      required: true
+      description: "1 = passing mention. 5 = central dependency."
+      minimum: 1
+      maximum: 5
+
+# ===========================================================================
+# Tags — the concept index
+# ===========================================================================
+tags:
+  type: list[string]
+  required: false
+  description: "Concept tags for pruning and cross-connection. Tags are the primary mechanism for reducing the N² pair space to tractable size. Choose tags that accurately characterize the paper's domain and methods. Papers with zero shared tags are automatically excluded from pairwise comparison."
+  examples:
+    - symmetry_breaking
+    - collapse_prevention
+    - representation_learning
+    - active_inference
+    - quantum_field_theory
+    - cognitive_neuroscience
+    - game_theory
+    - phenomenology
+    - sparse_computation
+    - world_model
+    - sleep_consolidation
+
+# ===========================================================================
+# Ingestion metadata (auto-populated by the ingest pipeline)
+# ===========================================================================
+ingestion:
+  type: object
+  required: false
+  description: "Auto-populated by the ingest pipeline. Do not fill manually."
+  fields:
+    date:
+      type: string
+      format: "ISO 8601"
+      description: "Timestamp of ingestion."
+    agent:
+      type: string
+      description: "Model/provider that performed extraction."
+    schema_version:
+      type: integer
+      description: "Version of this schema used for ingestion."
+    status:
+      type: string
+      enum: [ingested, extraction_failed, duplicate, skipped_large]
+      description: "Processing outcome."

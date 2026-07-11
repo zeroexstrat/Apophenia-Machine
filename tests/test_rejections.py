@@ -21,6 +21,12 @@ from athanasor.skills import promote as promote_module
 from tests.fixture_factory import registry_entry, write_hypothesis, write_registry
 
 
+@pytest.fixture(autouse=True)
+def _skip_vigil_for_rejection_unit_tests(monkeypatch: pytest.MonkeyPatch) -> None:
+    """These transaction tests use intentionally incomplete paper fixtures."""
+    monkeypatch.setenv("AZOTH_SKIP_VIGIL", "1")
+
+
 def _config(root: Path) -> Config:
     return Config(
         llm={},

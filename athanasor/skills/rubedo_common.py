@@ -15,9 +15,6 @@ def project_root(config: Config | None = None) -> Path:
 
 
 def run_optional_vigil(root: Path, phase: str, skill: str) -> None:
-    verify_path = root / "athanasor" / "vigil" / "verify.py"
-    if not verify_path.exists():
-        return
     run_vigil_check(root=root, phase=phase, skill=skill)
 
 
