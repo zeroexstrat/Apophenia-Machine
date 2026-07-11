@@ -5,7 +5,7 @@
 **Target:** `v0.2.0` portfolio release
 
 **Public position:** A local, human-gated research-operations pipeline that converts technical documents into schema-validated evidence records, ranks candidate connections, and preserves an auditable review trail.
-**Last reconciled:** 2026-07-11 after verified P3 implementation commit `949b89164e5902a42ce490393cd06b38d6fa84d2`
+**Last reconciled:** 2026-07-11 after green P4 candidate CI run `29172280966` from source commit `712bf6fd3ed04cb3080a1d1031d8917f2f91918a`
 
 ## 1. Reading order and authority
 
@@ -85,7 +85,7 @@ The operator workspace is richer because ignored local files exist. Local green 
 | P1-T1 | Verified private pilot and Git archive | Ultra | P0-T1 | completed | Archive restores independently and every hash passes |
 | P2-T1 | Sanitized public baseline and honest structural gates | High + Ultra review | P1-T1 | completed | Clean checkout is data-independent and gate language matches code |
 | P3-T1 | Wheel resources and `azoth init` | High | P2-T1 | completed | Fresh wheel operates outside repository on Python 3.10-3.12 |
-| P4-T1 | Clean public Git lineage | Ultra | P3-T1 | pending | No reachable public pilot objects or private paths; remote CI green |
+| P4-T1 | Clean public Git lineage | Ultra | P3-T1 | completion record; valid only with repository-ID/head-bound external attestation | No reachable public pilot objects or private paths; remote CI green |
 | P5-T1 | Frozen benchmark protocol and gold-label packet | Ultra | P4-T1 | pending | Sources, rubric, metrics, thresholds, and blinded boundary are frozen |
 | P6-T1 | Benchmark CLI, scorer, report, and synthetic fixtures | High | P5-T1 | pending | Generation and scoring are isolated and deterministic scoring reproduces |
 | P7-T1 | Locked benchmark runs and adjudication | Ultra | P6-T1 | pending | Metrics include provenance, denominators, uncertainty, and failure analysis |
@@ -144,19 +144,20 @@ Create `<private-archive>/pilot-v0.1.3-20260711/` with mode `700`, all pilot/run
 
 | Field | Value |
 |---|---|
-| Task | P3-T1 — Wheel resources and `azoth init` |
+| Task | P4-T1 — Clean public Git lineage |
 | Date | 2026-07-11 |
-| Effort | High |
-| Branch | `codex/p1-private-pilot` |
-| Starting SHA | `b7d2f44a8d114dee8195e6cd63a19675f883e38f` |
-| Implementation SHA | `949b89164e5902a42ce490393cd06b38d6fa84d2` |
-| Push state | Not pushed; the user did not request a push |
-| Goal | Make immutable contracts wheel-resident and create an explicit user-owned runtime workspace without writing into `site-packages` |
-| Status | closed; P3 acceptance met, overall project remains in progress |
-| Acceptance | Seven immutable YAML resources embedded and synchronized; environment/config/CWD workspace discovery; conflict-safe idempotent `azoth init`; package-bound validate/migrate/Vigil; installed init, ingest, validate, auto-checkpoint, and structural gates outside the clone |
-| Installed-wheel proof | One current wheel passed the isolated workflow on Python 3.10, 3.11, and 3.12 with no checkout path on `sys.path`; 214 tests, all behavioral checks, public/hardening audits, compileall, and Vigil pass |
-| Private archive | `<private-archive>/pilot-v0.1.3-20260711` remained sealed and unmodified |
-| Open gate | No P3 gate remains open; P4-T1 owns the irreversible public-history rewrite, remote reference purge, and remote CI proof |
+| Effort | Ultra |
+| Branch | `codex/p4-clean-public-lineage` |
+| Starting SHA | `19379ffafd7e967081ffc9e9c9678b6926cdcc0b` |
+| Implementation SHA | `712bf6fd3ed04cb3080a1d1031d8917f2f91918a` before this non-self-referential completion-evidence update |
+| Push state | Old repository ID `1269879110` is private at `Apophenia-Machine-pilot-v0.1.3-archive`; new canonical public repository ID is `1297840056`; candidate `main` is `4a9f317b4f73a36b4a8a70c06f037d98ee8b1643` |
+| Goal | Preserve the contaminated GitHub repository privately and replace the canonical public repository with a three-commit clean lineage |
+| Status | completion record prepared from a green candidate; it becomes authoritative only when canonical repository ID `1297840056` serves this tree on `main`, a successful 3/3 GitHub Actions run binds that exact head, and the final public-clone proof passes |
+| Local lineage proof | Clean commits `3dda6d8b`, `189fd214`, `4a9f317b`; exact trees P2 `af8d8efb`, P3 `522f9289`, P4 `9ac114c7`; one `main` ref; 192 reachable objects |
+| Exclusion policy | 807 forbidden old objects and 3 private text markers; auditor policy digests `10b4bd8b86eaf4f1d7e1d30efb60fd210880bfce9a582a88fca76124035dc581` and `51860f6d21696a1715feab041194bfe4bf576e06e2e869ad5832c2d714f4bdab` |
+| Verification | Exact candidate passes 358 tests under Python 3.10 and 3.12, all maintained checks, seven Vigil gates, Python 3.10-3.12 installed-wheel smoke, strict public-clone audit, and GitHub run `29172280966` with 3/3 successful jobs |
+| Private archive | Sealed verifier PASS: 523 manifest entries, 11 refs, 1,191 unreachable objects, zero credential findings, and restored 57 PDFs / 57 library / 54 exhaustion / 57 registry rows |
+| Open gate | Final non-self-referential attestation: exact-lease push the roadmap-bearing amendment, require a successful 3/3 GitHub Actions run whose `head_sha` equals canonical repository ID `1297840056`'s `main`, repeat the independent public-clone and sealed-archive/remote checks, and record that SHA/run in the private session closeout. This source-tree completion record is not authoritative until those checks pass. |
 
 ## 8. Verification ledger
 
@@ -196,6 +197,16 @@ Sections 8-10 are append-only after this control plane is adopted. Correct an ea
 | 2026-07-11 | P2-T1 | independent no-local clone, Python 3.12 | `uv sync --extra dev`, full pytest, public-tree audit, hardening audit, Vigil start, and Git status | PASS at `0b2599567271ff9f5d1a02a36c98f71745c0602d`: install succeeds, 183 tests pass, both audits pass, Vigil passes, and generated `uv.lock` leaves Git clean |
 | 2026-07-11 | P3-T1 | isolated feature worktree, Python 3.12 | compileall, full pytest, all existing `scripts/check_*.py` behavioral checks, public-tree audit, hardening audit, `git diff --check`, Vigil verify, and Vigil close | PASS at `949b89164e5902a42ce490393cd06b38d6fa84d2`: 214 tests, all behavioral checks, both audits, and all seven gates pass; tracked worktree remains clean |
 | 2026-07-11 | P3-T1 | one built wheel installed into temporary environments outside the clone | `scripts/check_wheel_install.py --wheel <wheel> --python 3.10 --python 3.11 --python 3.12` | PASS: all seven package resources present; each interpreter initializes a workspace, imports no checkout path, ingests a synthetic text record, validates it, writes auto-checkpoint state under the workspace, and passes Vigil start/verify |
+| 2026-07-11 | P4-T1 | sealed private archive | sealed verifier before rehearsal | PASS: 523 manifest entries; 11 refs; 1,191 unreachable objects; zero credential findings; source and restored semantic counts both 57 PDFs / 57 library / 54 exhaustion / 57 registry |
+| 2026-07-11 | P4-T1 | old public GitHub repository and private mirror | repository-ID check, `git ls-remote`, PR-ref fetch, direct-ref comparison | PASS: repository ID `1269879110`, public `main` `6b1e488a`, retained PR head `31f43596`, and all 8 direct refs agree between remote and mirror; no mutation performed |
+| 2026-07-11 | P4-T1 | private policy derivation | old commits union old reachable objects minus exact P2/P3/P4 tree objects | PASS: 888 old reachable objects, 61 old commits, 187 approved tree objects, 807 forbidden objects, 3 private text markers; files remain mode `0600` outside Git |
+| 2026-07-11 | P4-T1 | disposable three-commit candidate | reconstruction proof and expected-tip/policy-bound full reachable audit | PASS: exact trees `af8d8efb`, `522f9289`, `109a3e21`; 3 commits, one `main`, 190 reachable objects, zero findings; policy counts/digests bound in JSON evidence |
+| 2026-07-11 | P4-T1 | disposable candidate and no-local independent clone | full pytest/check/public/hardening/compile/validate/Vigil/wheel bundle | PASS on both: 358 tests; all maintained checks; seven Vigil gates; one wheel operates outside the clone on Python 3.10, 3.11, and 3.12; final audits and Git status clean |
+| 2026-07-11 | P4-T1 | rehearsal procedure corrections | wheel build and remote-removal postconditions | Initial Vigil verify correctly rejected setuptools `build/` drift; targeted cleanup restored PASS. Independent `git fsck` correctly rejected a broken `origin/HEAD`; deleting the stale symbolic ref restored strict PASS. Both corrections are now in the canonical plan. |
+| 2026-07-11 | P4-T1 | GitHub preserve-and-replace transaction | repository-ID-bound REST archive, fresh repository creation, direct main-only push, metadata restoration | PASS: old ID `1269879110` is private with 3 branches, 4 tags, and PR #1 head preserved; new public canonical ID `1297840056` advertises only `HEAD` and `refs/heads/main`; rollback was not invoked |
+| 2026-07-11 | P4-T1 | first hosted candidate run `29172001060` at `08807693` | exact run/log inspection and local Python 3.10 reproduction | FAIL isolated to unconditional `tomllib` import in one test; Python 3.10 lacks the stdlib module although installed `tomli` is available; no product/runtime failure |
+| 2026-07-11 | P4-T1 | Python 3.10 compatibility fix | `tomllib`/`tomli` fallback, focused reproduction, full suites, exact candidate rebuild | PASS: focused 5/5 and full 358/358 under Python 3.10; full 358/358 under Python 3.12; candidate `4a9f317b` passes complete local bundle and strict public-clone audit |
+| 2026-07-11 | P4-T1 | GitHub candidate run `29172280966` | hardening matrix on public SHA `4a9f317b4f73a36b4a8a70c06f037d98ee8b1643` | PASS: completed successfully with 3/3 jobs on Python 3.10, 3.11, and 3.12; run URL `https://github.com/zeroexstrat/Apophenia-Machine/actions/runs/29172280966` |
 
 ## 9. Decision log
 
@@ -216,6 +227,9 @@ Sections 8-10 are append-only after this control plane is adopted. Correct an ea
 | D-013 | 2026-07-11 | Preserve Git with both a PR-ref-aware `--all` bundle and a raw Git-directory snapshot | A normal local bundle omits remote `refs/pull/1/head`, six unreachable commits, 283 blobs, 902 trees, and two tree-valued Codex refs even though bundle verification can still pass |
 | D-014 | 2026-07-11 | Seal the accepted P1 archive and record verifier proof gaps externally instead of rewriting it in place | Every artifact-integrity requirement is independently proven; changing sealed files would invalidate the manifest, while reusable archival tooling is outside the P1 deliverable |
 | D-015 | 2026-07-11 | Keep immutable contracts in `athanasor.resources` and mutable state in initialized workspaces | Package-resource resolution is installer-portable and prevents runtime writes or editable-layout assumptions in `site-packages` |
+| D-016 | 2026-07-11 | Preserve the old GitHub repository privately and create a new canonical public repository | Retained pull-request refs cannot be independently purged in place; replacement removes the contaminated namespace while preserving recovery evidence |
+| D-017 | 2026-07-11 | Bind every public-lineage audit to an exact tip and private policy digests | A clean result is meaningful only for the intended state and the same exclusion policy across rehearsal, cutover, and final clone |
+| D-018 | 2026-07-11 | Treat hosted Python 3.10 collection as a release gate and use the installed `tomli` fallback | Local 3.12 success did not exercise the Python 3.10 stdlib boundary; the compatibility import is the smallest source-level fix |
 
 ## 10. Completed-session ledger
 
@@ -227,19 +241,20 @@ Sections 8-10 are append-only after this control plane is adopted. Correct an ea
 | 2026-07-11 | P1-T1 correction | Supersedes the prior row's SHA interpretation: `10f4b461` is the immutable archive source-ref; `9d29d5a` is the P1 implementation commit that records acceptance and the P2 handoff | `9d29d5a83949326faefed8cf4f843e77795dab32` | sealed verifier PASS; 9 tooling tests plus 4 subtests; 115 data-independent tests pass; inherited live-corpus test and two Vigil gates remain explicitly red | implementation SHA verified on `origin/codex/p1-private-pilot`; final closeout push follows this row |
 | 2026-07-11 | P2-T1 | Pilot/runtime evidence removed from the tracked product; structural gates made exact; no-LLM synthesis boundaries corrected; atomic agent imports, rejection persistence, synthetic examples, and Apache-2.0 metadata added | `0b2599567271ff9f5d1a02a36c98f71745c0602d` | independent clean clone installs; 183 tests, 15 check scripts, public/hardening audits, compileall, and Vigil pass; tracked runtime/PDF/path counts are zero | not pushed; user did not request push |
 | 2026-07-11 | P3-T1 | Wheel-resident contracts, workspace discovery, conflict-safe `azoth init`, installed helper/Vigil execution, and cross-version artifact smoke verification implemented | `949b89164e5902a42ce490393cd06b38d6fa84d2` | 214 tests, all behavioral checks, public/hardening audits, seven gates, and isolated installed-wheel init/ingest/validate/Vigil on Python 3.10-3.12 pass | not pushed; user did not request push |
+| 2026-07-11 | P4-T1 completion record | Contaminated GitHub repository preserved privately; new canonical repository exposes a three-commit clean lineage; exact candidate locally and remotely verified | candidate `4a9f317b4f73a36b4a8a70c06f037d98ee8b1643`; final amended SHA is intentionally external to its own commit | sealed archive PASS; 807-object exclusion audit; 358-test local suites; strict public clone; candidate CI run `29172280966` green 3/3 | authoritative only after the exact final `main` SHA, matching successful Actions run, fresh-clone proof, and archive/remote rechecks are recorded in the private closeout |
 
 ## 11. Next-session handoff
 
-**Next task:** P4-T1 — Clean public Git lineage.
+**Next task:** P5-T1 — Frozen benchmark protocol and gold-label packet, after the P4 external attestation gate passes.
 
 **Effort:** Ultra.
 
-**Why next:** the tracked product and installed artifact are now data-independent, but the public repository's reachable history and retained remote references still contain the superseded pilot lineage.
+**Why next:** after the P4 external attestation gate passes, the public repository has a verified clean lineage and independent cross-version proof; the next irreversible boundary is freezing the benchmark sources, labels, rubric, metrics, and blinded evaluation protocol before implementation.
 
-**First inspection:** read the P4 contract, reconcile every local and remote ref with the sealed private archive, record the current remote SHA for an exact force-with-lease boundary, and rehearse the sanitized-tree export and full verification in a disposable repository before changing public history.
+**First inspection:** verify canonical repository ID `1297840056`'s exact `main` SHA, matching successful 3/3 Actions run, and private P4 closeout record; then read the P5 contract and inventory the exact candidate papers, source/version/license metadata, rubric, adjudication packet, metrics, and freeze boundary without implementing benchmark code.
 
-**Acceptance:** the public Git lineage retains no pilot objects, third-party PDFs, private paths, old `v0.1.x` tags, or contaminated pull-request refs; an independent clone and the Python 3.10-3.12 remote CI matrix pass from the rewritten lineage.
+**Acceptance:** exact paper versions and licenses, the 66-pair human-label packet, rubric, metrics, thresholds, uncertainty treatment, blinded generation boundary, and no-retuning rule are frozen before P6 implementation.
 
-**Risk:** P4 is irreversible public state. Preserve the sealed private archive, use exact leases, verify the exported repository before any remote mutation, and replace the public repository if GitHub cannot purge retained references.
+**Risk:** changing sources, labels, thresholds, or prompts after observing benchmark outputs would invalidate the evaluation. Freeze authority and provenance first; do not begin runner/scorer implementation in P5.
 
-**Inherited open gap:** local branch success does not prove remote reference deletion or hosted CI. P4 must inspect GitHub-visible refs and verify the post-rewrite remote from an independent clone.
+**Inherited open gap:** candidate CI proves engineering health, not scientific validity or benchmark performance. P5 must preserve the human-label authority boundary and make every later metric reproducible without tuning against the frozen set.

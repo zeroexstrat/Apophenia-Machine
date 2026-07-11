@@ -5,10 +5,14 @@ from __future__ import annotations
 import importlib.util
 import json
 import re
-import tomllib
 from pathlib import Path
 
 import yaml
+
+try:
+    import tomllib
+except ModuleNotFoundError:  # Python 3.10
+    import tomli as tomllib
 
 from athanasor.skills.connect import load_agent_connections
 from athanasor.skills.detect import load_agent_hypotheses, stable_cluster_id
