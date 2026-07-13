@@ -1,0 +1,328 @@
+schema_version: 1
+benchmark_id: operations-decision-support-v1
+sources:
+  - paper_id: paper_d4e4ff3988c22537
+    title: "From Predictive to Prescriptive Analytics"
+    authors: [Dimitris Bertsimas, Nathan Kallus]
+    lane: operations_prescriptive_decision_support
+    stable_identifier: "arxiv:1402.5481; doi:10.1287/mnsc.2018.3253"
+    exact_version: arxiv-v4
+    publication_date: "2018-07-19"
+    canonical_url: "https://arxiv.org/abs/1402.5481v4"
+    download_url: "https://arxiv.org/pdf/1402.5481v4"
+    access_date: "2026-07-12"
+    sha256: af1ac505e163b11e0156766d6142633fc532f9a10ca573cd75a4880f82202797
+    license: "arXiv.org perpetual, non-exclusive distribution license 1.0; no downstream redistribution permission inferred"
+    license_evidence_url: "https://arxiv.org/licenses/nonexclusive-distrib/1.0/"
+    redistribution_status: fetch_only
+    retrieval:
+      method: https_get
+      redirect_policy: record_exact_chain
+      redirect_chain: ["https://arxiv.org/pdf/1402.5481v4"]
+      final_url: "https://arxiv.org/pdf/1402.5481v4"
+    source_text_quality: "Born-digital, 57-page PDF with extractable title, authors, arXiv version marker, equations, and body text."
+    category_fit: "Connects predictive estimation to contextual stochastic optimization and prescriptive decisions."
+    decision_problem: "Choose a feasible action that minimizes expected operational cost conditional on observed covariates."
+    evidence_type: "Formal methods, consistency results, computational studies, and applications."
+    citation_role: "Foundational predict-to-prescribe framing."
+    hard_negative_role: "Distinguishes prescriptive optimization from papers focused only on ML lifecycle governance or human reliance."
+    selection_rationale: "Canonical operations-research account of turning predictions into decisions under constraints."
+
+  - paper_id: paper_dcfcf11dd65aa12e
+    title: "Smart Predict, then Optimize"
+    authors: [Adam N. Elmachtoub, Paul Grigas]
+    lane: operations_prescriptive_decision_support
+    stable_identifier: "arxiv:1710.08005; doi:10.1287/mnsc.2020.3922"
+    exact_version: arxiv-v5
+    publication_date: "2020-11-19"
+    canonical_url: "https://arxiv.org/abs/1710.08005v5"
+    download_url: "https://arxiv.org/pdf/1710.08005v5"
+    access_date: "2026-07-12"
+    sha256: 56381283da01e0a21a861cc8d1bfda97b377095b64051d7d68156b94e848cc3b
+    license: "arXiv.org perpetual, non-exclusive distribution license 1.0; no downstream redistribution permission inferred"
+    license_evidence_url: "https://arxiv.org/licenses/nonexclusive-distrib/1.0/"
+    redistribution_status: fetch_only
+    retrieval:
+      method: https_get
+      redirect_policy: record_exact_chain
+      redirect_chain: ["https://arxiv.org/pdf/1710.08005v5"]
+      final_url: "https://arxiv.org/pdf/1710.08005v5"
+    source_text_quality: "Born-digital, 46-page PDF with extractable arXiv version marker, mathematical definitions, proofs, and experiments."
+    category_fit: "Optimizes prediction models against downstream decision quality rather than generic prediction error."
+    decision_problem: "Learn cost predictions whose induced solution performs well for a parameterized optimization problem."
+    evidence_type: "Convex surrogate construction, theory, and computational experiments."
+    citation_role: "Decision-focused loss and regret benchmark."
+    hard_negative_role: "Separates end-to-end decision loss from generic production-readiness rubrics and documentation practices."
+    selection_rationale: "Provides a precise bridge between supervised learning objectives and optimization regret."
+
+  - paper_id: paper_c489fce64c55ae2d
+    title: "Melding the Data-Decisions Pipeline: Decision-Focused Learning for Combinatorial Optimization"
+    authors: [Bryan Wilder, Bistra Dilkina, Milind Tambe]
+    lane: operations_prescriptive_decision_support
+    stable_identifier: "arxiv:1809.05504; doi:10.1609/aaai.v33i01.33011658"
+    exact_version: arxiv-v2
+    publication_date: "2018-11-21"
+    canonical_url: "https://arxiv.org/abs/1809.05504v2"
+    download_url: "https://arxiv.org/pdf/1809.05504v2"
+    access_date: "2026-07-12"
+    sha256: 7ba5ab2a93ad6fe1d33360c4707696e73d6b3ecfd3240198f0a646fc4460c83b
+    license: "arXiv.org perpetual, non-exclusive distribution license 1.0; no downstream redistribution permission inferred"
+    license_evidence_url: "https://arxiv.org/licenses/nonexclusive-distrib/1.0/"
+    redistribution_status: fetch_only
+    retrieval:
+      method: https_get
+      redirect_policy: record_exact_chain
+      redirect_chain: ["https://arxiv.org/pdf/1809.05504v2"]
+      final_url: "https://arxiv.org/pdf/1809.05504v2"
+    source_text_quality: "Born-digital, 10-page PDF with extractable arXiv version marker, algorithms, equations, and experimental results."
+    category_fit: "Differentiates through a combinatorial optimization layer to train predictions for decision quality."
+    decision_problem: "Allocate limited resources in combinatorial problems using uncertain learned inputs."
+    evidence_type: "Algorithmic method, differentiable approximation, and applied experiments."
+    citation_role: "Combinatorial decision-focused learning case."
+    hard_negative_role: "Tests whether shared end-to-end language is enough without a genuine common decision structure."
+    selection_rationale: "Adds discrete constrained decisions and application evidence to the operations lane."
+
+  - paper_id: paper_817c105c2a8ccbb2
+    title: "Human Decisions and Machine Predictions"
+    authors: [Jon Kleinberg, Himabindu Lakkaraju, Jure Leskovec, Jens Ludwig, Sendhil Mullainathan]
+    lane: operations_prescriptive_decision_support
+    stable_identifier: "doi:10.3386/w23180"
+    exact_version: nber-working-paper-23180-issued-2017-02-20
+    publication_date: "2017-02-20"
+    canonical_url: "https://www.nber.org/papers/w23180"
+    download_url: "https://www.nber.org/system/files/working_papers/w23180/w23180.pdf"
+    access_date: "2026-07-12"
+    sha256: 7246f61d266c5228eb98a7fd84a7e08c2250c5819d9c0316a5322cf22d82a21e
+    license: "NBER source record declares © 2026 National Bureau of Economic Research, All Rights Reserved"
+    license_evidence_url: "https://www.nber.org/papers/w23180"
+    redistribution_status: fetch_only
+    retrieval:
+      method: https_get
+      redirect_policy: record_exact_chain
+      redirect_chain: ["https://www.nber.org/system/files/working_papers/w23180/w23180.pdf"]
+      final_url: "https://www.nber.org/system/files/working_papers/w23180/w23180.pdf"
+    source_text_quality: "Born-digital, 76-page NBER working paper with extractable title, author list, issue date, tables, and appendices."
+    category_fit: "Treats prediction as an input to constrained public-sector decisions and policy counterfactuals."
+    decision_problem: "Allocate pretrial release or detention under asymmetric public-safety and incarceration costs."
+    evidence_type: "Econometric counterfactual policy analysis on administrative decisions."
+    citation_role: "Human policy decision and selective-label bridge."
+    hard_negative_role: "Creates plausible links to human-reliance papers while requiring evidence of a shared mechanism beyond algorithm use."
+    selection_rationale: "Anchors operations decision support in consequential institutional allocation."
+
+  - paper_id: paper_6864700873ebe5b2
+    title: "Hidden Technical Debt in Machine Learning Systems"
+    authors: [D. Sculley, Gary Holt, Daniel Golovin, Eugene Davydov, Todd Phillips, Dietmar Ebner, Vinay Chaudhary, Michael Young, Jean-François Crespo, Dan Dennison]
+    lane: ml_data_science_planning
+    stable_identifier: "nips-2015-proceedings:86df7dcfd896fcaf2674f757a2463eba"
+    exact_version: nips-2015-camera-ready
+    publication_date: "2015"
+    canonical_url: "https://proceedings.neurips.cc/paper/2015/hash/86df7dcfd896fcaf2674f757a2463eba-Abstract.html"
+    download_url: "https://proceedings.neurips.cc/paper_files/paper/2015/file/86df7dcfd896fcaf2674f757a2463eba-Paper.pdf"
+    access_date: "2026-07-12"
+    sha256: 1a67da09a8bd5ba9a3577176e30aa2fbd88534e6baf0bc31522b4999f643d2a1
+    license: "No document-specific open license is declared on the NIPS 2015 proceedings record; fetch-only"
+    license_evidence_url: "https://proceedings.neurips.cc/paper/2015/hash/86df7dcfd896fcaf2674f757a2463eba-Abstract.html"
+    redistribution_status: fetch_only
+    retrieval:
+      method: https_get
+      redirect_policy: record_exact_chain
+      redirect_chain: ["https://proceedings.neurips.cc/paper_files/paper/2015/file/86df7dcfd896fcaf2674f757a2463eba-Paper.pdf"]
+      final_url: "https://proceedings.neurips.cc/paper_files/paper/2015/file/86df7dcfd896fcaf2674f757a2463eba-Paper.pdf"
+    source_text_quality: "Born-digital, 9-page proceedings PDF with extractable title, complete author list, section text, and references."
+    category_fit: "Frames ML systems as sociotechnical dependencies whose maintenance costs shape planning decisions."
+    decision_problem: "Prioritize system architecture and maintenance work under accumulating ML-specific technical debt."
+    evidence_type: "Experience-based systems taxonomy and design analysis."
+    citation_role: "ML lifecycle and system-dependency foundation."
+    hard_negative_role: "Shares pipeline vocabulary with decision-focused learning but lacks the same optimization objective."
+    selection_rationale: "Represents operational planning risks that model-level accuracy metrics omit."
+
+  - paper_id: paper_95b590edeb7e38db
+    title: "The ML Test Score: A Rubric for ML Production Readiness and Technical Debt Reduction"
+    authors: [Eric Breck, Shanqing Cai, Eric Nielsen, Michael Salib, D. Sculley]
+    lane: ml_data_science_planning
+    stable_identifier: "doi:10.1109/bigdata.2017.8258038"
+    exact_version: google-research-hosted-ieee-big-data-2017-paper
+    publication_date: "2017-12"
+    canonical_url: "https://research.google/pubs/the-ml-test-score-a-rubric-for-ml-production-readiness-and-technical-debt-reduction/"
+    download_url: "https://storage.googleapis.com/gweb-research2023-media/pubtools/4156.pdf"
+    access_date: "2026-07-12"
+    sha256: 8db5862dc7c7aaa2c55bb43bd42fc55531a0503782b7026b5811c00c98befd31
+    license: "© 2017 IEEE; personal use permitted; IEEE permission required for advertising, promotion, collective works, resale, redistribution to servers or lists, or reuse of copyrighted components"
+    license_evidence_url: "https://storage.googleapis.com/gweb-research2023-media/pubtools/4156.pdf"
+    redistribution_status: fetch_only
+    retrieval:
+      method: https_get
+      redirect_policy: record_exact_chain
+      redirect_chain: ["https://storage.googleapis.com/gweb-research2023-media/pubtools/4156.pdf"]
+      final_url: "https://storage.googleapis.com/gweb-research2023-media/pubtools/4156.pdf"
+    source_text_quality: "Born-digital, 10-page PDF with extractable title, authors, rubric tables, and embedded IEEE rights statement."
+    category_fit: "Operationalizes production-readiness planning with test and monitoring categories."
+    decision_problem: "Assess whether an ML system is ready for production and identify the next reliability investments."
+    evidence_type: "Practitioner rubric grounded in production ML experience."
+    citation_role: "Production-readiness measurement anchor."
+    hard_negative_role: "Overlaps with documentation and debt papers while imposing a distinct readiness-scoring construct."
+    selection_rationale: "Turns broad lifecycle concerns into a concrete planning rubric."
+
+  - paper_id: paper_10580503f90b9e65
+    title: "Datasheets for Datasets"
+    authors: [Timnit Gebru, Jamie Morgenstern, Briana Vecchione, Jennifer Wortman Vaughan, Hanna Wallach, Hal Daumé III, Kate Crawford]
+    lane: ml_data_science_planning
+    stable_identifier: "arxiv:1803.09010; doi:10.1145/3458723"
+    exact_version: arxiv-v8
+    publication_date: "2021-12-01"
+    canonical_url: "https://arxiv.org/abs/1803.09010v8"
+    download_url: "https://arxiv.org/pdf/1803.09010v8"
+    access_date: "2026-07-12"
+    sha256: c7f595988ee2c109631d5173fdae37ff1774c68ec17add51bd012f2a6e8792d0
+    license: "arXiv.org perpetual, non-exclusive distribution license 1.0; no downstream redistribution permission inferred"
+    license_evidence_url: "https://arxiv.org/licenses/nonexclusive-distrib/1.0/"
+    redistribution_status: fetch_only
+    retrieval:
+      method: https_get
+      redirect_policy: record_exact_chain
+      redirect_chain: ["https://arxiv.org/pdf/1803.09010v8"]
+      final_url: "https://arxiv.org/pdf/1803.09010v8"
+    source_text_quality: "Born-digital, 18-page PDF with extractable arXiv version marker, complete author list, question sets, and references."
+    category_fit: "Makes organizational data work, provenance, intended use, and maintenance explicit planning artifacts."
+    decision_problem: "Decide whether and how a dataset should be created, maintained, distributed, and used."
+    evidence_type: "Documentation framework motivated by lifecycle analysis and cases."
+    citation_role: "Dataset governance and organizational data-work anchor."
+    hard_negative_role: "Tests whether documentation similarity to model cards masks differences in governed object and lifecycle."
+    selection_rationale: "Covers upstream data decisions often omitted from model-centric planning."
+
+  - paper_id: paper_422f4edf2b303f70
+    title: "Model Cards for Model Reporting"
+    authors: [Margaret Mitchell, Simone Wu, Andrew Zaldivar, Parker Barnes, Lucy Vasserman, Ben Hutchinson, Elena Spitzer, Inioluwa Deborah Raji, Timnit Gebru]
+    lane: ml_data_science_planning
+    stable_identifier: "arxiv:1810.03993; doi:10.1145/3287560.3287596"
+    exact_version: arxiv-v2
+    publication_date: "2019-01-14"
+    canonical_url: "https://arxiv.org/abs/1810.03993v2"
+    download_url: "https://arxiv.org/pdf/1810.03993v2"
+    access_date: "2026-07-12"
+    sha256: a4049cdc78c3d635bdfb5165e495b0672d85690d66ccd6f149079d6e11e64aa1
+    license: "arXiv.org perpetual, non-exclusive distribution license 1.0; no downstream redistribution permission inferred"
+    license_evidence_url: "https://arxiv.org/licenses/nonexclusive-distrib/1.0/"
+    redistribution_status: fetch_only
+    retrieval:
+      method: https_get
+      redirect_policy: record_exact_chain
+      redirect_chain: ["https://arxiv.org/pdf/1810.03993v2"]
+      final_url: "https://arxiv.org/pdf/1810.03993v2"
+    source_text_quality: "Born-digital, 10-page PDF with extractable arXiv version marker, complete author list, examples, and reporting guidance."
+    category_fit: "Structures model-level reporting for deployment scope, performance, limitations, and affected groups."
+    decision_problem: "Decide whether a trained model is suitable for a contemplated context and how its limitations should be communicated."
+    evidence_type: "Reporting framework with worked examples and sociotechnical motivation."
+    citation_role: "Model governance and deployment-communication anchor."
+    hard_negative_role: "Forms a deliberate near-neighbor to datasheets while preserving model-versus-dataset distinctions."
+    selection_rationale: "Completes the ML planning lane from systems and tests to data and model documentation."
+
+  - paper_id: paper_f4e5c71c33c54eaf
+    title: "Algorithm Aversion: People Erroneously Avoid Algorithms after Seeing Them Err"
+    authors: [Berkeley J. Dietvorst, Joseph P. Simmons, Cade Massey]
+    lane: human_organizational_decision_making
+    stable_identifier: "doi:10.1037/xge0000033"
+    exact_version: upenn-author-manuscript-bitstream-4d24c079-228b-47bd-ba8c-166eeddee8de
+    publication_date: "2015-02-01"
+    canonical_url: "https://repository.upenn.edu/entities/publication/a9f701d1-9023-403d-a5b9-3658d262704a"
+    download_url: "https://repository.upenn.edu/bitstreams/4d24c079-228b-47bd-ba8c-166eeddee8de/download"
+    access_date: "2026-07-12"
+    sha256: d77a56366399c29c270911dcccf3e439ae4b13e1b84a3fbb741c8b54478f1198
+    license: "© American Psychological Association, 2015; repository states this is not the copy of record and asks users not to copy or cite without author permission"
+    license_evidence_url: "https://repository.upenn.edu/entities/publication/a9f701d1-9023-403d-a5b9-3658d262704a"
+    redistribution_status: fetch_only
+    retrieval:
+      method: https_get
+      redirect_policy: record_exact_chain
+      redirect_chain:
+        - "https://repository.upenn.edu/bitstreams/4d24c079-228b-47bd-ba8c-166eeddee8de/download"
+        - "https://repository.upenn.edu/server/api/core/bitstreams/4d24c079-228b-47bd-ba8c-166eeddee8de/content"
+      final_url: "https://repository.upenn.edu/server/api/core/bitstreams/4d24c079-228b-47bd-ba8c-166eeddee8de/content"
+    source_text_quality: "Born-digital, 13-page author manuscript with extractable title, authors, experiments, and explicit APA use restriction."
+    category_fit: "Measures how observed algorithm errors alter human willingness to rely on otherwise superior forecasts."
+    decision_problem: "Choose whether to rely on an algorithmic or human forecaster after observing performance."
+    evidence_type: "Five controlled behavioral experiments."
+    citation_role: "Algorithm-aversion behavioral anchor."
+    hard_negative_role: "Creates a directional contrast with algorithm appreciation while sharing advice-selection language."
+    selection_rationale: "Captures a central failure mode in human adoption of decision support."
+
+  - paper_id: paper_e71b814746309afe
+    title: "Algorithm Appreciation: People Prefer Algorithmic to Human Judgment"
+    authors: [Jennifer M. Logg, Julia A. Minson, Don A. Moore]
+    lane: human_organizational_decision_making
+    stable_identifier: "hbs-working-paper:17-086; doi:10.1016/j.obhdp.2018.12.005"
+    exact_version: hbs-working-paper-17-086-2018-04-20
+    publication_date: "2018-04-20"
+    canonical_url: "https://www.hks.harvard.edu/publications/algorithm-appreciation-people-prefer-algorithmic-human-judgment"
+    download_url: "https://www.hbs.edu/ris/Publication%20Files/17-086_610956b6-7d91-4337-90cc-5bb5245316a8.pdf"
+    access_date: "2026-07-12"
+    sha256: 1c55f7b4db1bc37cef9f0e4756a2d80f7911a89e58e9429b054d4a840eeb2ea3
+    license: "© 2018 Jennifer M. Logg, Julia A. Minson, and Don A. Moore; working paper distributed for comment and discussion only and may not be reproduced without copyright-holder permission"
+    license_evidence_url: "https://www.hbs.edu/ris/Publication%20Files/17-086_610956b6-7d91-4337-90cc-5bb5245316a8.pdf"
+    redistribution_status: fetch_only
+    retrieval:
+      method: https_get
+      redirect_policy: record_exact_chain
+      redirect_chain: ["https://www.hbs.edu/ris/Publication%20Files/17-086_610956b6-7d91-4337-90cc-5bb5245316a8.pdf"]
+      final_url: "https://www.hbs.edu/ris/Publication%20Files/17-086_610956b6-7d91-4337-90cc-5bb5245316a8.pdf"
+    source_text_quality: "Born-digital, 56-page HBS working paper with extractable title, authors, submission date, studies, appendices, and rights statement."
+    category_fit: "Examines conditions under which people weight algorithmic advice more than human advice."
+    decision_problem: "Revise a judgment after receiving advice from a stated algorithmic or human source."
+    evidence_type: "Series of controlled behavioral experiments."
+    citation_role: "Algorithm-appreciation counterpoint."
+    hard_negative_role: "Near-neighbor to algorithm aversion whose direction and experimental mechanism must not be collapsed."
+    selection_rationale: "Balances aversion evidence with contexts that elicit reliance on algorithms."
+
+  - paper_id: paper_276f05d8d5e3e757
+    title: "Does the Whole Exceed its Parts? The Effect of AI Explanations on Complementary Team Performance"
+    authors: [Gagan Bansal, Tongshuang Wu, Joyce Zhou, Raymond Fok, Besmira Nushi, Ece Kamar, Marco Túlio Ribeiro, Daniel S. Weld]
+    lane: human_organizational_decision_making
+    stable_identifier: "arxiv:2006.14779; doi:10.1145/3411764.3445717"
+    exact_version: arxiv-v3
+    publication_date: "2021-01-12"
+    canonical_url: "https://arxiv.org/abs/2006.14779v3"
+    download_url: "https://arxiv.org/pdf/2006.14779v3"
+    access_date: "2026-07-12"
+    sha256: 9a00f4566bf0b4a84b4134afcac2eedc6dfdee638c8b79304bee71eec07b0c17
+    license: "arXiv.org perpetual, non-exclusive distribution license 1.0; no downstream redistribution permission inferred"
+    license_evidence_url: "https://arxiv.org/licenses/nonexclusive-distrib/1.0/"
+    redistribution_status: fetch_only
+    retrieval:
+      method: https_get
+      redirect_policy: record_exact_chain
+      redirect_chain: ["https://arxiv.org/pdf/2006.14779v3"]
+      final_url: "https://arxiv.org/pdf/2006.14779v3"
+    source_text_quality: "Born-digital, 16-page PDF with extractable arXiv version marker, complete author list, figures, experiments, and appendices."
+    category_fit: "Evaluates whether explanations improve complementary human-AI team decisions rather than only individual trust."
+    decision_problem: "Combine human judgment and AI recommendations to improve team accuracy under complementary error patterns."
+    evidence_type: "Controlled human-subject experiments across decision tasks."
+    citation_role: "Complementary-team-performance anchor."
+    hard_negative_role: "Separates explanation effects and team performance from generic advice-following or documentation."
+    selection_rationale: "Moves the lane from adoption attitudes to measured joint decision outcomes."
+
+  - paper_id: paper_456f56cdadeb8038
+    title: "Should I Follow AI-based Advice? Measuring Appropriate Reliance in Human-AI Decision-Making"
+    authors: [Max Schemmer, Patrick Hemmer, Niklas Kühl, Carina Benz, Gerhard Satzger]
+    lane: human_organizational_decision_making
+    stable_identifier: "arxiv:2204.06916"
+    exact_version: arxiv-v1
+    publication_date: "2022-04-14"
+    canonical_url: "https://arxiv.org/abs/2204.06916v1"
+    download_url: "https://arxiv.org/pdf/2204.06916v1"
+    access_date: "2026-07-12"
+    sha256: b11f394c78ce395460a56b3f2de473306c201b14016fe4a861089f4e1ba7877f
+    license: "Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)"
+    license_evidence_url: "https://creativecommons.org/licenses/by-nc-nd/4.0/"
+    redistribution_status: fetch_only
+    retrieval:
+      method: https_get
+      redirect_policy: record_exact_chain
+      redirect_chain: ["https://arxiv.org/pdf/2204.06916v1"]
+      final_url: "https://arxiv.org/pdf/2204.06916v1"
+    source_text_quality: "Born-digital, 10-page PDF with extractable arXiv version marker, complete author list, formal reliance measures, and experiment."
+    category_fit: "Defines appropriate reliance by distinguishing beneficial acceptance from beneficial rejection of AI advice."
+    decision_problem: "Decide whether to follow an AI recommendation conditional on whether the human or AI answer is correct."
+    evidence_type: "Measurement framework and controlled behavioral experiment."
+    citation_role: "Appropriate-reliance measurement anchor."
+    hard_negative_role: "Distinguishes calibrated advice use from global trust, aversion, appreciation, and explanation effects."
+    selection_rationale: "Human-approved same-lane replacement with direct construct fit and a stable versioned primary source."

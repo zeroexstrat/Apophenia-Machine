@@ -1,0 +1,41 @@
+schema_version: 1
+benchmark_id: operations-decision-support-v1
+status: slate_approved
+decisions:
+  - decision_id: replacement-2026-07-12-01
+    decision_date: "2026-07-12"
+    authority: human_benchmark_owner
+    lane: human_organizational_decision_making
+    excluded:
+      title: "Trust in Automation: Designing for Appropriate Reliance"
+      authors:
+        - John D. Lee
+        - Katrina A. See
+      stable_identifier: "doi:10.1518/hfes.46.1.50_30392"
+      reason: no_stable_public_route
+      evidence:
+        - route: "https://user.engineering.uiowa.edu/~csl/publications/pdf/leesee04.pdf"
+          result: "HTTP 404; text/html rather than a PDF"
+        - route: "https://journals.sagepub.com/doi/pdf/10.1518/hfes.46.1.50_30392"
+          result: "HTTP 403; text/html rather than a PDF"
+        - route: "https://journals.sagepub.com/doi/epdf/10.1518/hfes.46.1.50_30392"
+          result: "HTTP 403; text/html rather than a PDF"
+        - route: "https://doi.org/10.1518/hfes.46.1.50_30392"
+          result: "PDF content negotiation redirects through an HTTP publisher route, which the HTTPS-only retrieval policy refuses"
+        - route: "https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.78.4230&rep=rep1&type=pdf"
+          result: "Institutional endpoint redirects to an archive mirror outside the approved source classes"
+    replacement:
+      paper_id: paper_456f56cdadeb8038
+      title: "Should I Follow AI-based Advice? Measuring Appropriate Reliance in Human-AI Decision-Making"
+      authors:
+        - Max Schemmer
+        - Patrick Hemmer
+        - Niklas Kühl
+        - Carina Benz
+        - Gerhard Satzger
+      stable_identifier: "arxiv:2204.06916"
+      exact_version: arxiv-v1
+      approval: "Human-approved same-lane replacement on 2026-07-12"
+      rationale: "Directly measures appropriate reliance and advice-following behavior in human-AI decisions, preserving the lane's reliance construct with a stable primary source route."
+    title_list_changed: true
+    other_approved_titles_changed: false

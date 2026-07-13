@@ -5,7 +5,7 @@
 **Target:** `v0.2.0` portfolio release
 
 **Public position:** A local, human-gated research-operations pipeline that converts technical documents into schema-validated evidence records, ranks candidate connections, and preserves an auditable review trail.
-**Last reconciled:** 2026-07-11 after green P4 candidate CI run `29172280966` from source commit `712bf6fd3ed04cb3080a1d1031d8917f2f91918a`
+**Last reconciled:** 2026-07-12 after P6 benchmark-tooling implementation and committed-state acceptance at implementation commit `59b29935428cd9e48426c8c167d03e954bd5b716`
 
 ## 1. Reading order and authority
 
@@ -86,8 +86,8 @@ The operator workspace is richer because ignored local files exist. Local green 
 | P2-T1 | Sanitized public baseline and honest structural gates | High + Ultra review | P1-T1 | completed | Clean checkout is data-independent and gate language matches code |
 | P3-T1 | Wheel resources and `azoth init` | High | P2-T1 | completed | Fresh wheel operates outside repository on Python 3.10-3.12 |
 | P4-T1 | Clean public Git lineage | Ultra | P3-T1 | completion record; valid only with repository-ID/head-bound external attestation | No reachable public pilot objects or private paths; remote CI green |
-| P5-T1 | Frozen benchmark protocol and gold-label packet | Ultra | P4-T1 | pending | Sources, rubric, metrics, thresholds, and blinded boundary are frozen |
-| P6-T1 | Benchmark CLI, scorer, report, and synthetic fixtures | High | P5-T1 | pending | Generation and scoring are isolated and deterministic scoring reproduces |
+| P5-T1 | Frozen benchmark protocol and gold-label packet | Ultra | P4-T1 | completed | 12 exact sources, 66 Rafael-authoritative labels, public digest commitment, frozen prompt/metrics, and all audits pass |
+| P6-T1 | Benchmark CLI, scorer, report, and synthetic fixtures | High | P5-T1 | completed | Generation and scoring are isolated; deterministic fictional fetch, prepare, run, score, and report artifacts reproduce |
 | P7-T1 | Locked benchmark runs and adjudication | Ultra | P6-T1 | pending | Metrics include provenance, denominators, uncertainty, and failure analysis |
 | P8-T1 | Public README and rejection/reframe case study | High + Ultra review | P7-T1 | pending | Every claim is evidence-backed and suite-scoped |
 | P9-T1 | `v0.2.0`, GitHub metadata, website case study, and deployment | High + Ultra audit | P8-T1 | pending | Release installs independently; site and repository agree |
@@ -144,20 +144,19 @@ Create `<private-archive>/pilot-v0.1.3-20260711/` with mode `700`, all pilot/run
 
 | Field | Value |
 |---|---|
-| Task | P4-T1 — Clean public Git lineage |
-| Date | 2026-07-11 |
-| Effort | Ultra |
-| Branch | `codex/p4-clean-public-lineage` |
-| Starting SHA | `19379ffafd7e967081ffc9e9c9678b6926cdcc0b` |
-| Implementation SHA | `712bf6fd3ed04cb3080a1d1031d8917f2f91918a` before this non-self-referential completion-evidence update |
-| Push state | Old repository ID `1269879110` is private at `Apophenia-Machine-pilot-v0.1.3-archive`; new canonical public repository ID is `1297840056`; candidate `main` is `4a9f317b4f73a36b4a8a70c06f037d98ee8b1643` |
-| Goal | Preserve the contaminated GitHub repository privately and replace the canonical public repository with a three-commit clean lineage |
-| Status | completion record prepared from a green candidate; it becomes authoritative only when canonical repository ID `1297840056` serves this tree on `main`, a successful 3/3 GitHub Actions run binds that exact head, and the final public-clone proof passes |
-| Local lineage proof | Clean commits `3dda6d8b`, `189fd214`, `4a9f317b`; exact trees P2 `af8d8efb`, P3 `522f9289`, P4 `9ac114c7`; one `main` ref; 192 reachable objects |
-| Exclusion policy | 807 forbidden old objects and 3 private text markers; auditor policy digests `10b4bd8b86eaf4f1d7e1d30efb60fd210880bfce9a582a88fca76124035dc581` and `51860f6d21696a1715feab041194bfe4bf576e06e2e869ad5832c2d714f4bdab` |
-| Verification | Exact candidate passes 358 tests under Python 3.10 and 3.12, all maintained checks, seven Vigil gates, Python 3.10-3.12 installed-wheel smoke, strict public-clone audit, and GitHub run `29172280966` with 3/3 successful jobs |
-| Private archive | Sealed verifier PASS: 523 manifest entries, 11 refs, 1,191 unreachable objects, zero credential findings, and restored 57 PDFs / 57 library / 54 exhaustion / 57 registry rows |
-| Open gate | Final non-self-referential attestation: exact-lease push the roadmap-bearing amendment, require a successful 3/3 GitHub Actions run whose `head_sha` equals canonical repository ID `1297840056`'s `main`, repeat the independent public-clone and sealed-archive/remote checks, and record that SHA/run in the private session closeout. This source-tree completion record is not authoritative until those checks pass. |
+| Task | P6-T1 — Benchmark CLI, scorer, report, and synthetic fixtures |
+| Date | 2026-07-12 |
+| Effort | High |
+| Branch | `codex/p6-benchmark-tooling` |
+| Starting SHA | `6ab925cd045df4746e4ec326847fbeb6c0e15064` |
+| Implementation SHA | `59b29935428cd9e48426c8c167d03e954bd5b716` before this non-self-referential completion-evidence update |
+| Goal | Implement isolated benchmark validation, exact-source retrieval, blinded preparation, deterministic run locking, frozen-metric scoring, and provenance-first reporting without exposing P5 gold to generation |
+| Status | complete; only fictional contract fixtures ran, so P6 publishes no real benchmark or model-performance result |
+| Isolation proof | `validate`, `fetch`, `prepare`, `run`, and `report` expose no gold option or discovery path; only `score` requires an explicit repository-external gold path after a locked run exists; recursive gold fields, partial pair sets, private path aliases, digest drift, and overwrite attempts fail closed |
+| Synthetic proof | Six authored fictional sources produce 15 exact canonical pairs; repeated offline fetch, prepare, fallback run, 13-metric score, and Markdown report artifacts are byte-identical and carry `SYNTHETIC CONTRACT TEST — NOT A PERFORMANCE CLAIM` |
+| Scoring proof | Both synthetic and real P5 commitment paths are tested; all 13 frozen metric names, definitions, thresholds, numerators, denominators, uncertainty outputs, undefined populations, annotations, and ranking closure validate exactly |
+| Verification | 589 tests pass, including 71 focused P6 and wheel-harness tests; public benchmark, public-tree, CLI, hardening, compileall, and diff checks pass; one installed wheel exercises benchmark validate/run/report plus the existing workspace flow on Python 3.10, 3.11, and 3.12; all seven Vigil gates pass |
+| Next task | P7-T1 — Locked benchmark runs and adjudication |
 
 ## 8. Verification ledger
 
@@ -207,6 +206,13 @@ Sections 8-10 are append-only after this control plane is adopted. Correct an ea
 | 2026-07-11 | P4-T1 | first hosted candidate run `29172001060` at `08807693` | exact run/log inspection and local Python 3.10 reproduction | FAIL isolated to unconditional `tomllib` import in one test; Python 3.10 lacks the stdlib module although installed `tomli` is available; no product/runtime failure |
 | 2026-07-11 | P4-T1 | Python 3.10 compatibility fix | `tomllib`/`tomli` fallback, focused reproduction, full suites, exact candidate rebuild | PASS: focused 5/5 and full 358/358 under Python 3.10; full 358/358 under Python 3.12; candidate `4a9f317b` passes complete local bundle and strict public-clone audit |
 | 2026-07-11 | P4-T1 | GitHub candidate run `29172280966` | hardening matrix on public SHA `4a9f317b4f73a36b4a8a70c06f037d98ee8b1643` | PASS: completed successfully with 3/3 jobs on Python 3.10, 3.11, and 3.12; run URL `https://github.com/zeroexstrat/Apophenia-Machine/actions/runs/29172280966` |
+| 2026-07-12 | P5-T1 | private source boundary and public manifest | exact-version, rights, retrieval-chain, SHA-256, permission, and 4/4/4 balance checks | PASS: 12 sources, 12 retrieval records, 66 canonical pairs, zero private files tracked |
+| 2026-07-12 | P5-T1 | blinded human adjudication | 70 presentations, four repeated anchors, raw-source evidence fidelity, reconciliation, and private atomic freeze | PASS: 70/70 complete; all repeats agree exactly; 153/153 committed evidence spans match source text; 66 gold pairs validate under Rafael authority |
+| 2026-07-12 | P5-T1 | frozen public/private protocol | exact gold and blinded-schema commitment equality, private-topology rejection, public-only and public-plus-private benchmark audits, public-tree audit, full suite, compileall, and Vigil | P5 completion reopened after final review found the unbound schema; replacement verification must supersede this row before P6 begins |
+| 2026-07-12 | P5-T1 replacement closeout | exact gold and blinded-schema commitment equality, fail-closed schema and packet validation, private-topology rejection, public-only and public-plus-private benchmark audits, 15 maintained checks, public-tree and hardening audits, full suite, compileall, Python 3.10-3.12 installed-wheel smoke, and Vigil | PASS at `c4a54bfef15dd90485fb2729294ba69e1e438645`: 518 tests; both benchmark modes; all maintained checks; all three wheel interpreters; all seven gates; no benchmark run or performance claim |
+| 2026-07-12 | P5-T1 second independent review | rationale-only tracked-data rejection plus canonical paper, pair, packet, and citation identity enforcement | P5 completion reopened: the current tree was clean, but the fail-closed claims exceeded two enforcement paths; replacement verification must supersede this row before P6 begins |
+| 2026-07-12 | P5-T1 definitive replacement closeout | exact gold and full blinded-schema commitment equality; canonical paper, pair, packet, and citation validation; rationale-only and private-topology rejection; both benchmark modes; 15 maintained checks; public-tree and hardening audits; full suite; compileall; Python 3.10-3.12 installed-wheel smoke; Vigil | PASS at `87874c013a498965906514368008cef9eba122f5`: 522 tests; both benchmark modes; all maintained checks; all three wheel interpreters; all seven gates; no benchmark run or performance claim |
+| 2026-07-12 | P6-T1 | isolated benchmark CLI, exact-source fetch, blinded preparation, deterministic fallback/import runs, full frozen scorer, provenance report, fictional fixtures, and fail-closed review corrections | PASS at `59b29935428cd9e48426c8c167d03e954bd5b716`: 589 tests and 71 focused P6/wheel tests; public benchmark, CLI, public-tree, hardening, compileall, diff, Python 3.10-3.12 wheel, and seven Vigil gates pass; no real benchmark run or performance claim |
 
 ## 9. Decision log
 
@@ -230,6 +236,8 @@ Sections 8-10 are append-only after this control plane is adopted. Correct an ea
 | D-016 | 2026-07-11 | Preserve the old GitHub repository privately and create a new canonical public repository | Retained pull-request refs cannot be independently purged in place; replacement removes the contaminated namespace while preserving recovery evidence |
 | D-017 | 2026-07-11 | Bind every public-lineage audit to an exact tip and private policy digests | A clean result is meaningful only for the intended state and the same exclusion policy across rehearsal, cutover, and final clone |
 | D-018 | 2026-07-11 | Treat hosted Python 3.10 collection as a release gate and use the installed `tomli` fallback | Local 3.12 success did not exercise the Python 3.10 stdlib boundary; the compatibility import is the smallest source-level fix |
+| D-019 | 2026-07-12 | Freeze P5 before benchmark tooling and retain Rafael as final label authority | Prevents source, label, prompt, rubric, metric, or threshold changes after observing P6/P7 outputs and preserves a genuine human adjudication boundary |
+| D-020 | 2026-07-12 | Give generation-side benchmark commands no gold API and confine explicit gold access to post-lock scoring | Makes the P5 blinded boundary enforceable in command signatures and artifact validators rather than relying on operator convention |
 
 ## 10. Completed-session ledger
 
@@ -242,19 +250,24 @@ Sections 8-10 are append-only after this control plane is adopted. Correct an ea
 | 2026-07-11 | P2-T1 | Pilot/runtime evidence removed from the tracked product; structural gates made exact; no-LLM synthesis boundaries corrected; atomic agent imports, rejection persistence, synthetic examples, and Apache-2.0 metadata added | `0b2599567271ff9f5d1a02a36c98f71745c0602d` | independent clean clone installs; 183 tests, 15 check scripts, public/hardening audits, compileall, and Vigil pass; tracked runtime/PDF/path counts are zero | not pushed; user did not request push |
 | 2026-07-11 | P3-T1 | Wheel-resident contracts, workspace discovery, conflict-safe `azoth init`, installed helper/Vigil execution, and cross-version artifact smoke verification implemented | `949b89164e5902a42ce490393cd06b38d6fa84d2` | 214 tests, all behavioral checks, public/hardening audits, seven gates, and isolated installed-wheel init/ingest/validate/Vigil on Python 3.10-3.12 pass | not pushed; user did not request push |
 | 2026-07-11 | P4-T1 completion record | Contaminated GitHub repository preserved privately; new canonical repository exposes a three-commit clean lineage; exact candidate locally and remotely verified | candidate `4a9f317b4f73a36b4a8a70c06f037d98ee8b1643`; final amended SHA is intentionally external to its own commit | sealed archive PASS; 807-object exclusion audit; 358-test local suites; strict public clone; candidate CI run `29172280966` green 3/3 | authoritative only after the exact final `main` SHA, matching successful Actions run, fresh-clone proof, and archive/remote rechecks are recorded in the private closeout |
+| 2026-07-12 | P5-T1 provisional closeout superseded | Final review found that the blinded schema was not digested and the packet validator accepted private topology; completion withdrawn pending the corrected full verification | `4c12454b25bdbf36e559c255594a1f53720c5ecc` | Gold commitment remained exact, but generation blinding was not fail-closed; do not begin P6 from this row | not pushed |
+| 2026-07-12 | P5-T1 final closeout | Bound the exact blinded-generation schema into the public freeze and replaced blacklist-only checking with fail-closed schema, topology, identity, type, status, and unknown-field validation | `c4a54bfef15dd90485fb2729294ba69e1e438645` | 518 tests; both benchmark audit modes; 15 maintained checks; public-tree, hardening, compileall, wheel smoke, and seven Vigil gates pass | not pushed; user did not request push |
+| 2026-07-12 | P5-T1 second closeout superseded | Second independent review found rationale-only public-tree and canonical identity gaps; completion withdrawn pending the corrected full verification | `6143380eee5c2c9d654d0d2bdb0b4740b6aaf33a` | Existing tracked state remained clean, but two fail-closed claims were broader than enforcement; do not begin P6 from this row | not pushed |
+| 2026-07-12 | P5-T1 definitive final closeout | Added canonical source, pair, packet, and citation contracts; bound their updated schema digest; and made rationale-only tracking fail closed except for the exact public selection log | `87874c013a498965906514368008cef9eba122f5` | 522 tests; both benchmark modes; 15 maintained checks; public-tree, hardening, compileall, wheel smoke, and seven Vigil gates pass | not pushed; user did not request push |
+| 2026-07-12 | P6-T1 | Added the isolated six-command benchmark workflow, deterministic canonical artifacts, complete frozen-metric scorer, provenance-first report, fictional end-to-end fixtures, and fail-closed pair, rank, metric, annotation, path, and commitment validation | `59b29935428cd9e48426c8c167d03e954bd5b716` | 589 tests; 71 focused P6/wheel tests; maintained CLI and benchmark checks; public-tree, hardening, compileall, three installed-wheel interpreters, and seven Vigil gates pass; no real benchmark result exists | not pushed; user did not request push |
 
 ## 11. Next-session handoff
 
-**Next task:** P5-T1 — Frozen benchmark protocol and gold-label packet, after the P4 external attestation gate passes.
+**Next task:** P7-T1 — Locked benchmark runs and adjudication.
 
 **Effort:** Ultra.
 
-**Why next:** after the P4 external attestation gate passes, the public repository has a verified clean lineage and independent cross-version proof; the next irreversible boundary is freezing the benchmark sources, labels, rubric, metrics, and blinded evaluation protocol before implementation.
+**Why next:** P6 proved the frozen workflow and scoring contracts with fictional inputs without reading real gold during generation. P7 can now lock the real model and baseline outputs before explicitly opening the committed gold for scoring and human annotations.
 
-**First inspection:** verify canonical repository ID `1297840056`'s exact `main` SHA, matching successful 3/3 Actions run, and private P4 closeout record; then read the P5 contract and inventory the exact candidate papers, source/version/license metadata, rubric, adjudication packet, metrics, and freeze boundary without implementing benchmark code.
+**First inspection:** verify the P5 public/private commitment again, stage the exact 12 source bytes outside Git, prepare and seal the real blinded packets, then define the immutable run manifest and output-lock sequence before invoking any scorer.
 
-**Acceptance:** exact paper versions and licenses, the 66-pair human-label packet, rubric, metrics, thresholds, uncertainty treatment, blinded generation boundary, and no-retuning rule are frozen before P6 implementation.
+**Acceptance:** 5.6 Sol and every preregistered deterministic baseline run from the same frozen inputs; outputs and manifests lock before gold access; scoring reproduces all applicable metrics with exact numerators, denominators, uncertainty, provenance, and failure analysis; required human annotations are explicit; missed thresholds are published without retuning.
 
-**Risk:** changing sources, labels, thresholds, or prompts after observing benchmark outputs would invalidate the evaluation. Freeze authority and provenance first; do not begin runner/scorer implementation in P5.
+**Risk:** opening gold, human annotations, threshold outcomes, or prior run scores before every model and baseline artifact is sealed would invalidate the preregistration. Preserve the command isolation and record exact output digests before scoring.
 
-**Inherited open gap:** candidate CI proves engineering health, not scientific validity or benchmark performance. P5 must preserve the human-label authority boundary and make every later metric reproducible without tuning against the frozen set.
+**Inherited open gap:** P6 proves tooling correctness and package portability only. No real benchmark or model-performance result exists until P7 executes, locks, scores, and reports the frozen benchmark without retuning.

@@ -65,6 +65,38 @@ APPROVED_FIXTURE_FINDINGS = {
             "PDF signature",
         }
     ),
+    # Exact reviewed P5 boundary-audit fixtures after adding benchmark-specific
+    # source/gold rules. Historical hashes remain approved for P2-P4 lineage.
+    "6d92424854f52a4cc003c212c84e6d58c0ea5f99": frozenset({"runtime dump"}),
+    "766e2f5f5621487782990fc04d54ccc4cf3b5764": frozenset(
+        {
+            "absolute user path",
+            "pilot identifier",
+            "runtime dump",
+            "PDF signature",
+        }
+    ),
+    # Exact reviewed P5 blinding-hardening fixtures. These supersede the prior
+    # Task 8 blobs without removing historical approvals.
+    "986112ce10dca50ad28280b67cbb745ba9f94c0b": frozenset({"runtime dump"}),
+    "b2f151aaa18c211075c513af48a13213dbf838ab": frozenset(
+        {
+            "absolute user path",
+            "pilot identifier",
+            "runtime dump",
+            "PDF signature",
+        }
+    ),
+    # Exact reviewed P5 fail-closed identity/rationale fixtures.
+    "c667b754f6e1b5486130b1e2762237790678c983": frozenset({"runtime dump"}),
+    "9dbc689ecb161e8faa932a679ae9dfa6903721ef": frozenset(
+        {
+            "absolute user path",
+            "pilot identifier",
+            "runtime dump",
+            "PDF signature",
+        }
+    ),
 }
 
 

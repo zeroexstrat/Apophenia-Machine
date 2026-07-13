@@ -1,0 +1,204 @@
+schema_version: 1
+benchmark_id: operations-decision-support-v1
+rubric_version: pair-relevance-v1
+rubric:
+  scale:
+    0: no meaningful structural relationship for this benchmark
+    1: topical or lexical overlap without an actionable structural relation
+    2: meaningful shared mechanism, method, or decision structure
+    3: strong structural relation with a concrete transferable implication
+  relevant_labels: [2, 3]
+  nonforcing_evidence:
+    - direct_citation
+    - shared_authorship
+    - shared_venue
+    - shared_vocabulary
+    - shared_dataset
+  evidence_rule: >-
+    Direct citation is evidence of an explicit relation, but does not force a
+    relevant label. Shared authorship, venue, vocabulary, dataset, or broad
+    topic also does not establish structural relevance by itself.
+  fictional_boundary_examples:
+    - boundary: 1_vs_2
+      label_1: >-
+        Two fictional papers both discuss hospital scheduling and use the word
+        resilience, but one surveys employee attitudes while the other lists
+        software features; no mechanism, method, or decision structure transfers.
+      label_2: >-
+        Two fictional hospital-planning papers formalize the same protected
+        capacity decision under uncertain arrivals, so the shared decision
+        structure can guide comparison even though their applications differ.
+      governing_rule: >-
+        Topic or vocabulary alone remains 1; an actionable shared mechanism,
+        method, or decision structure reaches 2.
+    - boundary: 2_vs_3
+      label_2: >-
+        Two fictional studies use the same value-of-information calculation to
+        decide whether to collect another measurement, but neither yields a
+        concrete change for the other's workflow.
+      label_3: >-
+        A fictional maintenance study shows that calibrated deferral reduces
+        costly false alarms, and a fictional clinical-triage study exposes the
+        same error asymmetry; the maintenance rule transfers as a concrete
+        triage escalation policy to test.
+      governing_rule: >-
+        Shared structure reaches 2; label 3 additionally requires a concrete,
+        evidence-grounded transferable implication.
+adjudication:
+  final_authority: Rafael
+  canonical_pair_count: 66
+  presentation_seed: 5607
+  repeated_anchor_count: 4
+  require_anchor_reconciliation: true
+  hide_lane_labels: true
+  hide_selection_notes: true
+metric_annotation_definitions:
+  pair_labels_are_sufficient_evaluation_annotations: >-
+    the boolean means the frozen 66 pair labels are sufficient human evaluation
+    annotations for the metric when combined with locked system outputs; it does
+    not mean the metric can be computed without system outputs.
+metrics:
+  - name: macro_f1
+    population: all 66 canonical pair-label predictions
+    numerator: classwise true positives used in precision and recall for labels 0-3
+    denominator: all gold and predicted instances for each label 0-3
+    averaging: unweighted mean of classwise F1 across labels 0-3
+    undefined_case: report null if any classwise F1 is undefined and report its zero denominator
+    uncertainty: paired bootstrap 95% interval with seed 5607
+    future_artifact: P7 locked pair-classification report
+    comparison: ">="
+    threshold: {operator: ">=", value: 0.80}
+    pair_labels_are_sufficient_evaluation_annotations: true
+  - name: unsafe_ood_assignment
+    population: all evaluated out-of-domain assignment decisions
+    numerator: out-of-domain decisions assigned to an unsafe in-domain target
+    denominator: all evaluated out-of-domain assignment decisions
+    averaging: micro proportion
+    undefined_case: report null and denominator zero when no out-of-domain decisions are eligible
+    uncertainty: Wilson 95% interval
+    future_artifact: P7 locked safety report
+    comparison: "=="
+    threshold: {operator: "==", value: 0.00}
+    pair_labels_are_sufficient_evaluation_annotations: false
+  - name: claim_precision
+    population: all generated structural claims selected for evaluation
+    numerator: evaluated claims judged supported by visible source evidence
+    denominator: all generated structural claims selected for evaluation
+    averaging: micro proportion
+    undefined_case: report null and denominator zero when no claims are generated
+    uncertainty: Wilson 95% interval
+    future_artifact: P7 locked claim-evaluation report
+    comparison: ">="
+    threshold: {operator: ">=", value: 0.90}
+    pair_labels_are_sufficient_evaluation_annotations: false
+  - name: reference_recall
+    population: all adjudicated relevant canonical pairs
+    numerator: adjudicated relevant pairs recovered by the locked output
+    denominator: all adjudicated relevant canonical pairs
+    averaging: micro proportion
+    undefined_case: report null and denominator zero when no relevant canonical pairs exist
+    uncertainty: Wilson 95% interval
+    future_artifact: P7 locked pair-recall report
+    comparison: ">="
+    threshold: {operator: ">=", value: 0.70}
+    pair_labels_are_sufficient_evaluation_annotations: true
+  - name: candidate_recall
+    population: all adjudicated relevant pairs eligible for candidate generation
+    numerator: eligible relevant pairs present in the locked candidate set
+    denominator: all adjudicated relevant pairs eligible for candidate generation
+    averaging: micro proportion
+    undefined_case: report null and denominator zero when no relevant pairs are eligible
+    uncertainty: Wilson 95% interval
+    future_artifact: P7 locked candidate-generation report
+    comparison: ">="
+    threshold: {operator: ">=", value: 0.90}
+    pair_labels_are_sufficient_evaluation_annotations: true
+  - name: workload_reduction
+    population: all 66 canonical pairs
+    numerator: canonical pairs excluded from the locked human-review queue
+    denominator: all 66 canonical pairs
+    averaging: paired comparison against exhaustive review
+    undefined_case: report null and denominator zero when no canonical pairs are eligible
+    uncertainty: paired bootstrap 95% interval with seed 5607
+    future_artifact: P7 locked workload report
+    comparison: ">="
+    threshold: {operator: ">=", value: 0.50}
+    pair_labels_are_sufficient_evaluation_annotations: true
+  - name: precision_at_5
+    population: all benchmark queries with at least one adjudicated relevant candidate
+    numerator: adjudicated relevant results among the first five locked ranked results
+    denominator: up to five locked ranked results per eligible query
+    averaging: macro mean across eligible queries
+    undefined_case: report null and denominator zero when no query is eligible
+    uncertainty: paired bootstrap 95% interval with seed 5607
+    future_artifact: P7 locked ranking report
+    comparison: ">="
+    threshold: {operator: ">=", value: 0.60}
+    pair_labels_are_sufficient_evaluation_annotations: true
+  - name: ndcg_at_10
+    population: all benchmark queries with adjudicated graded relevance
+    numerator: discounted cumulative gain in the first ten locked ranked results
+    denominator: ideal discounted cumulative gain in the first ten results
+    averaging: macro mean across eligible queries
+    undefined_case: report null and denominator zero when ideal gain is zero for every query
+    uncertainty: paired bootstrap 95% interval with seed 5607
+    future_artifact: P7 locked ranking report
+    comparison: ">="
+    threshold: {operator: ">=", value: 0.65}
+    pair_labels_are_sufficient_evaluation_annotations: true
+  - name: evidence_support
+    population: all evidence spans attached to locked generated items
+    numerator: evidence spans verified against visible source records
+    denominator: all evidence spans attached to locked generated items
+    averaging: micro proportion
+    undefined_case: report null and denominator zero when no evidence spans are emitted
+    uncertainty: Wilson 95% interval
+    future_artifact: P7 locked evidence audit
+    comparison: ">="
+    threshold: {operator: ">=", value: 0.90}
+    pair_labels_are_sufficient_evaluation_annotations: false
+  - name: supported_items
+    population: all locked generated items selected for human review
+    numerator: reviewed items supported by visible source evidence
+    denominator: all locked generated items selected for human review
+    averaging: micro proportion
+    undefined_case: report null and denominator zero when no items are reviewed
+    uncertainty: Wilson 95% interval
+    future_artifact: P7 locked item-quality report
+    comparison: ">="
+    threshold: {operator: ">=", value: 0.85}
+    pair_labels_are_sufficient_evaluation_annotations: false
+  - name: useful_items
+    population: all locked generated items selected for human review
+    numerator: reviewed items judged useful for decision support
+    denominator: all locked generated items selected for human review
+    averaging: micro proportion
+    undefined_case: report null and denominator zero when no items are reviewed
+    uncertainty: Wilson 95% interval
+    future_artifact: P7 locked item-quality report
+    comparison: ">="
+    threshold: {operator: ">=", value: 0.60}
+    pair_labels_are_sufficient_evaluation_annotations: false
+  - name: redundancy
+    population: all locked generated items selected for human review
+    numerator: reviewed items judged materially redundant with another locked item
+    denominator: all locked generated items selected for human review
+    averaging: micro proportion
+    undefined_case: report null and denominator zero when no items are reviewed
+    uncertainty: Wilson 95% interval
+    future_artifact: P7 locked redundancy report
+    comparison: "<="
+    threshold: {operator: "<=", value: 0.15}
+    pair_labels_are_sufficient_evaluation_annotations: false
+  - name: unsupported_derived_items
+    population: all locked generated items carrying derived confidence
+    numerator: derived items not supported by visible source evidence
+    denominator: all locked generated items carrying derived confidence
+    averaging: micro proportion
+    undefined_case: report null and denominator zero when no derived items are emitted
+    uncertainty: Wilson 95% interval
+    future_artifact: P7 locked derivation audit
+    comparison: "<="
+    threshold: {operator: "<=", value: 0.05}
+    pair_labels_are_sufficient_evaluation_annotations: false
+no_retuning: true

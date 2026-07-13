@@ -13,6 +13,7 @@ from typing import Any, Callable
 
 import click
 
+from .benchmark.cli import benchmark_cli
 from .config import Config, load_config, save_config
 from .llm import LLMClient
 from .registry import VALID_STATUSES, Registry
@@ -142,6 +143,9 @@ def _run_with_command_context(
 @click.group()
 def main() -> None:
     """Azoth CLI."""
+
+
+main.add_command(benchmark_cli)
 
 
 def _load_skill_config(no_llm: bool) -> tuple[Config, LLMClient | None]:

@@ -385,12 +385,7 @@ def test_exact_reviewed_fixture_blobs_do_not_self_trigger(
     tmp_path: Path,
     path: str,
 ) -> None:
-    content = subprocess.run(
-        ["git", "show", f"HEAD:{path}"],
-        cwd=REPO_ROOT,
-        check=True,
-        capture_output=True,
-    ).stdout
+    content = (REPO_ROOT / path).read_bytes()
     repo = make_repo(tmp_path, {path: content})
 
     report = audit_repository(repo, forbidden_objects=set(), forbidden_text=())

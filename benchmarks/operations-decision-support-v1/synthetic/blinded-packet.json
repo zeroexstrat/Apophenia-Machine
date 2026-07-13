@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "benchmark_id": "operations-decision-support-v1",
+  "packet_id": "packet_e31c943b9f5adeab",
+  "pair_id": "pair_e31c943b9f5adeab",
+  "paper_a_id": "paper_0da82142c12f3fcf",
+  "paper_b_id": "paper_e4419abf60a29b9f",
+  "sources": [
+    {
+      "paper_id": "paper_0da82142c12f3fcf",
+      "stable_identifier": "synthetic:alder-wharf-spare-parts",
+      "exact_version": "synthetic-v1",
+      "title": "Synthetic Alder Wharf Spare-Parts Allocation Memo",
+      "authors": ["Synthetic Fixture Author"],
+      "publication_date": "2026-01-01",
+      "canonical_url": "https://example.invalid/synthetic/alder-wharf",
+      "abstract": "Synthetic abstract describing a fictional spare-parts allocation exercise.",
+      "extracted_record": {
+        "visible_field": "synthetic_evidence",
+        "visible_text": "Synthetic evidence: a fabricated allocation table reserves four imaginary seals for the night crew."
+      },
+      "claims": [
+        "Synthetic claim: an invented reserve rule reduces fictional night-shift stockouts."
+      ],
+      "methods": ["Synthetic method: rank two fabricated allocations under an invented reserve constraint."],
+      "caveats": ["Synthetic caveat: all entities, quantities, and observations are fictional."],
+      "tags": ["synthetic", "fictional_allocation"],
+      "explicit_citations": []
+    },
+    {
+      "paper_id": "paper_e4419abf60a29b9f",
+      "stable_identifier": "synthetic:lumen-ferry-shift-recovery",
+      "exact_version": "synthetic-v1",
+      "title": "Synthetic Lumen Ferry Shift Recovery Study",
+      "authors": ["Synthetic Fixture Author"],
+      "publication_date": "2026-01-02",
+      "canonical_url": "https://example.invalid/synthetic/lumen-ferry",
+      "abstract": "Synthetic abstract describing a fictional ferry recovery exercise.",
+      "extracted_record": {
+        "visible_field": "synthetic_evidence",
+        "visible_text": "Synthetic evidence: a fabricated table ranks three imaginary schedules by two invented costs."
+      },
+      "claims": [
+        "Synthetic claim: an invented recovery ranking lowers fictional combined delay and overtime cost."
+      ],
+      "methods": ["Synthetic method: rank three fabricated schedules by two invented costs."],
+      "caveats": ["Synthetic caveat: all entities, quantities, and observations are fictional."],
+      "tags": ["synthetic", "fictional_scheduling"],
+      "explicit_citations": []
+    }
+  ],
+  "status": "pending_review"
+}

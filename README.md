@@ -160,6 +160,39 @@ Valid decisions are `accepted`, `rejected`, and `needs_prior_art`. Rejection wri
 
 [`examples/synthetic-agent-input/`](examples/synthetic-agent-input/README.md) contains fictional JSON packets for the two agent-import paths. The packets reference three fictional records and require a matching runtime registry and library. They are intended to show the contract shape only.
 
+## Frozen evaluation protocol
+
+[`benchmarks/operations-decision-support-v1/`](benchmarks/operations-decision-support-v1/README.md)
+freezes the P5 evaluation protocol before benchmark tooling or runs. It binds 12
+exact-version papers at a 4/4/4 balance across prescriptive operations,
+ML/data-science planning, and human/organizational decision-making, yielding 66
+canonical unordered pairs. Source records are fetch-only; third-party source
+bytes are not distributed in Git.
+
+Rafael is the final label authority. The reconciled gold packet remains private
+until locked P7 outputs exist, while `freeze-manifest.json` commits to it by
+canonical SHA-256 without publishing labels, rationales, evidence, filenames, or
+private paths. The same manifest binds the complete generation-visible schema,
+whose validator rejects private packet topology and unknown nested fields. The
+rubric, prompt, 13 metric contracts, thresholds, uncertainty rules, and
+`no_retuning` boundary are public.
+
+The six fictional sources under the benchmark's `synthetic/` directory prove
+protocol and audit behavior only. They are not transformed real sources, do not
+contain real labels, and provide no system-performance result. P6 implements
+the isolated `azoth benchmark` CLI, deterministic fallback/import runner,
+13-metric scorer, provenance-first report, and fictional failure-path fixtures.
+P6 publishes no benchmark performance result. P7 performs the locked runs and
+publishes results whether or not preregistered targets are met.
+
+P7's public `execution-manifest.yaml` freezes the six deterministic baselines,
+model-response adapter, seed, lock order, and provenance limits before real
+execution. The installed CLI exposes `azoth benchmark baseline`, `azoth
+benchmark adapt`, `azoth benchmark lock`, `azoth benchmark annotations`, and
+`azoth benchmark compare`; real P7 scores require the exact sealed lock and
+execution manifest. Until the lock, scoring, and human annotations complete,
+there is still no real benchmark-performance claim.
+
 ## Vigil gates
 
 Run installed Vigil before and after substantive pipeline work:
@@ -218,7 +251,8 @@ The CLI entrypoint is `athanasor/cli.py`; phase implementations live under `atha
 - Declared citation visibility is not literature-wide novelty checking.
 - Pair retrieval quality depends on tags and available embeddings.
 - Human review is required for scientific usefulness, validity, and promotion.
-- No benchmark or performance claim is published from the synthetic examples.
+- P5 freezes an evaluation contract; it publishes no benchmark performance
+  result. Synthetic examples are contract tests only.
 
 ## License
 

@@ -1,0 +1,85 @@
+schema_version: 1
+benchmark_id: operations-decision-support-v1
+artifact_type: blinded_generation_packet_schema
+required_top_level_fields:
+  - schema_version
+  - benchmark_id
+  - packet_id
+  - pair_id
+  - paper_a_id
+  - paper_b_id
+  - sources
+  - status
+required_source_fields:
+  - paper_id
+  - stable_identifier
+  - exact_version
+  - title
+  - authors
+required_explicit_citation_fields:
+  - cited_paper_id
+  - citation_text
+identity_contract:
+  paper_id: paper_id(stable_identifier, exact_version)
+  pair_id: pair_id(paper_a_id, paper_b_id)
+  packet_id: packet_<pair_id digest>
+allowed_fields:
+  packet:
+    - schema_version
+    - benchmark_id
+    - packet_id
+    - pair_id
+    - paper_a_id
+    - paper_b_id
+    - sources
+    - status
+  source_identity:
+    - paper_id
+    - stable_identifier
+    - exact_version
+  bibliographic_metadata:
+    - title
+    - authors
+    - publication_date
+    - canonical_url
+  source_record:
+    - abstract
+    - extracted_record
+    - claims
+    - methods
+    - caveats
+    - tags
+    - explicit_citations
+  extracted_record:
+    - claim
+    - method
+    - caveat
+    - tag
+    - visible_field
+    - visible_text
+  explicit_citation:
+    - cited_paper_id
+    - citation_text
+forbidden_fields:
+  - adjudication_confidence
+  - adjudication_notes
+  - anchor_pair_ids
+  - benchmark_acceptance
+  - canonical_pairs
+  - evidence_spans
+  - final_authority
+  - freeze
+  - gold_evidence_spans
+  - gold_label
+  - gold_pairs
+  - gold_rationale
+  - label
+  - positive_degree
+  - presentations
+  - rationale
+  - relevance_class
+  - target_thresholds
+status_contract:
+  generation_input: pending_review
+  generation_output: pending_review
+unknown_fields: reject

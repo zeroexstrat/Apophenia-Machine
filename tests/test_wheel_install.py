@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import importlib.util
+import re
 import zipfile
 from pathlib import Path
 
@@ -55,3 +56,10 @@ def test_resolve_wheel_rejects_zero_or_multiple_matches(tmp_path: Path) -> None:
     _write_wheel(tmp_path / "two.whl", [])
     with pytest.raises(wheel_smoke.SmokeFailure, match="exactly one"):
         wheel_smoke.resolve_wheel(str(tmp_path / "*.whl"))
+
+
+def test_wheel_smoke_covers_installed_benchmark_cli() -> None:
+    source = SCRIPT.read_text(encoding="utf-8")
+    assert '"benchmark", "--help"' in source
+    for command in ("validate", "run", "baseline", "adapt", "lock", "annotations", "report", "compare"):
+        assert re.search(rf'"benchmark",\s+"{command}"', source)

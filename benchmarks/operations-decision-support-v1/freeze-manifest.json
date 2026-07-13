@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "artifact_type": "azoth_benchmark_freeze",
+  "benchmark_id": "operations-decision-support-v1",
+  "status": "frozen",
+  "source_manifest_sha256": "529c15101075bc37659af99cd84c3dd9dd867e90b32e460b8591f565953c2240",
+  "protocol_sha256": "ef95cf64a3b28e2b6d07590a963a26f168e966679c1df17bd7b955764d4a0a68",
+  "prompt_sha256": "c248115ca6aa7dc31d18e136da845e06fa52ae240e0e3b8a9da574e3e7b25738",
+  "blinded_schema_sha256": "5fe85004cb90ca5485af99e32a06a4d298827b69fdac07e4c15831b235ad7472",
+  "pair_count": 66,
+  "label_authority": "Rafael",
+  "private_gold_commitment": {
+    "algorithm": "sha256-canonical-json-v1",
+    "private_gold_sha256": "ae8190273cf85b70673be980f06eb9a0fec7aa5183afa6e58723c970b70f3c72",
+    "schema_version": 1,
+    "freeze_time": "2026-07-12T22:04:35Z"
+  },
+  "no_retuning": true
+}

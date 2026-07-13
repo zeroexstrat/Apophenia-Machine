@@ -1,0 +1,115 @@
+schema_version: 1
+benchmark_id: operations-decision-support-v1
+artifact_type: synthetic_benchmark_sources
+provenance: newly_authored_fictional_synthetic_sources
+notice: >-
+  Every record below is fictional, newly authored for deterministic contract
+  testing, and contains no transformed real source content or real labels.
+sources:
+  - paper_id: synthetic_paper_alder_wharf
+    title: Synthetic Alder Wharf Spare-Parts Allocation Memo
+    authors: [Synthetic Fixture Author]
+    lane: operations_prescriptive_decision_support
+    stable_identifier: synthetic:alder-wharf-spare-parts
+    exact_version: synthetic-v1
+    synthetic: true
+    hash_provenance: synthetic_sha256_of_source_text
+    sha256: 063566288f152c02003cf1901ae886b2b1e86ac672ef8c140310986888d6ff26
+    source_text: >-
+      Synthetic source text: The fictional Alder Wharf depot allocates twelve
+      invented pump seals between two imaginary maintenance crews. A synthetic
+      reserve rule protects the night shift from a fabricated stockout.
+    claims:
+      - "Synthetic claim: an invented reserve rule reduces fictional night-shift stockouts."
+    evidence:
+      - "Synthetic evidence: a fabricated allocation table reserves four imaginary seals for the night crew."
+
+  - paper_id: synthetic_paper_lumen_ferry
+    title: Synthetic Lumen Ferry Shift Recovery Study
+    authors: [Synthetic Fixture Author]
+    lane: operations_prescriptive_decision_support
+    stable_identifier: synthetic:lumen-ferry-shift-recovery
+    exact_version: synthetic-v1
+    synthetic: true
+    hash_provenance: synthetic_sha256_of_source_text
+    sha256: b7bc462659ed1ad58ec35f7d3955114879f404f90d9e259c2b06d1e67fd25b73
+    source_text: >-
+      Synthetic source text: The fictional Lumen Ferry office reschedules
+      three invented sailings after an imaginary dock closure. A synthetic
+      recovery table ranks fabricated passenger-delay and overtime costs.
+    claims:
+      - "Synthetic claim: an invented recovery ranking lowers fictional combined delay and overtime cost."
+    evidence:
+      - "Synthetic evidence: a fabricated table ranks three imaginary schedules by two invented costs."
+
+  - paper_id: synthetic_paper_juniper_store
+    title: Synthetic Juniper Feature Store Renewal Plan
+    authors: [Synthetic Fixture Author]
+    lane: ml_data_science_planning
+    stable_identifier: synthetic:juniper-feature-store-renewal
+    exact_version: synthetic-v1
+    synthetic: true
+    hash_provenance: synthetic_sha256_of_source_text
+    sha256: 60ed9a8ff11f05bd2e07c4d8e3a8c0fd3013d41b91733c296161e82f006eec4d
+    source_text: >-
+      Synthetic source text: The fictional Juniper feature store team chooses
+      between two invented refresh schedules. A synthetic planning record
+      compares fabricated staleness, compute, and maintenance burdens.
+    claims:
+      - "Synthetic claim: an invented mixed refresh schedule balances fictional staleness and maintenance burdens."
+    evidence:
+      - "Synthetic evidence: a fabricated planning record compares two imaginary schedules across three invented burdens."
+
+  - paper_id: synthetic_paper_quartz_rollback
+    title: Synthetic Quartz Model Rollback Drill
+    authors: [Synthetic Fixture Author]
+    lane: ml_data_science_planning
+    stable_identifier: synthetic:quartz-model-rollback
+    exact_version: synthetic-v1
+    synthetic: true
+    hash_provenance: synthetic_sha256_of_source_text
+    sha256: d408f5e0421828656330c49392e050d3cbb22de4b09920c8d406ced65a674515
+    source_text: >-
+      Synthetic source text: The fictional Quartz model service rehearses an
+      invented rollback after imaginary drift alarms. A synthetic runbook
+      records fabricated detection, approval, and recovery intervals.
+    claims:
+      - "Synthetic claim: an invented approval checkpoint shortens fictional rollback ambiguity."
+    evidence:
+      - "Synthetic evidence: a fabricated runbook records imaginary detection, approval, and recovery intervals."
+
+  - paper_id: synthetic_paper_cobalt_council
+    title: Synthetic Cobalt Council Advice-Reliance Exercise
+    authors: [Synthetic Fixture Author]
+    lane: human_organizational_decision_making
+    stable_identifier: synthetic:cobalt-council-advice-reliance
+    exact_version: synthetic-v1
+    synthetic: true
+    hash_provenance: synthetic_sha256_of_source_text
+    sha256: 6c1999aec0e35649d744fac6c11b1727fccb4a7bf55a330ca45ce4ec7ab4d9a0
+    source_text: >-
+      Synthetic source text: The fictional Cobalt council reviews invented
+      advice from a deliberately imperfect scheduling aid. A synthetic exercise
+      records fabricated reliance decisions after visible errors.
+    claims:
+      - "Synthetic claim: visible invented errors change fictional council reliance on scheduling advice."
+    evidence:
+      - "Synthetic evidence: a fabricated exercise records imaginary accept-or-reject decisions after two visible errors."
+
+  - paper_id: synthetic_paper_marigold_dispatch
+    title: Synthetic Marigold Dispatch Escalation Trial
+    authors: [Synthetic Fixture Author]
+    lane: human_organizational_decision_making
+    stable_identifier: synthetic:marigold-dispatch-escalation
+    exact_version: synthetic-v1
+    synthetic: true
+    hash_provenance: synthetic_sha256_of_source_text
+    sha256: e9517b9621493bd69e82d08df8c093cb6fc5f4f887e0f0ddf3e194a1f7ca5750
+    source_text: >-
+      Synthetic source text: The fictional Marigold dispatch group tests an
+      invented escalation protocol during imaginary queue surges. A synthetic
+      trial records fabricated handoff clarity and response delay.
+    claims:
+      - "Synthetic claim: an invented escalation cue improves fictional handoff clarity during imaginary queue surges."
+    evidence:
+      - "Synthetic evidence: a fabricated trial records imaginary handoff ratings and response delays."

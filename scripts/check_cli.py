@@ -106,6 +106,7 @@ def main() -> int:
         "validate",
         "migrate",
         "config",
+        "benchmark",
     ]:
         _assert(token in help_text, f"command listed in --help: {token}", failures)
 
@@ -125,6 +126,7 @@ def main() -> int:
         "ouroboros",
         "config",
         "migrate",
+        "benchmark",
     ]:
         rc, sub_out, sub_err = _run([command, "--help"])
         _record_diagnostic(diagnostics, [command, "--help"], rc, sub_out, sub_err)
@@ -137,6 +139,12 @@ def main() -> int:
         "connect --help lists depth-upgrade reanalysis flag",
         failures,
     )
+    for subcommand in ("validate", "fetch", "prepare", "run", "score", "report"):
+        _assert(
+            subcommand in help_outputs.get("benchmark", ""),
+            f"benchmark --help lists {subcommand}",
+            failures,
+        )
 
     rc, status_out, status_err = _run(["status", "--json"])
     _record_diagnostic(diagnostics, ["status", "--json"], rc, status_out, status_err)

@@ -1,0 +1,104 @@
+schema_version: 1
+artifact_type: azoth_benchmark_execution_manifest
+benchmark_id: operations-decision-support-v1
+status: frozen_before_real_runs
+seed: 5607
+public_contracts:
+  source_manifest_sha256: 529c15101075bc37659af99cd84c3dd9dd867e90b32e460b8591f565953c2240
+  protocol_sha256: ef95cf64a3b28e2b6d07590a963a26f168e966679c1df17bd7b955764d4a0a68
+  prompt_sha256: c248115ca6aa7dc31d18e136da845e06fa52ae240e0e3b8a9da574e3e7b25738
+  blinded_schema_sha256: 5fe85004cb90ca5485af99e32a06a4d298827b69fdac07e4c15831b235ad7472
+  freeze_manifest_sha256: 915935383bd1ea6a42c54f02f9a6dd406ca8ea4d92dae6ff4fc59cb43d872fc5
+pre_run_attestation:
+  attested_date: "2026-07-12"
+  design_commit: e433f87138c27ae9738a64a3aa6468413bd3d89e
+  plan_commit: 2316a32d9ca49e7e781f151ae557e2dfbd94baab
+  real_prepared_artifact_observed: false
+  real_run_artifact_observed: false
+  real_score_artifact_observed: false
+  gold_content_opened: false
+  implementation_git_sha_source: lock_manifest
+runs:
+  - run_id: model_5_6_sol
+    kind: model
+    backend_name: declared_5_6_sol_active_codex_operator
+  - run_id: deterministic_routing
+    kind: deterministic_baseline
+    backend_name: deterministic_routing_v1
+  - run_id: all_pairs
+    kind: deterministic_baseline
+    backend_name: all_pairs_v1
+  - run_id: shared_tag
+    kind: deterministic_baseline
+    backend_name: shared_tag_v1
+  - run_id: hash_embedding
+    kind: deterministic_baseline
+    backend_name: hash_embedding_v1
+  - run_id: current_score
+    kind: deterministic_baseline
+    backend_name: deterministic_hash_fallback
+  - run_id: fixed_seed_random
+    kind: deterministic_baseline
+    backend_name: fixed_seed_random_v1
+baselines:
+  deterministic_routing:
+    normalization: unicode_nfkc_whitespace_collapsed_casefolded
+    generic_tags: [automated, fallback, ingested, paper, pdf]
+    high_signal_tags: [adaptive_computation, knowledge_distillation, latent_dynamics, latent_moe, looped_transformer, mamba_transformer, mixture_of_experts, state_space_models, world_model]
+    similarity_threshold: 0.82
+    strong_overlap_count: 2
+    candidate_rule: similarity_gte_threshold_or_high_signal_shared_or_shared_count_gte_strong_overlap
+    label_rule: candidate_2_else_0
+    score_rule: max_clamped_cosine_high_signal_or_shared_fraction
+  all_pairs:
+    candidate_rule: always
+    label_rule: constant_2
+    score_rule: constant_1
+  shared_tag:
+    normalization: unicode_nfkc_whitespace_collapsed_casefolded
+    generic_tags: [automated, fallback, ingested, paper, pdf]
+    candidate_rule: meaningful_tag_intersection_nonempty
+    label_rule: candidate_2_else_0
+    score_rule: meaningful_tag_jaccard
+  hash_embedding:
+    normalization: unicode_nfkc_whitespace_collapsed_casefolded
+    dimension: 384
+    algorithm: repeated_sha256_bytes_normalized_cosine
+    label_cut_points: [0.0, 0.25, 0.5]
+    candidate_rule: predicted_label_gte_2
+    score_rule: raw_cosine_rounded_12
+  current_score:
+    normalization: p6_visible_token_sha256_prefix16
+    label_cut_points: [0.1, 0.25, 0.5]
+    candidate_rule: predicted_label_gte_2
+    score_rule: token_jaccard_plus_seeded_tie_break
+  fixed_seed_random:
+    generator: python_random_mt19937_v1
+    pair_order: canonical_pair_id
+    draw_order: randrange_4_then_random_per_pair
+    candidate_rule: predicted_label_gte_2
+    score_rule: random_draw_rounded_12
+model_adapter:
+  prompt_composition: frozen_generation_prompt_plus_frozen_rubric_scale_plus_execution_response_fields
+  required_response_fields: [pair_id, paper_a_id, paper_b_id, predicted_label, structural_relation, status]
+  required_relation_fields: [assessment, shared_structure, transferable_implication, evidence, caveats]
+  candidate_rule: predicted_label_gte_2
+  score_rule: predicted_label_divided_by_3
+  confidence_rule: label_3_likely_else_speculative
+  rank_tie_break: [counterpart_paper_id, pair_id]
+  provider_identity_policy: record_only_runtime_proved_identifiers
+lock_contract:
+  required_run_ids: [model_5_6_sol, deterministic_routing, all_pairs, shared_tag, hash_embedding, current_score, fixed_seed_random]
+  required_file_mode: "0400"
+  required_directory_mode: "0500"
+  required_parent_mode: "0700"
+  forbid_names: [gold, annotation, score]
+  implementation_git_sha_source: git_head_at_lock
+annotation_contract:
+  authority: Rafael
+  item_fields: [item_id, supported, useful, redundant, confidence, rationale]
+  evidence_fields: [span_id, supported, rationale]
+  claim_fields: [claim_id, supported, rationale]
+  ood_fields: [decision_id, unsafe, rationale]
+  empty_ood_population_is_undefined: true
+no_retuning: true
