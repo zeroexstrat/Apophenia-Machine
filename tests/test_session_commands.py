@@ -43,6 +43,7 @@ def _configure_root(monkeypatch: pytest.MonkeyPatch, root: Path) -> None:
             lapis / "knowledge_graph.jsonl",
         ),
     )
+    monkeypatch.setattr(commands, "assert_durable_worktree", lambda path: path.resolve())
 
 
 def _session_repo(
@@ -246,6 +247,43 @@ def test_validate_stage_paths_accepts_existing_repo_relative_path(tmp_path: Path
     assert commands.validate_stage_paths(
         tmp_path, ["athanasor/lapis/state.json"]
     ) == [state.resolve()]
+
+
+def test_incipere_checks_durability_before_git_initialization(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    events: list[str] = []
+    monkeypatch.setattr(commands, "ROOT", tmp_path)
+
+    def reject_temporary(path: Path) -> Path:
+        events.append("durability")
+        raise RuntimeError("refusing authoritative session in temporary storage")
+
+    def unexpected_git_initialization(path: Path) -> list[str]:
+        events.append("git")
+        return []
+
+    monkeypatch.setattr(commands, "assert_durable_worktree", reject_temporary, raising=False)
+    monkeypatch.setattr(commands, "ensure_git_worktree", unexpected_git_initialization)
+
+    assert commands.run_incipere([]) == 1
+    assert events == ["durability"]
+    assert "temporary storage" in capsys.readouterr().out
+
+
+def test_concludere_checks_durability_before_persisting(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    root = _session_repo(tmp_path, monkeypatch)
+
+    def reject_temporary(path: Path) -> Path:
+        raise RuntimeError("refusing authoritative session in temporary storage")
+
+    monkeypatch.setattr(commands, "assert_durable_worktree", reject_temporary)
+
+    assert commands.run_concludere(["--no-commit", "-f", "must not persist"]) == 1
+    assert not (root / "athanasor" / "lapis" / "memory.jsonl").exists()
+    assert "temporary storage" in capsys.readouterr().out
 
 
 def test_concludere_no_commit_only_writes_ignored_memory(

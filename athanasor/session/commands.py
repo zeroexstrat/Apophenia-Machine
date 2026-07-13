@@ -29,6 +29,7 @@ from pathlib import Path
 from typing import Any
 
 from ..workspace import discover_workspace
+from .durability import assert_durable_worktree
 
 ROOT = discover_workspace()
 STATE_PATH = ROOT / "athanasor" / "lapis" / "state.json"
@@ -606,6 +607,7 @@ def run_incipere(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     try:
+        assert_durable_worktree(ROOT)
         git_messages = ensure_git_worktree(ROOT)
         snapshot = build_snapshot()
 
@@ -830,6 +832,7 @@ def run_concludere(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     try:
+        assert_durable_worktree(ROOT)
         ensure_git_worktree(ROOT)
         snapshot = build_snapshot()
         findings = _collect_concludere_findings(args)

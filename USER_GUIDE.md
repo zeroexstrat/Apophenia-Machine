@@ -43,12 +43,15 @@ pip install -e ".[dev]"
 ## Start and inspect a session
 
 ```bash
+python3 scripts/check_durable_worktree.py
 python3 scripts/incipere.py
 python3 scripts/incipere.py --json
 python -m athanasor.vigil.verify start
 ```
 
 Incipere reads live Git and runtime state plus `PROJECT_ROADMAP.md`. A fresh public checkout has no runtime registry; that is a valid empty baseline.
+
+Authoritative work must live in durable user storage. The durability check, `/incipere`, and `/concludere` reject repository roots beneath `/tmp`, `/private/tmp`, `/var/tmp`, or the platform temporary directory after resolving aliases. Temporary clones are reserved for disposable verification and must never contain the only copy of a branch or commit. Push milestone branches early; retain a verified Git bundle in durable private storage for long-running or private milestone work.
 
 ## Ingestion
 

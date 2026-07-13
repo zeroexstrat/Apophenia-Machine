@@ -98,6 +98,13 @@ If Vigil fails: do not claim the goal is complete. Fix the drift, record the fai
 
 ### Session Commands
 
+#### Durable worktree rule
+
+- Authoritative development and research sessions must run from durable user storage. `/tmp`, `/private/tmp`, `/var/tmp`, and the platform temporary directory are disposable verification surfaces only.
+- Run `python3 scripts/check_durable_worktree.py` before substantive work. `/incipere` and `/concludere` fail closed when the resolved repository root is temporary; there is no bypass flag.
+- Push a new milestone branch to its remote before extended work begins. For long-running or private milestone work, also create and verify a Git bundle under durable private storage.
+- Temporary clones may be used for clean-clone, wheel, installation, and release verification only. They must never hold the sole branch, commit, label, or benchmark artifact.
+
 - `/incipere` — begin or resume a working session.
   - Ensures there is an active git worktree (initializes one if missing).
   - Reads git state, `PROJECT_ROADMAP.md`, `albedo/registry.jsonl`, and any memory/knowledge JSON(db) available under `athanasor/lapis/`.
