@@ -56,7 +56,7 @@ The demo proves workspace initialization, text ingestion, schema-validated fallb
 
 ## Measured table contract
 
-The README will select the model run's most decision-relevant P7 metrics from `benchmarks/operations-decision-support-v1/results/aggregate.json`:
+The README will select the model run's most decision-relevant P7 metrics from `benchmarks/operations-decision-support-v1/results/locked-comparison.json`:
 
 - macro-F1;
 - claim precision;
