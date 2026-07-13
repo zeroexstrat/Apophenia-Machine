@@ -5,7 +5,7 @@
 **Target:** `v0.2.0` portfolio release
 
 **Public position:** A local, human-gated research-operations pipeline that converts technical documents into schema-validated evidence records, ranks candidate connections, and preserves an auditable review trail.
-**Last reconciled:** 2026-07-13 after P8 public-narrative implementation and committed-state acceptance at implementation commit `b4f6f1a2e388188afb10dd0d18e5c1990a647ec2`
+**Last reconciled:** 2026-07-13 after the P9 `v0.2.0` release and production portfolio deployment; release tree `d4abb29e180c78358c510968af1dd7d9041a2195`, portfolio tree `56914dba4f744fb005a30177845715b03d20b323`
 
 ## 1. Reading order and authority
 
@@ -90,7 +90,7 @@ The operator workspace is richer because ignored local files exist. Local green 
 | P6-T1 | Benchmark CLI, scorer, report, and synthetic fixtures | High | P5-T1 | completed | Generation and scoring are isolated; deterministic fictional fetch, prepare, run, score, and report artifacts reproduce |
 | P7-T1 | Locked benchmark runs and adjudication | Ultra | P6-T1 | completed | Seven sealed runs, explicit Rafael annotations, 91 aggregate metric records, reproducible failure analysis, and honest threshold publication |
 | P8-T1 | Public README and rejection/reframe case study | High + Ultra review | P7-T1 | completed | Exact locked metrics, runnable demo, source-backed rejection/reframe case, and executable claim audit pass |
-| P9-T1 | `v0.2.0`, GitHub metadata, website case study, and deployment | High + Ultra audit | P8-T1 | pending | Release installs independently; site and repository agree |
+| P9-T1 | `v0.2.0`, GitHub metadata, website case study, and deployment | High + Ultra audit | P8-T1 | completed | Release installs independently; site and repository agree |
 
 ## 6. Phase contracts
 
@@ -144,20 +144,20 @@ Create `<private-archive>/pilot-v0.1.3-20260711/` with mode `700`, all pilot/run
 
 | Field | Value |
 |---|---|
-| Task | P8-T1 — Public README and rejection/reframe case study |
+| Task | P9-T1 — `v0.2.0`, GitHub metadata, website case study, and deployment |
 | Date | 2026-07-13 |
-| Effort | High + Ultra review |
-| Branch | `codex/p8-public-narrative` |
-| Starting SHA | `ea9ed167c743ee8c25eb65804828a9ebf481aec0` |
-| Implementation SHA | `b4f6f1a2e388188afb10dd0d18e5c1990a647ec2` before this non-self-referential completion-evidence update |
-| Goal | Make the public engineering evidence runnable and exact while preserving suite, human-authority, prior-art, and provider-identity limits |
-| Status | complete; README, case study, fictional demo, and executable narrative audit agree with the locked P7 evidence |
-| Demo proof | Fresh Python 3.12 environment ingested one newly authored fictional note as one `ingested_only` mathematics record with the intended title, then passed all seven Vigil gates without a model |
-| Metric proof | All 13 model metric rows reproduce exact values, numerators, denominators, uncertainty bounds, and threshold outcomes from `locked-comparison.json`; macro-F1, workload reduction, and usefulness misses plus both undefined populations remain visible |
-| Case proof | Sanitized narrative preserves `pending_review` candidate -> primary-source contradiction -> human `rejected` decision -> proposed comparison/replication reframe; no private runtime record or completed-experiment claim is published |
-| Claim-audit proof | `scripts/check_public_narrative.py` binds README rows to the locked comparison and rejects missing suite scope, provider limitation, human authority, direct prior-art URLs, terminal rejection, reframe wording, and prohibited completion language |
-| Verification | 655 tests; 24 focused narrative tests; 17 no-argument maintained checks; public benchmark, narrative, public-tree, hardening, compileall, and diff checks; isolated Python 3.12 demo; and all seven Vigil gates pass |
-| Next task | P9-T1 — `v0.2.0`, GitHub metadata, website case study, and deployment |
+| Effort | High + Ultra audit |
+| Branch | `main`; P9 implementation integrated from `codex/p9-release-deployment` |
+| Starting SHA | `b4f6f1a2e388188afb10dd0d18e5c1990a647ec2` |
+| Implementation SHA | `d4abb29e180c78358c510968af1dd7d9041a2195`; immutable tag `v0.2.0` resolves to this commit |
+| Goal | Release the accepted Azoth tree and align repository, package, case-study, resume, essay, and production deployment without widening the benchmark claims |
+| Status | complete; `v0.2.0` released; portfolio deployed |
+| Release proof | GitHub release `https://github.com/zeroexstrat/Apophenia-Machine/releases/tag/v0.2.0` is public and non-prerelease with wheel, sdist, and `SHA256SUMS.txt`; the tag and remote peeled ref resolve to `d4abb29e180c78358c510968af1dd7d9041a2195` |
+| Artifact proof | Hosted wheel SHA-256 `5713bd9973124cbb689efeb64a90638f7696ecf67965fae4c49efa02b138f7e6`; hosted sdist SHA-256 `1447c9d7332d4c7d87d69b9dcbf467bf634fc1acbf3123b1f7ea07b0acc56248`; fresh-clone builds and separately downloaded release assets each pass six wheel/sdist by Python 3.10-3.12 checks |
+| Hosted proof | GitHub Actions hardening run `29274550028` passes all three Python jobs on the exact release SHA; Cloudflare Pages check `86902908371` passes on exact portfolio SHA `56914dba4f744fb005a30177845715b03d20b323` |
+| Production proof | `https://0xstrategies.com/case-studies/apophenia-machine.html` plus homepage, resume, essay, and PDF are live; production browser checks at 1280x900 and 390x844 found correct titles and H1s, zero horizontal overflow, broken images, bundle overlays, or console errors |
+| Verification | 668 tests in the implementation checkout and fresh remote clone; all applicable maintained checks, public/release/benchmark/hardening audits, compileall, diff, hosted CI, artifact checks, portfolio tests/audit, cross-surface links, and all seven Vigil gates pass |
+| Next task | none — `v0.2.0` released; portfolio deployed |
 
 ## 8. Verification ledger
 
@@ -220,6 +220,9 @@ Sections 8-10 are append-only after this control plane is adopted. Correct an ea
 | 2026-07-13 | P8-T1 narrative contract | RED/GREEN public-claim audit against the locked comparison and mutation cases | PASS: initial missing-module and missing-live-case failures observed; final 24/24 narrative tests cover 13 exact metric rows, scope, authority, provider provenance, source URLs, rejection order, reframe language, and CLI outcomes |
 | 2026-07-13 | P8-T1 isolated reader workflow | exact README demo in a fresh tracked-tree copy and Python 3.12 virtual environment | PASS: one fictional note becomes one `ingested_only` mathematics registry row with the intended title; status and all seven Vigil gates pass without model access |
 | 2026-07-13 | P8-T1 final acceptance | full suite, 17 no-argument maintained checks, public benchmark and narrative audits, public-tree, hardening, compileall, diff, and committed-state Vigil | PASS at `b4f6f1a2e388188afb10dd0d18e5c1990a647ec2`: 655 tests; all exact P7 rows and misses visible; no private runtime artifact; all seven gates |
+| 2026-07-13 | P9-T1 release candidate | local implementation tree, fresh clone of remote `main`, hosted hardening matrix, maintained checks, public/release/benchmark/hardening audits, compileall, diff, and Vigil | PASS at `d4abb29e180c78358c510968af1dd7d9041a2195`: 668 tests in both checkouts; GitHub run `29274550028` passes Python 3.10-3.12 with outside-checkout artifact verification; all seven gates pass |
+| 2026-07-13 | P9-T1 immutable release | annotated tag, fresh-clone wheel/sdist, GitHub release assets, downloaded checksums, and outside-checkout installation | PASS: remote `v0.2.0^{}` is `d4abb29e180c78358c510968af1dd7d9041a2195`; wheel `5713bd99...` and sdist `1447c9d7...` match `SHA256SUMS.txt`; both fresh-build and downloaded assets pass all six artifact/interpreter pairs |
+| 2026-07-13 | P9-T1 portfolio deployment | private site repository `zeroexstrat/0xstrategies`, exact-SHA Cloudflare check, local portfolio tests/audit, and cache-busted production browser verification | PASS at `56914dba4f744fb005a30177845715b03d20b323`: 9 tests and claim audit pass; Cloudflare check `86902908371` succeeds; homepage, resume, technical case, essay, and PDF are live with desktop/mobile layout and link checks clean |
 
 ## 9. Decision log
 
@@ -249,6 +252,7 @@ Sections 8-10 are append-only after this control plane is adopted. Correct an ea
 | D-022 | 2026-07-13 | Reproduce P7 score artifacts under the lock's Python 3.12 runtime | Cross-version floating-point last-bit differences changed canonical bytes under Python 3.11 even though metric interpretations were unchanged; runtime parity is required for byte identity |
 | D-023 | 2026-07-13 | Bind the public narrative to committed evidence with an executable audit | A readable README can still drift; rendering all 13 model rows from the locked comparison and testing scope/provenance language makes public-claim review reproducible |
 | D-024 | 2026-07-13 | Publish the looped-transformer event as a rejection-to-reframe case, not a discovery claim | Direct primary sources invalidate the candidate's absence premise; preserving the rejected decision while proposing a controlled replication demonstrates the human gate honestly |
+| D-025 | 2026-07-13 | Close the portfolio roadmap at `v0.2.0` without inventing a P10 | The defined release, independent-install, hosted-CI, repository-metadata, technical-case, resume, essay, and production-deployment gates are satisfied; future work requires a new human-directed milestone |
 
 ## 10. Completed-session ledger
 
@@ -268,19 +272,20 @@ Sections 8-10 are append-only after this control plane is adopted. Correct an ea
 | 2026-07-12 | P6-T1 | Added the isolated six-command benchmark workflow, deterministic canonical artifacts, complete frozen-metric scorer, provenance-first report, fictional end-to-end fixtures, and fail-closed pair, rank, metric, annotation, path, and commitment validation | `59b29935428cd9e48426c8c167d03e954bd5b716` | 589 tests; 71 focused P6/wheel tests; maintained CLI and benchmark checks; public-tree, hardening, compileall, three installed-wheel interpreters, and seven Vigil gates pass; no real benchmark result exists | not pushed; user did not request push |
 | 2026-07-13 | P7-T1 | Recovered and durably anchored the lost temporary branch; sealed seven gold-blind runs; incorporated Rafael's explicit review; published aggregate-only results and honest misses; added fail-closed temporary-worktree guards | `8480937dcf2d2f190ca7a962dd0bae8abca7b703` | 631 tests; 16 maintained checks; public/private benchmark and result privacy audits; byte-identical Python 3.12 reproduction; Python 3.10-3.12 wheel smoke; seven Vigil gates | pushed checkpoint branch; final closeout push follows this row |
 | 2026-07-13 | P8-T1 | Published a five-minute local workflow, all 13 exact model metrics with misses and undefined populations, an honest primary-source rejection/reframe case, and an executable claim-drift audit | `b4f6f1a2e388188afb10dd0d18e5c1990a647ec2` | 655 tests; 24 focused narrative tests; 17 maintained checks; clean isolated Python 3.12 demo; public/narrative/hardening/compile/diff checks; seven Vigil gates | not pushed; user did not request push |
+| 2026-07-13 | P9-T1 | Released Apache-2.0 `v0.2.0`, independently verified its hosted wheel and sdist, aligned GitHub metadata, and deployed the recruiter-facing technical case, bounded resume evidence, and essay link to production | release tree `d4abb29e180c78358c510968af1dd7d9041a2195`; portfolio tree `56914dba4f744fb005a30177845715b03d20b323` | 668 tests locally and in a fresh remote clone; hosted 3-version hardening; two independent six-pair artifact checks; portfolio tests/audit; exact-SHA Cloudflare success; production desktop/mobile/link verification; seven Vigil gates | release tree and portfolio tree verified on remote `main`; `v0.2.0` tag/release and production site live |
 
 ## 11. Next-session handoff
 
-**Next task:** P9-T1 — `v0.2.0`, GitHub metadata, website case study, and deployment.
+**Next task:** none — `v0.2.0` released; portfolio deployed.
 
-**Effort:** High + Ultra audit.
+**Effort:** complete.
 
-**Why next:** P8 now supplies a runnable repository entry point, exact evidence table, and audited rejection case. P9 can release that verified tree and align the hosted repository and portfolio surfaces without inventing new performance claims.
+**Why next:** The roadmap target is complete. Do not infer a P10; wait for a new human-directed milestone.
 
-**First inspection:** verify the P8 branch's final committed SHA and clean-clone checks, inventory the single version source and package/release metadata, then locate the exact personal-site repository and deployed Cloudflare surface before changing any public endpoint.
+**First inspection:** For any future session, begin from remote `main`, confirm that `v0.2.0` still resolves to `d4abb29e180c78358c510968af1dd7d9041a2195`, and treat this closeout as the accepted baseline.
 
-**Acceptance:** one-source `v0.2.0` wheel and sdist install independently; remote CI binds the exact release SHA; GitHub description, topics, badge, changelog, and release agree; the recruiter-facing site case and at most one resume bullet use only P8-audited claims; desktop/mobile links and production Cloudflare deployment verify.
+**Acceptance:** satisfied. The one-source release artifacts install independently across Python 3.10-3.12; exact-SHA hosted checks pass; repository, release, homepage, technical case, resume, and essay agree; production deployment and links verify.
 
-**Risk:** release and deployment are irreversible public mutations across repository and website surfaces. Require exact repository/site identity, clean artifact proofs, remote CI, production verification, and a final cross-surface claim scan before publication.
+**Risk:** The benchmark remains one frozen 12-paper suite. Preserve the stated external-validity, novelty-authority, and provider-identity limits on any future public surface.
 
-**Inherited open gap:** P8 is locally committed but not pushed or released. Its benchmark remains one 12-paper suite and does not establish external validity, novelty, or provider model identity; P9 must preserve those limits verbatim across every hosted surface.
+**Inherited open gap:** none for P9 acceptance. The benchmark limitations are retained product constraints, not evidence that the release or deployment failed.
