@@ -190,8 +190,15 @@ model-response adapter, seed, lock order, and provenance limits before real
 execution. The installed CLI exposes `azoth benchmark baseline`, `azoth
 benchmark adapt`, `azoth benchmark lock`, `azoth benchmark annotations`, and
 `azoth benchmark compare`; real P7 scores require the exact sealed lock and
-execution manifest. Until the lock, scoring, and human annotations complete,
-there is still no real benchmark-performance claim.
+execution manifest. The locked P7 evaluation is published in
+[`results/`](benchmarks/operations-decision-support-v1/results/README.md) as
+aggregate-only JSON and Markdown. On this bounded 12-paper suite, the declared
+5.6 Sol run reached macro-F1 `0.5103`, claim precision `0.9394`, precision@5
+`0.7667`, nDCG@10 `0.9133`, supported items `0.9394`, and useful items
+`0.5152`. It missed the preregistered macro-F1, workload-reduction, and
+usefulness thresholds; OOD safety and unsupported-derived rates were undefined
+because no eligible cases were emitted. The backend label is frozen, but the
+provider model identity was not exposed and is not independently verified.
 
 ## Vigil gates
 

@@ -96,6 +96,12 @@ It defines the six deterministic comparisons, the qualitative model-response
 adapter, exact lock order, and model-provenance limitation without changing the
 P5 gold commitment, rubric, metrics, thresholds, or no-retuning rule.
 
+The completed aggregate evaluation is in [`results/`](results/README.md), with
+all seven run identities and all 13 frozen metric records per run. The public
+files contain no raw gold labels, human rationales, source bytes, private paths,
+or pair-level failure details. Missed thresholds and undefined populations are
+retained without retuning or imputation.
+
 Validate the amendment and generate each gold-blind baseline from one prepared
 artifact:
 
