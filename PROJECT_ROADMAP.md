@@ -5,7 +5,7 @@
 **Target:** `v0.2.0` portfolio release
 
 **Public position:** A local, human-gated research-operations pipeline that converts technical documents into schema-validated evidence records, ranks candidate connections, and preserves an auditable review trail.
-**Last reconciled:** 2026-07-13 after the recovered P7 locked evaluation, aggregate publication, and committed-state acceptance at implementation commit `8480937dcf2d2f190ca7a962dd0bae8abca7b703`
+**Last reconciled:** 2026-07-13 after P8 public-narrative implementation and committed-state acceptance at implementation commit `b4f6f1a2e388188afb10dd0d18e5c1990a647ec2`
 
 ## 1. Reading order and authority
 
@@ -89,7 +89,7 @@ The operator workspace is richer because ignored local files exist. Local green 
 | P5-T1 | Frozen benchmark protocol and gold-label packet | Ultra | P4-T1 | completed | 12 exact sources, 66 Rafael-authoritative labels, public digest commitment, frozen prompt/metrics, and all audits pass |
 | P6-T1 | Benchmark CLI, scorer, report, and synthetic fixtures | High | P5-T1 | completed | Generation and scoring are isolated; deterministic fictional fetch, prepare, run, score, and report artifacts reproduce |
 | P7-T1 | Locked benchmark runs and adjudication | Ultra | P6-T1 | completed | Seven sealed runs, explicit Rafael annotations, 91 aggregate metric records, reproducible failure analysis, and honest threshold publication |
-| P8-T1 | Public README and rejection/reframe case study | High + Ultra review | P7-T1 | pending | Every claim is evidence-backed and suite-scoped |
+| P8-T1 | Public README and rejection/reframe case study | High + Ultra review | P7-T1 | completed | Exact locked metrics, runnable demo, source-backed rejection/reframe case, and executable claim audit pass |
 | P9-T1 | `v0.2.0`, GitHub metadata, website case study, and deployment | High + Ultra audit | P8-T1 | pending | Release installs independently; site and repository agree |
 
 ## 6. Phase contracts
@@ -144,21 +144,20 @@ Create `<private-archive>/pilot-v0.1.3-20260711/` with mode `700`, all pilot/run
 
 | Field | Value |
 |---|---|
-| Task | P7-T1 — Locked benchmark runs and adjudication |
+| Task | P8-T1 — Public README and rejection/reframe case study |
 | Date | 2026-07-13 |
-| Effort | Ultra |
-| Branch | `codex/p7-locked-benchmark-recovered` |
-| Starting SHA | `59b29935428cd9e48426c8c167d03e954bd5b716` |
-| Implementation SHA | `8480937dcf2d2f190ca7a962dd0bae8abca7b703` before this non-self-referential completion-evidence update |
-| Goal | Execute, seal, annotate, score, compare, reproduce, and publish the frozen 12-paper benchmark without retuning or exposing private adjudication material |
-| Status | complete; missed thresholds and undefined populations are published without retuning or imputation |
-| Lock proof | Prepared digest `ad4ea5bf89e0f2498c70e868a0cace7afa449683dd3471f09d264de247816fd6`; seven-run lock digest `a2e0949d46415cba71c833cd7c992ef3af4c1625432f8579b87b248d60378092`; model run digest `e67f0011b6af31802b79f9b41e1f4bfba0b3d15bc2c1d257ac83fc4c1b027fc7`; sealed implementation identity `78c9019c6cbd8b0e672b1f526a24734c59d534c3` |
-| Human proof | Rafael completed 66 claim, 132 evidence-span, and 66 item decisions; packet validates complete with digest `a21b91006ab663e747383295d8eba745729cc36d41391e0fba888b9bc2cc0163` |
-| Result proof | Model macro-F1 `0.5103`, claim precision `0.9394`, reference and candidate recall `1.0000`, workload reduction `0.4242`, precision@5 `0.7667`, nDCG@10 `0.9133`, evidence support `1.0000`, supported items `0.9394`, useful items `0.5152`, and redundancy `0.0000`; macro-F1, workload reduction, and usefulness missed; two ineligible populations remain undefined |
-| Reproducibility | All seven Python 3.12 score/report pairs plus comparison, private failure analysis, and public summary reproduce byte-for-byte; aggregate JSON contains seven runs and 91 metric records with zero private-marker findings |
-| Recovery proof | Active clone is durable at `~/Desktop/apophenia-machine-p7`; remote branch and a verified complete mode-`0600` private bundle anchor the recovered history; `/incipere` and `/concludere` now reject resolved temporary roots |
-| Verification | 631 tests; public-plus-private benchmark audit; 16 maintained checks; public-tree, hardening, compileall, and diff checks; installed-wheel smoke on Python 3.10-3.12; and all seven Vigil gates pass |
-| Next task | P8-T1 — Public README and rejection/reframe case study |
+| Effort | High + Ultra review |
+| Branch | `codex/p8-public-narrative` |
+| Starting SHA | `ea9ed167c743ee8c25eb65804828a9ebf481aec0` |
+| Implementation SHA | `b4f6f1a2e388188afb10dd0d18e5c1990a647ec2` before this non-self-referential completion-evidence update |
+| Goal | Make the public engineering evidence runnable and exact while preserving suite, human-authority, prior-art, and provider-identity limits |
+| Status | complete; README, case study, fictional demo, and executable narrative audit agree with the locked P7 evidence |
+| Demo proof | Fresh Python 3.12 environment ingested one newly authored fictional note as one `ingested_only` mathematics record with the intended title, then passed all seven Vigil gates without a model |
+| Metric proof | All 13 model metric rows reproduce exact values, numerators, denominators, uncertainty bounds, and threshold outcomes from `locked-comparison.json`; macro-F1, workload reduction, and usefulness misses plus both undefined populations remain visible |
+| Case proof | Sanitized narrative preserves `pending_review` candidate -> primary-source contradiction -> human `rejected` decision -> proposed comparison/replication reframe; no private runtime record or completed-experiment claim is published |
+| Claim-audit proof | `scripts/check_public_narrative.py` binds README rows to the locked comparison and rejects missing suite scope, provider limitation, human authority, direct prior-art URLs, terminal rejection, reframe wording, and prohibited completion language |
+| Verification | 655 tests; 24 focused narrative tests; 17 no-argument maintained checks; public benchmark, narrative, public-tree, hardening, compileall, and diff checks; isolated Python 3.12 demo; and all seven Vigil gates pass |
+| Next task | P9-T1 — `v0.2.0`, GitHub metadata, website case study, and deployment |
 
 ## 8. Verification ledger
 
@@ -218,6 +217,9 @@ Sections 8-10 are append-only after this control plane is adopted. Correct an ea
 | 2026-07-13 | P7-T1 recovery | full parent transcripts, surviving installed wheel, sealed private runs, remote branch, and private bundle | PASS: recovered runtime matches the installed wheel byte-for-byte; 256 focused benchmark tests passed before checkpoint; remote `codex/p7-locked-benchmark-recovered` and verified complete bundle both anchor the recovered tree |
 | 2026-07-13 | P7-T1 locked evaluation | unchanged P5 gold commitment, seven-run lock, Rafael annotation packet, Python 3.12 score/report/comparison/failure workflow | PASS: 66 claims, 132 spans, and 66 items validate complete; seven runs and 91 metrics compare; three model thresholds missed and two populations remain undefined; all outputs reproduce byte-for-byte |
 | 2026-07-13 | P7-T1 final acceptance | tracked aggregate privacy audit, full suite, public-plus-private protocol audit, maintained checks, hardening, compileall, cross-version wheel smoke, and Vigil | PASS at `8480937dcf2d2f190ca7a962dd0bae8abca7b703`: 631 tests; zero private markers in public results; Python 3.10-3.12 wheels; all seven gates |
+| 2026-07-13 | P8-T1 narrative contract | RED/GREEN public-claim audit against the locked comparison and mutation cases | PASS: initial missing-module and missing-live-case failures observed; final 24/24 narrative tests cover 13 exact metric rows, scope, authority, provider provenance, source URLs, rejection order, reframe language, and CLI outcomes |
+| 2026-07-13 | P8-T1 isolated reader workflow | exact README demo in a fresh tracked-tree copy and Python 3.12 virtual environment | PASS: one fictional note becomes one `ingested_only` mathematics registry row with the intended title; status and all seven Vigil gates pass without model access |
+| 2026-07-13 | P8-T1 final acceptance | full suite, 17 no-argument maintained checks, public benchmark and narrative audits, public-tree, hardening, compileall, diff, and committed-state Vigil | PASS at `b4f6f1a2e388188afb10dd0d18e5c1990a647ec2`: 655 tests; all exact P7 rows and misses visible; no private runtime artifact; all seven gates |
 
 ## 9. Decision log
 
@@ -245,6 +247,8 @@ Sections 8-10 are append-only after this control plane is adopted. Correct an ea
 | D-020 | 2026-07-12 | Give generation-side benchmark commands no gold API and confine explicit gold access to post-lock scoring | Makes the P5 blinded boundary enforceable in command signatures and artifact validators rather than relying on operator convention |
 | D-021 | 2026-07-13 | Reserve temporary paths for disposable verification and require authoritative sessions to use durable storage | P7's sole temporary Git branch was purged; fail-closed path checks, an early remote checkpoint, and a verified private bundle prevent recurrence |
 | D-022 | 2026-07-13 | Reproduce P7 score artifacts under the lock's Python 3.12 runtime | Cross-version floating-point last-bit differences changed canonical bytes under Python 3.11 even though metric interpretations were unchanged; runtime parity is required for byte identity |
+| D-023 | 2026-07-13 | Bind the public narrative to committed evidence with an executable audit | A readable README can still drift; rendering all 13 model rows from the locked comparison and testing scope/provenance language makes public-claim review reproducible |
+| D-024 | 2026-07-13 | Publish the looped-transformer event as a rejection-to-reframe case, not a discovery claim | Direct primary sources invalidate the candidate's absence premise; preserving the rejected decision while proposing a controlled replication demonstrates the human gate honestly |
 
 ## 10. Completed-session ledger
 
@@ -263,19 +267,20 @@ Sections 8-10 are append-only after this control plane is adopted. Correct an ea
 | 2026-07-12 | P5-T1 definitive final closeout | Added canonical source, pair, packet, and citation contracts; bound their updated schema digest; and made rationale-only tracking fail closed except for the exact public selection log | `87874c013a498965906514368008cef9eba122f5` | 522 tests; both benchmark modes; 15 maintained checks; public-tree, hardening, compileall, wheel smoke, and seven Vigil gates pass | not pushed; user did not request push |
 | 2026-07-12 | P6-T1 | Added the isolated six-command benchmark workflow, deterministic canonical artifacts, complete frozen-metric scorer, provenance-first report, fictional end-to-end fixtures, and fail-closed pair, rank, metric, annotation, path, and commitment validation | `59b29935428cd9e48426c8c167d03e954bd5b716` | 589 tests; 71 focused P6/wheel tests; maintained CLI and benchmark checks; public-tree, hardening, compileall, three installed-wheel interpreters, and seven Vigil gates pass; no real benchmark result exists | not pushed; user did not request push |
 | 2026-07-13 | P7-T1 | Recovered and durably anchored the lost temporary branch; sealed seven gold-blind runs; incorporated Rafael's explicit review; published aggregate-only results and honest misses; added fail-closed temporary-worktree guards | `8480937dcf2d2f190ca7a962dd0bae8abca7b703` | 631 tests; 16 maintained checks; public/private benchmark and result privacy audits; byte-identical Python 3.12 reproduction; Python 3.10-3.12 wheel smoke; seven Vigil gates | pushed checkpoint branch; final closeout push follows this row |
+| 2026-07-13 | P8-T1 | Published a five-minute local workflow, all 13 exact model metrics with misses and undefined populations, an honest primary-source rejection/reframe case, and an executable claim-drift audit | `b4f6f1a2e388188afb10dd0d18e5c1990a647ec2` | 655 tests; 24 focused narrative tests; 17 maintained checks; clean isolated Python 3.12 demo; public/narrative/hardening/compile/diff checks; seven Vigil gates | not pushed; user did not request push |
 
 ## 11. Next-session handoff
 
-**Next task:** P8-T1 — Public README and rejection/reframe case study.
+**Next task:** P9-T1 — `v0.2.0`, GitHub metadata, website case study, and deployment.
 
-**Effort:** High + Ultra review.
+**Effort:** High + Ultra audit.
 
-**Why next:** P7 now supplies the bounded, reproducible evidence table. P8 can reorganize the public narrative around a five-minute workflow and the prior-art rejection/reframe case without inventing stronger scientific claims.
+**Why next:** P8 now supplies a runnable repository entry point, exact evidence table, and audited rejection case. P9 can release that verified tree and align the hosted repository and portfolio surfaces without inventing new performance claims.
 
-**First inspection:** read the aggregate P7 results, the existing README architecture path, and the looped-transformer rejection record; inventory every public claim that must be updated or removed before drafting.
+**First inspection:** verify the P8 branch's final committed SHA and clean-clone checks, inventory the single version source and package/release metadata, then locate the exact personal-site repository and deployed Cloudflare surface before changing any public endpoint.
 
-**Acceptance:** README leads with one runnable five-minute workflow, presents the exact bounded benchmark table and limitations, and shows candidate -> primary-source prior art -> rejection -> valid comparison/replication reframe without contradictory states.
+**Acceptance:** one-source `v0.2.0` wheel and sdist install independently; remote CI binds the exact release SHA; GitHub description, topics, badge, changelog, and release agree; the recruiter-facing site case and at most one resume bullet use only P8-audited claims; desktop/mobile links and production Cloudflare deployment verify.
 
-**Risk:** turning P7's high evidence-support and ranking metrics into broad scientific-validity claims would exceed the suite. Keep every number denominator-bearing, benchmark-scoped, and paired with the unverified provider-identity limitation.
+**Risk:** release and deployment are irreversible public mutations across repository and website surfaces. Require exact repository/site identity, clean artifact proofs, remote CI, production verification, and a final cross-surface claim scan before publication.
 
-**Inherited open gap:** P7 measures one 12-paper suite and does not establish external validity, novelty, or provider model identity. P8 must preserve those limits while making the engineering evidence legible.
+**Inherited open gap:** P8 is locally committed but not pushed or released. Its benchmark remains one 12-paper suite and does not establish external validity, novelty, or provider model identity; P9 must preserve those limits verbatim across every hosted surface.
