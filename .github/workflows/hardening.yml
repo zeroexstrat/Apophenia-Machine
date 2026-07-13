@@ -38,6 +38,9 @@ jobs:
         run: |
           python3 scripts/check_benchmark_protocol.py --benchmark-root benchmarks/operations-decision-support-v1 --repo-root .
 
+      - name: Verify public release contract
+        run: python3 scripts/check_release.py
+
       - name: Check CLI diagnostics
         run: python3 scripts/check_cli_diagnostics.py
 
@@ -56,7 +59,12 @@ jobs:
         run: |
           python3 scripts/check_negative_paths.py
 
-      - name: Verify installed wheel outside checkout
+      - name: Verify release artifacts outside checkout
         run: |
-          uv build --wheel --out-dir dist
-          python3 scripts/check_wheel_install.py --wheel 'dist/azoth-*.whl' --python '${{ matrix.python-version }}'
+          rm -rf dist
+          uv build --wheel --sdist --out-dir dist
+          python3 scripts/check_wheel_install.py \
+            --wheel 'dist/azoth-*.whl' \
+            --sdist 'dist/azoth-*.tar.gz' \
+            --expected-version 0.2.0 \
+            --python '${{ matrix.python-version }}'

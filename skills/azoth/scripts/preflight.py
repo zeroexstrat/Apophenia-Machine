@@ -26,7 +26,7 @@ import shutil
 import sys
 from pathlib import Path
 
-PINNED_INSTALL = "pip install 'git+https://github.com/zeroexstrat/Apophenia-Machine@v0.1.3'"
+PINNED_INSTALL = "pip install 'git+https://github.com/zeroexstrat/Apophenia-Machine@v0.2.0'"
 
 
 def _install_hint() -> str:

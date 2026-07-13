@@ -1,0 +1,103 @@
+{
+  "artifact_type": "azoth_release_evidence",
+  "benchmark": {
+    "benchmark_id": "operations-decision-support-v1",
+    "locked_comparison_sha256": "1593841bda8f7aff72b0128824faa48fd568b76651e39dcbd8b8db6d0126e84c",
+    "metric_records": 91,
+    "metrics": {
+      "candidate_recall": {
+        "denominator": 27,
+        "lower": 0.8754449702581328,
+        "numerator": 27,
+        "threshold_met": true,
+        "upper": 0.9999999999999998,
+        "value": 1.0
+      },
+      "claim_precision": {
+        "denominator": 66,
+        "lower": 0.8542709132143579,
+        "numerator": 62,
+        "threshold_met": true,
+        "upper": 0.9761813851676816,
+        "value": 0.9393939393939394
+      },
+      "macro_f1": {
+        "denominator": 66,
+        "lower": 0.3867630666808299,
+        "numerator": 33,
+        "threshold_met": false,
+        "upper": 0.6212488324286953,
+        "value": 0.5102638352638353
+      },
+      "reference_recall": {
+        "denominator": 27,
+        "lower": 0.8754449702581328,
+        "numerator": 27,
+        "threshold_met": true,
+        "upper": 0.9999999999999998,
+        "value": 1.0
+      },
+      "unsafe_ood_assignment": {
+        "denominator": 0,
+        "lower": null,
+        "numerator": 0,
+        "threshold_met": null,
+        "upper": null,
+        "value": null
+      },
+      "unsupported_derived_items": {
+        "denominator": 0,
+        "lower": null,
+        "numerator": 0,
+        "threshold_met": null,
+        "upper": null,
+        "value": null
+      },
+      "useful_items": {
+        "denominator": 66,
+        "lower": 0.39710591285717234,
+        "numerator": 34,
+        "threshold_met": false,
+        "upper": 0.6315303732939324,
+        "value": 0.5151515151515151
+      },
+      "workload_reduction": {
+        "denominator": 66,
+        "lower": 0.30303030303030304,
+        "numerator": 28,
+        "threshold_met": false,
+        "upper": 0.5303030303030303,
+        "value": 0.42424242424242425
+      }
+    },
+    "missed_targets": [
+      "macro_f1",
+      "workload_reduction",
+      "useful_items"
+    ],
+    "pairs": 66,
+    "papers": 12,
+    "runs": 7,
+    "undefined_metrics": [
+      "unsafe_ood_assignment",
+      "unsupported_derived_items"
+    ]
+  },
+  "limitations": {
+    "authority": "Validity and novelty remain human-reviewed.",
+    "provider": "5.6 Sol is the frozen backend label; provider model identity was not exposed and is not independently verified.",
+    "suite": "One frozen 12-paper, 66-pair operations-decision-support suite; no external-validity claim."
+  },
+  "python": [
+    "3.10",
+    "3.11",
+    "3.12"
+  ],
+  "schema_version": 1,
+  "urls": {
+    "case_study": "https://0xstrategies.com/case-studies/apophenia-machine.html",
+    "release": "https://github.com/zeroexstrat/Apophenia-Machine/releases/tag/v0.2.0",
+    "repository": "https://github.com/zeroexstrat/Apophenia-Machine"
+  },
+  "version": "0.2.0"
+}

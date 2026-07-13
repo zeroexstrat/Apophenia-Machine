@@ -1,5 +1,7 @@
 # Azoth — The Apophenia Machine
 
+[![hardening](https://github.com/zeroexstrat/Apophenia-Machine/actions/workflows/hardening.yml/badge.svg?branch=main)](https://github.com/zeroexstrat/Apophenia-Machine/actions/workflows/hardening.yml)
+
 Azoth is a local, human-gated research-operations pipeline. It converts technical documents into schema-validated evidence records, ranks paper pairs for assessment, stores substantive connection candidates, and organizes candidate gaps for review.
 
 Azoth does not establish scientific truth or novelty. Generated and imported research artifacts remain `pending_review` until a named human records a decision.
@@ -75,6 +77,12 @@ novelty claim.
 ## Installation
 
 Azoth supports Python 3.10 through 3.12.
+
+Stable Git release:
+
+```bash
+pip install 'git+https://github.com/zeroexstrat/Apophenia-Machine@v0.2.0'
+```
 
 Install a built wheel into an isolated environment, then initialize a user-owned workspace:
 

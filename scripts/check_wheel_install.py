@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Prove an Azoth wheel operates outside its source checkout."""
+"""Prove Azoth wheel and source artifacts operate outside the checkout."""
 
 from __future__ import annotations
 
@@ -11,6 +11,7 @@ import os
 import shutil
 import subprocess
 import sys
+import tarfile
 import tempfile
 import zipfile
 from pathlib import Path
@@ -49,18 +50,33 @@ class SmokeFailure(RuntimeError):
     """One installed-wheel acceptance check failed."""
 
 
-def resolve_wheel(pattern: str) -> Path:
+def resolve_artifact(pattern: str, *, label: str = "artifact") -> Path:
     matches = sorted(Path(path).resolve() for path in glob.glob(pattern))
     if len(matches) != 1:
         raise SmokeFailure(
-            f"Expected exactly one wheel for {pattern!r}; found {len(matches)}"
+            f"Expected exactly one {label} for {pattern!r}; found {len(matches)}"
         )
     return matches[0]
+
+
+def resolve_wheel(pattern: str) -> Path:
+    """Backward-compatible wheel-specific artifact resolver."""
+    return resolve_artifact(pattern, label="wheel")
 
 
 def inspect_wheel(wheel: Path) -> list[str]:
     with zipfile.ZipFile(wheel) as archive:
         names = set(archive.namelist())
+    return [name for name in REQUIRED_WHEEL_RESOURCES if name not in names]
+
+
+def inspect_sdist(sdist: Path) -> list[str]:
+    with tarfile.open(sdist, "r:gz") as archive:
+        names = {
+            name.split("/", 1)[1]
+            for name in archive.getnames()
+            if "/" in name
+        }
     return [name for name in REQUIRED_WHEEL_RESOURCES if name not in names]
 
 
@@ -114,16 +130,22 @@ def _pair_identifier(first: str, second: str) -> str:
 
 
 def run_version(
-    wheel: Path,
+    artifact: Path,
     python_version: str,
     *,
+    expected_version: str,
     keep_temp: bool = False,
 ) -> Path | None:
     uv = shutil.which("uv")
     if not uv:
-        raise SmokeFailure("uv is required for multi-interpreter wheel smoke checks")
+        raise SmokeFailure("uv is required for multi-interpreter artifact smoke checks")
 
-    temp_path = Path(tempfile.mkdtemp(prefix=f"azoth-wheel-py{python_version.replace('.', '')}-"))
+    kind = "wheel" if artifact.suffix == ".whl" else "sdist"
+    temp_path = Path(
+        tempfile.mkdtemp(
+            prefix=f"azoth-{kind}-py{python_version.replace('.', '')}-"
+        )
+    )
     env = _clean_environment()
     try:
         venv = temp_path / "venv"
@@ -134,7 +156,7 @@ def run_version(
         _run([uv, "venv", "--python", python_version, str(venv)], cwd=outside, env=env)
         python = _venv_python(venv)
         _run(
-            [uv, "pip", "install", "--python", str(python), str(wheel)],
+            [uv, "pip", "install", "--python", str(python), str(artifact)],
             cwd=outside,
             env=env,
         )
@@ -159,6 +181,22 @@ def run_version(
             raise SmokeFailure(f"Python {python_version} imported Azoth from checkout: {package_path}")
         if any(Path(item).is_relative_to(repo) for item in payload["path"]):
             raise SmokeFailure(f"Python {python_version} sys.path contains checkout: {payload['path']}")
+
+        version_probe = _run(
+            [
+                str(python),
+                "-c",
+                "import importlib.metadata; print(importlib.metadata.version('azoth'))",
+            ],
+            cwd=outside,
+            env=env,
+        )
+        installed_version = version_probe.stdout.strip()
+        if installed_version != expected_version:
+            raise SmokeFailure(
+                f"Python {python_version} installed version {installed_version!r}, "
+                f"expected {expected_version!r}"
+            )
 
         _run([str(python), "-m", "athanasor.cli", "init", str(workspace)], cwd=outside, env=env)
         document = workspace / "nigredo" / "inbox" / "wheel-smoke.txt"
@@ -599,7 +637,7 @@ def run_version(
         if not (workspace / "athanasor" / "lapis" / "memory.jsonl").is_file():
             raise SmokeFailure(f"Python {python_version} auto-checkpoint wrote no workspace memory")
 
-        print(f"[PASS] Python {python_version}: {workspace}")
+        print(f"[PASS] {artifact.name} on Python {python_version}: {workspace}")
         return temp_path if keep_temp else None
     finally:
         if not keep_temp:
@@ -609,6 +647,8 @@ def run_version(
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--wheel", required=True, help="Exact wheel path or a quoted glob matching one wheel")
+    parser.add_argument("--sdist", required=True, help="Exact sdist path or a quoted glob matching one source archive")
+    parser.add_argument("--expected-version", required=True, help="Installed distribution version required from both artifacts")
     parser.add_argument("--python", action="append", dest="versions", required=True, help="Python version; repeatable")
     parser.add_argument("--keep-temp", action="store_true", help="Retain isolated environments for inspection")
     return parser
@@ -617,21 +657,34 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     try:
-        wheel = resolve_wheel(args.wheel)
-        missing = inspect_wheel(wheel)
+        wheel = resolve_artifact(args.wheel, label="wheel")
+        sdist = resolve_artifact(args.sdist, label="sdist")
+        missing = inspect_wheel(wheel) + inspect_sdist(sdist)
         if missing:
-            raise SmokeFailure("Wheel is missing resources: " + ", ".join(missing))
-        retained = [
-            path
-            for version in args.versions
-            if (path := run_version(wheel, version, keep_temp=args.keep_temp)) is not None
-        ]
-    except (OSError, SmokeFailure, zipfile.BadZipFile) as exc:
+            raise SmokeFailure(
+                "Release artifact is missing resources: "
+                + ", ".join(sorted(set(missing)))
+            )
+        retained: list[Path] = []
+        for artifact in (wheel, sdist):
+            for version in args.versions:
+                path = run_version(
+                    artifact,
+                    version,
+                    expected_version=args.expected_version,
+                    keep_temp=args.keep_temp,
+                )
+                if path is not None:
+                    retained.append(path)
+    except (OSError, SmokeFailure, tarfile.TarError, zipfile.BadZipFile) as exc:
         print(f"[FAIL] {exc}", file=sys.stderr)
         return 1
     for path in retained:
         print(f"Retained: {path}")
-    print(f"Installed-wheel smoke passed for {len(args.versions)} interpreter(s).")
+    print(
+        "Installed-artifact smoke passed for "
+        f"{2 * len(args.versions)} artifact/interpreter pair(s)."
+    )
     return 0
 
 

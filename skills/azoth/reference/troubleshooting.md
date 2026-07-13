@@ -50,7 +50,7 @@ papers are skipped unless `--reprocess`).
 
 | Symptom | Cause / fix |
 |---------|-------------|
-| `azoth: command not found` | Not installed: `pip install 'git+https://github.com/zeroexstrat/Apophenia-Machine@v0.1.3'` |
+| `azoth: command not found` | Not installed: `pip install 'git+https://github.com/zeroexstrat/Apophenia-Machine@v0.2.0'` |
 | Preflight exit 4 | LLM unreachable — start the backend / sign in / fix base_url, or `--allow-no-llm`. |
 | `Hypothesis not found` on triage/review | Wrong `cluster_id`; list with `ls rubedo/hypotheses/`. |
 | PDFs all skipped | No PDF extractor — `pip install pymupdf` or install poppler (`pdftotext`). |

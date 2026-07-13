@@ -12,7 +12,7 @@ python3 skills/azoth/scripts/preflight.py --project-root <repo>
 
 - Exit 0 → READY. Exit 4 → LLM unreachable; fix it or pass `--allow-no-llm` for a
   deliberate heuristic pass (and tell the user the output is low-fidelity).
-- Exit 3 → azoth not installed: `pip install 'git+https://github.com/zeroexstrat/Apophenia-Machine@v0.1.3'`
+- Exit 3 → azoth not installed: `pip install 'git+https://github.com/zeroexstrat/Apophenia-Machine@v0.2.0'`
 
 ## 1. Ingest — papers into structured records
 
