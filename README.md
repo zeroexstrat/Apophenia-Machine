@@ -4,6 +4,33 @@ Azoth is a local, human-gated research-operations pipeline. It converts technica
 
 Azoth does not establish scientific truth or novelty. Generated and imported research artifacts remain `pending_review` until a named human records a decision.
 
+## Five-minute demo
+
+This local demo initializes a workspace, ingests one newly authored fictional text
+record without a model, shows the resulting state, and runs the structural gates.
+
+```bash
+git clone https://github.com/zeroexstrat/Apophenia-Machine.git
+cd Apophenia-Machine
+python3.12 -m venv .venv
+source .venv/bin/activate
+pip install -e .
+azoth init .demo-workspace
+cp examples/five-minute-demo/queueing-note.txt .demo-workspace/nigredo/inbox/
+cd .demo-workspace
+azoth ingest nigredo/inbox/queueing-note.txt \
+  --domain-override mathematics \
+  --no-llm
+azoth status
+python -m athanasor.vigil.verify verify
+```
+
+The demo proves local workspace initialization, text ingestion, fallback evidence
+extraction, registry persistence, status reporting, and structural-gate execution.
+It does not demonstrate model generation, ranking quality, substantive connection
+validity, novelty, or benchmark performance. The input labels itself
+`FICTIONAL DEMO INPUT — NOT RESEARCH EVIDENCE`.
+
 ## Public product boundary
 
 The Git repository contains code, schemas, tests, documentation, and explicitly fictional examples. It does not contain a research corpus or generated runtime results.
@@ -18,6 +45,32 @@ Normal runs create ignored workspace data:
 - `athanasor/vigil/reports/` — generated gate reports
 
 The examples under `examples/` are synthetic documentation, not system-performance evidence.
+
+## Engineering decisions
+
+- **Immutable package, mutable workspace.** Schemas, default configuration, and gate
+  definitions ship as package resources; user records and review state stay in an
+  initialized workspace rather than `site-packages`.
+- **Retrieval is not assessment.** Deterministic no-model pairing emits retrieval
+  candidates only. A substantive connection requires a model-backed assessment or a
+  schema-valid agent import and still remains `pending_review`.
+- **Fail closed at boundaries.** Multi-record imports validate completely before
+  writing, benchmark generation cannot access gold, and scoring requires an explicit
+  lock-bound external gold path.
+- **Make rejection durable.** Human rejection records the reviewed evidence
+  fingerprint before closing the candidate, preventing the same packet from silently
+  returning as pending.
+- **Prove installed behavior.** The maintained wheel smoke test initializes and runs
+  Azoth outside the checkout on Python 3.10, 3.11, and 3.12.
+
+## Rejection as an output
+
+The [looped-transformer prior-art case](docs/case-studies/looped-transformer-prior-art.md)
+shows the authority boundary end to end: Azoth stored a plausible spectral-stability
+gap as a candidate, primary sources contradicted its novelty premise, the human
+decision was `rejected`, and the useful remainder became a proposed controlled
+comparison and replication. The comparison was not run, and the reframe carries no
+novelty claim.
 
 ## Installation
 
@@ -160,45 +213,50 @@ Valid decisions are `accepted`, `rejected`, and `needs_prior_art`. Rejection wri
 
 [`examples/synthetic-agent-input/`](examples/synthetic-agent-input/README.md) contains fictional JSON packets for the two agent-import paths. The packets reference three fictional records and require a matching runtime registry and library. They are intended to show the contract shape only.
 
-## Frozen evaluation protocol
+## Measured evaluation
 
-[`benchmarks/operations-decision-support-v1/`](benchmarks/operations-decision-support-v1/README.md)
-freezes the P5 evaluation protocol before benchmark tooling or runs. It binds 12
-exact-version papers at a 4/4/4 balance across prescriptive operations,
-ML/data-science planning, and human/organizational decision-making, yielding 66
-canonical unordered pairs. Source records are fetch-only; third-party source
-bytes are not distributed in Git.
+The locked evaluation covers one frozen 12-paper, 66-pair operations-decision-
+support suite. The 4/4/4 source balance spans prescriptive operations,
+ML/data-science planning, and human/organizational decision-making. Rafael is the
+final label authority; generation was sealed before gold access, and the metrics
+were published without retuning after threshold misses.
 
-Rafael is the final label authority. The reconciled gold packet remains private
-until locked P7 outputs exist, while `freeze-manifest.json` commits to it by
-canonical SHA-256 without publishing labels, rationales, evidence, filenames, or
-private paths. The same manifest binds the complete generation-visible schema,
-whose validator rejects private packet topology and unknown nested fields. The
-rubric, prompt, 13 metric contracts, thresholds, uncertainty rules, and
-`no_retuning` boundary are public.
+The complete seven-run, 91-metric report and provenance digests are in
+[`benchmarks/operations-decision-support-v1/results/`](benchmarks/operations-decision-support-v1/results/README.md).
+The table below reproduces every frozen metric for the declared `5.6 Sol` run
+directly from `locked-comparison.json`.
 
-The six fictional sources under the benchmark's `synthetic/` directory prove
-protocol and audit behavior only. They are not transformed real sources, do not
-contain real labels, and provide no system-performance result. P6 implements
-the isolated `azoth benchmark` CLI, deterministic fallback/import runner,
-13-metric scorer, provenance-first report, and fictional failure-path fixtures.
-P6 publishes no benchmark performance result. P7 performs the locked runs and
-publishes results whether or not preregistered targets are met.
+| Metric | Value | Numerator / denominator | 95% interval | Threshold |
+|---|---:|---:|---|---|
+| `macro_f1` | 0.5103 | 33 / 66 | 0.3868–0.6212 | not met |
+| `unsafe_ood_assignment` | undefined | 0 / 0 | undefined–undefined | undefined |
+| `claim_precision` | 0.9394 | 62 / 66 | 0.8543–0.9762 | met |
+| `reference_recall` | 1.0000 | 27 / 27 | 0.8754–1.0000 | met |
+| `candidate_recall` | 1.0000 | 27 / 27 | 0.8754–1.0000 | met |
+| `workload_reduction` | 0.4242 | 28 / 66 | 0.3030–0.5303 | not met |
+| `precision_at_5` | 0.7667 | 46 / 60 | 0.6833–0.8504 | met |
+| `ndcg_at_10` | 0.9133 | 161.2897 / 176.5038 | 0.8752–0.9472 | met |
+| `evidence_support` | 1.0000 | 132 / 132 | 0.9717–1.0000 | met |
+| `supported_items` | 0.9394 | 62 / 66 | 0.8543–0.9762 | met |
+| `useful_items` | 0.5152 | 34 / 66 | 0.3971–0.6315 | not met |
+| `redundancy` | 0.0000 | 0 / 66 | 0.0000–0.0550 | met |
+| `unsupported_derived_items` | undefined | 0 / 0 | undefined–undefined | undefined |
 
-P7's public `execution-manifest.yaml` freezes the six deterministic baselines,
-model-response adapter, seed, lock order, and provenance limits before real
-execution. The installed CLI exposes `azoth benchmark baseline`, `azoth
-benchmark adapt`, `azoth benchmark lock`, `azoth benchmark annotations`, and
-`azoth benchmark compare`; real P7 scores require the exact sealed lock and
-execution manifest. The locked P7 evaluation is published in
-[`results/`](benchmarks/operations-decision-support-v1/results/README.md) as
-aggregate-only JSON and Markdown. On this bounded 12-paper suite, the declared
-5.6 Sol run reached macro-F1 `0.5103`, claim precision `0.9394`, precision@5
-`0.7667`, nDCG@10 `0.9133`, supported items `0.9394`, and useful items
-`0.5152`. It missed the preregistered macro-F1, workload-reduction, and
-usefulness thresholds; OOD safety and unsupported-derived rates were undefined
-because no eligible cases were emitted. The backend label is frozen, but the
-provider model identity was not exposed and is not independently verified.
+The model run met claim precision, both recall measures, ranking, evidence-support,
+supported-item, and redundancy targets. It missed macro-F1, workload reduction,
+and usefulness. OOD safety and unsupported-derived rates are undefined rather than
+zero because their eligible denominators were zero.
+
+These are suite-scoped decision-support measurements, not external-validity or
+scientific-validity results. Validity and novelty remain human-reviewed. `5.6 Sol`
+is the frozen backend label; the provider model identity was not exposed and is not
+independently verified.
+
+The public benchmark bundle freezes exact source identities, prompt, blinded schema,
+rubric, 13 metrics, thresholds, uncertainty rules, lock order, and the `no_retuning`
+boundary. Third-party source bytes, gold labels, rationales, pair-level failures, and
+raw runs are not distributed in Git. Six fictional benchmark records test contracts
+only and are not performance evidence.
 
 ## Vigil gates
 
@@ -258,8 +316,9 @@ The CLI entrypoint is `athanasor/cli.py`; phase implementations live under `atha
 - Declared citation visibility is not literature-wide novelty checking.
 - Pair retrieval quality depends on tags and available embeddings.
 - Human review is required for scientific usefulness, validity, and promotion.
-- P5 freezes an evaluation contract; it publishes no benchmark performance
-  result. Synthetic examples are contract tests only.
+- The P7 benchmark measures one 12-paper suite; it does not establish external
+  validity, literature-wide novelty, or provider model identity.
+- Synthetic examples and the five-minute demo are contract tests only.
 
 ## License
 

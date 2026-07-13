@@ -1,0 +1,18 @@
+# Priority Aging in a Toy Service Queue
+
+FICTIONAL DEMO INPUT — NOT RESEARCH EVIDENCE
+
+Abstract
+This fictional note describes a toy single-server queue in which waiting jobs gain
+one priority point per time step. It exists only to exercise Azoth's local ingestion
+and evidence-record contracts.
+
+Method
+At each service decision, rank waiting jobs by base priority plus elapsed waiting
+time. Break ties by arrival order. Compare the rule with first-in, first-out service
+on a hand-authored sequence of six fictional jobs.
+
+Conclusion
+For the hand-authored sequence, priority aging prevents the lowest-base-priority job
+from waiting indefinitely. This toy observation is not a general queueing result and
+does not support a performance claim.

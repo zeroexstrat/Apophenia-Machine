@@ -254,7 +254,7 @@ Expected: all focused tests pass and the CLI prints `Public narrative audit: PAS
 
 - [ ] **Step 1: Run the exact demo from a clean tracked copy**
 
-Create a temporary directory with `git archive HEAD`, overlay the uncommitted P8 files, create a Python 3.12 virtual environment, install editable, run the README demo commands without model/network use after installation, and assert:
+Create a temporary directory with `git archive HEAD`, overlay the uncommitted P8 files, create the virtual environment with `python3.12 -m venv`, install editable, run the README demo commands without model/network use after installation, and assert:
 
 ```bash
 test "$(wc -l < .demo-workspace/albedo/registry.jsonl)" -eq 1

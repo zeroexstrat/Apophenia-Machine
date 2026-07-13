@@ -208,4 +208,6 @@ def test_public_docs_show_isolated_flow_and_non_claim_boundary() -> None:
     for command in COMMANDS:
         assert f"azoth benchmark {command}" in benchmark_readme
     assert SYNTHETIC_NOTICE in benchmark_readme
-    assert "P6 publishes no benchmark performance result" in root_readme
+    assert "The locked evaluation covers one frozen 12-paper, 66-pair" in root_readme
+    assert "Validity and novelty remain human-reviewed" in root_readme
+    assert "the provider model identity was not exposed" in root_readme

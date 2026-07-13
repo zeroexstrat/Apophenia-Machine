@@ -41,13 +41,13 @@ Create `examples/five-minute-demo/queueing-note.txt` as a newly authored fiction
 ```bash
 git clone https://github.com/zeroexstrat/Apophenia-Machine.git
 cd Apophenia-Machine
-python3 -m venv .venv
+python3.12 -m venv .venv
 source .venv/bin/activate
 pip install -e .
 azoth init .demo-workspace
 cp examples/five-minute-demo/queueing-note.txt .demo-workspace/nigredo/inbox/
 cd .demo-workspace
-azoth ingest nigredo/inbox/queueing-note.txt --domain-override operations_research --no-llm
+azoth ingest nigredo/inbox/queueing-note.txt --domain-override mathematics --no-llm
 azoth status
 python -m athanasor.vigil.verify verify
 ```
